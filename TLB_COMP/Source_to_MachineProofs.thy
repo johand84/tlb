@@ -9,4 +9,13 @@ fun
 where
   "fetch_decode s = (let (m,s') = Fetch s in Decode m s')"
 
+fun
+  code_installed :: "'a::mmu state_scheme \<Rightarrow> instruction list \<Rightarrow>  bool"
+where
+  "code_installed s [] = True" |
+  "code_installed s (i#is) = (
+    let (j,s') = fetch_decode s
+    in i=j \<and> code_installed s' is
+  )"
+
 end
