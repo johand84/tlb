@@ -46,4 +46,12 @@ fun
 where
   "comp_bcomp Less = cmp_reg 0 1 # movlt_imm 0 1 @ movge_imm 0 0"
 
+fun
+  comp_bexp :: "bexp \<Rightarrow> instruction list"
+where
+  "comp_bexp (BConst v) = [mov_imm 0 (if v then 1 else 0)]" |
+  "comp_bexp (BUnOp op b) = comp_bexp b @ comp_bunop op" |
+  "comp_bexp (BBinOp op b1 b2) = comp_bexp b2 @ push 0 # comp_bexp b1 @ pop 1 # comp_bbinop op" |
+  "comp_bexp (BComp op a1 a2) = comp_aexp a2 @ push 0 # comp_aexp a1 @ pop 1 # comp_bcomp op"
+
 end
