@@ -18,4 +18,16 @@ where
   "comp_abinop Plus = [add_reg 0 0 1]" |
   "comp_abinop Minus = [sub_reg 0 0 1]"
 
+fun
+  comp_aexp :: "aexp \<Rightarrow> instruction list"
+where
+  "comp_aexp (Const v) = (
+    if v < 0x1000
+    then [mov_imm 0 (ucast v)]
+    else [b_imm 0, Undefined v, ldr_lit False 0 12]
+  )" |
+  "comp_aexp (UnOp op a) = comp_aexp a @ comp_aunop op" |
+  "comp_aexp (BinOp op a1 a2) = comp_aexp a2 @ push 0 # comp_aexp a1 @ pop 1 # comp_abinop op" |
+  "comp_aexp (HeapLookup a) = comp_aexp a @ [ldr_imm False False False 0 0 0]"
+
 end
