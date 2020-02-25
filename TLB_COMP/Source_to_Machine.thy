@@ -5,4 +5,10 @@ imports TLB_COMP.Logic
 
 
 begin
+
+fun
+  comp_com :: "com \<Rightarrow> MachineCode list"
+where
+  "comp_com SKIP = []"
+
 end
