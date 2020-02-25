@@ -14,11 +14,14 @@ datatype aexp = Const val
               | HeapLookup aexp
 
 
+datatype bcomp = Less
+datatype bunop = Not
+datatype bbinop = And | Or
 
 datatype bexp = BConst bool
-              | BComp "(val \<Rightarrow> val \<Rightarrow> bool)" aexp aexp
-              | BBinOp "(bool \<Rightarrow> bool \<Rightarrow> bool)" bexp bexp
-              | BNot bexp
+              | BComp bcomp aexp aexp
+              | BBinOp bbinop bexp bexp
+              | BUnOp bunop bexp
 
 
 
@@ -53,21 +56,29 @@ fun aval :: "aexp \<Rightarrow> p_state  \<rightharpoonup> val" ( "\<lbrakk>_\<r
   "aval (HeapLookup vp) s =
          (case (aval vp s) of None \<Rightarrow> None | Some v \<Rightarrow> mem_read_hp' (incon_set s) (heap s) (root s) (mode s) (Addr v))"
 
+fun bcompval :: "bcomp \<Rightarrow> val \<Rightarrow> val \<Rightarrow> bool" where
+"bcompval Less v1 v2 = False"
 
 
+fun bunopval :: "bunop \<Rightarrow> bool \<Rightarrow> bool" where
+"bunopval Not v = (\<not>v)"
+
+fun bbinopval :: "bbinop \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool" where
+"bbinopval And v1 v2 = (v1 \<and> v2)" |
+"bbinopval Or v1 v2 = (v1 \<or> v2)"
 
 fun bval :: "bexp \<Rightarrow> p_state \<rightharpoonup> bool"  ( "\<lbrakk>_\<rbrakk>\<^sub>b _" [100, 61] 61)
  where
   "bval (BConst b) s = Some b"
 |
-  "bval (BComp f e1 e2) s =
-    (case (aval e1 s , aval e2 s) of (Some v1, Some v2) \<Rightarrow> Some (f v1 v2) | _ \<Rightarrow> None )"
+  "bval (BComp op e1 e2) s =
+    (case (aval e1 s , aval e2 s) of (Some v1, Some v2) \<Rightarrow> Some (bcompval op v1 v2) | _ \<Rightarrow> None )"
 |
-  "bval (BBinOp f b1 b2) s =
-    (case (bval b1 s , bval b2 s) of (Some v1, Some v2) \<Rightarrow> Some (f v1 v2) | _ \<Rightarrow> None )"
+  "bval (BBinOp op b1 b2) s =
+    (case (bval b1 s , bval b2 s) of (Some v1, Some v2) \<Rightarrow> Some (bbinopval op v1 v2) | _ \<Rightarrow> None )"
 |
-"bval (BNot b) s =
-    (case (bval b s) of Some v \<Rightarrow> Some (\<not>v) | _ \<Rightarrow> None )"
+"bval (BUnOp op b) s =
+    (case (bval b s) of Some v \<Rightarrow> Some (bunopval op v) | _ \<Rightarrow> None )"
 
 
 
