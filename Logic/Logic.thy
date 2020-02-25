@@ -5,9 +5,12 @@ imports MMU_Prg_Logic
 
 begin
 
+datatype aunop = Neg
+datatype abinop = Plus | Minus
+
 datatype aexp = Const val
-              | UnOp "(val \<Rightarrow> val)" aexp
-              | BinOp "(val \<Rightarrow> val \<Rightarrow> val)" aexp aexp
+              | UnOp aunop aexp
+              | BinOp abinop aexp aexp
               | HeapLookup aexp
 
 
@@ -31,15 +34,21 @@ datatype com =  SKIP
              |  SetMode mode_t
 
 
+fun aunopval :: "aunop \<Rightarrow> val \<Rightarrow> val" where
+"aunopval Neg v = (-v)"
+
+fun abinopval :: "abinop \<Rightarrow> val \<Rightarrow> val \<Rightarrow> val" where
+"abinopval Plus v1 v2 = (v1 + v2)" |
+"abinopval Minus v1 v2 = (v1 - v2)"
 
 fun aval :: "aexp \<Rightarrow> p_state  \<rightharpoonup> val" ( "\<lbrakk>_\<rbrakk> _" [100, 61] 61) where
   "aval (Const c) s = Some c"
 |
-  "aval (UnOp f e) s =
-         (case (aval e s) of Some v \<Rightarrow> Some (f v) | None \<Rightarrow> None )"
+  "aval (UnOp op e) s =
+         (case (aval e s) of Some v \<Rightarrow> Some (aunopval op v) | None \<Rightarrow> None )"
 |
-  "aval (BinOp f e1 e2) s =
-         (case (aval e1 s , aval e2 s) of (Some v1, Some v2) \<Rightarrow> Some (f v1 v2) | _ \<Rightarrow> None )"
+  "aval (BinOp op e1 e2) s =
+         (case (aval e1 s , aval e2 s) of (Some v1, Some v2) \<Rightarrow> Some (abinopval op v1 v2) | _ \<Rightarrow> None )"
 |
   "aval (HeapLookup vp) s =
          (case (aval vp s) of None \<Rightarrow> None | Some v \<Rightarrow> mem_read_hp' (incon_set s) (heap s) (root s) (mode s) (Addr v))"
