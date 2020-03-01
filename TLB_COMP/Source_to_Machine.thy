@@ -41,4 +41,9 @@ where
   "comp_bbinop And = [and_reg 0 0 1]" |
   "comp_bbinop Or = [or_reg 0 0 1]"
 
+fun
+  comp_bcomp :: "bcomp \<Rightarrow> instruction list"
+where
+  "comp_bcomp Less = cmp_reg 0 1 # movlt_imm 0 1 @ movge_imm 0 0"
+
 end
