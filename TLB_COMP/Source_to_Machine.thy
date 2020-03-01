@@ -30,4 +30,9 @@ where
   "comp_aexp (BinOp op a1 a2) = comp_aexp a2 @ push 0 # comp_aexp a1 @ pop 1 # comp_abinop op" |
   "comp_aexp (HeapLookup a) = comp_aexp a @ [ldr_imm False False False 0 0 0]"
 
+fun
+  comp_bunop :: "bunop \<Rightarrow> instruction list"
+where
+  "comp_bunop Not = cmp_imm 0 0 # moveq_imm 0 1 @ movne_imm 0 0"
+
 end
