@@ -35,4 +35,10 @@ fun
 where
   "comp_bunop Not = cmp_imm 0 0 # moveq_imm 0 1 @ movne_imm 0 0"
 
+fun
+  comp_bbinop :: "bbinop \<Rightarrow> instruction list"
+where
+  "comp_bbinop And = [and_reg 0 0 1]" |
+  "comp_bbinop Or = [or_reg 0 0 1]"
+
 end
