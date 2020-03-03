@@ -54,4 +54,11 @@ where
   "comp_bexp (BBinOp op b1 b2) = comp_bexp b2 @ push 0 # comp_bexp b1 @ pop 1 # comp_bbinop op" |
   "comp_bexp (BComp op a1 a2) = comp_aexp a2 @ push 0 # comp_aexp a1 @ pop 1 # comp_bcomp op"
 
+fun code_size ::
+  "instruction list \<Rightarrow> 32 word"
+where
+  "code_size [] = 0" |
+  "code_size ((IfThen _) # is) = code_size is" |
+  "code_size (i#is) = code_size is + 4"
+
 end
