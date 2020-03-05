@@ -4,16 +4,16 @@ theory ARM_MnemonicProofs
 begin
 
 fun
-  memory_related :: "(paddr \<rightharpoonup> byte) \<Rightarrow> (paddr \<rightharpoonup> byte) \<Rightarrow> bool"
+  arm_memory_related :: "(paddr \<rightharpoonup> byte) \<Rightarrow> (paddr \<rightharpoonup> byte) \<Rightarrow> bool"
 where
-  "memory_related m m' = (
+  "arm_memory_related m m' = (
     \<forall>x. m x = m' x
   )"
 
 fun
-  register_related :: "(RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> RName \<Rightarrow> bool"
+  arm_register_related :: "(RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> RName \<Rightarrow> bool"
 where
-  "register_related rs rs' rf r = (
+  "arm_register_related rs rs' rf r = (
     let y = rs' r
     in (
       case rf r of Some x \<Rightarrow> x = y |
@@ -22,63 +22,103 @@ where
   )"
 
 fun
-  registers_related :: "(RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> bool"
+  arm_registers_related :: "(RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> bool"
 where
-  "registers_related rs rs' rf = (
-    register_related rs rs' rf RName_0usr \<and>
-    register_related rs rs' rf RName_1usr \<and>
-    register_related rs rs' rf RName_2usr \<and>
-    register_related rs rs' rf RName_3usr \<and>
-    register_related rs rs' rf RName_4usr \<and>
-    register_related rs rs' rf RName_5usr \<and>
-    register_related rs rs' rf RName_6usr \<and>
-    register_related rs rs' rf RName_7usr \<and>
-    register_related rs rs' rf RName_8usr \<and>
-    register_related rs rs' rf RName_9usr \<and>
-    register_related rs rs' rf RName_10usr \<and>
-    register_related rs rs' rf RName_11usr \<and>
-    register_related rs rs' rf RName_12usr \<and>
-    register_related rs rs' rf RName_SPusr \<and>
-    register_related rs rs' rf RName_LRusr
+  "arm_registers_related rs rs' rf = (
+    arm_register_related rs rs' rf RName_0usr \<and>
+    arm_register_related rs rs' rf RName_1usr \<and>
+    arm_register_related rs rs' rf RName_2usr \<and>
+    arm_register_related rs rs' rf RName_3usr \<and>
+    arm_register_related rs rs' rf RName_4usr \<and>
+    arm_register_related rs rs' rf RName_5usr \<and>
+    arm_register_related rs rs' rf RName_6usr \<and>
+    arm_register_related rs rs' rf RName_7usr \<and>
+    arm_register_related rs rs' rf RName_8usr \<and>
+    arm_register_related rs rs' rf RName_9usr \<and>
+    arm_register_related rs rs' rf RName_10usr \<and>
+    arm_register_related rs rs' rf RName_11usr \<and>
+    arm_register_related rs rs' rf RName_12usr \<and>
+    arm_register_related rs rs' rf RName_SPusr \<and>
+    arm_register_related rs rs' rf RName_LRusr
   )"
 
 fun
-  state_related :: "'a state_scheme \<Rightarrow> 'a state_scheme \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> bool"
+  arm_state_related :: "'a state_scheme \<Rightarrow> 'a state_scheme \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> bool"
 where
-  "state_related s s' rf = (
-    memory_related (MEM s) (MEM s') \<and>
-    registers_related (REG s) (REG s') rf
+  "arm_state_related s s' rf = (
+    arm_memory_related (MEM s) (MEM s') \<and>
+    arm_registers_related (REG s) (REG s') rf
   )"
 
 lemma "\<lbrakk>
     Encoding s = Encoding_ARM;
     Extensions s = {};
-    snd (Run (mov_imm 0 0) s) = s'
-  \<rbrakk> \<Longrightarrow> state_related s s' (\<lambda>x. (if x = RName_0usr then Some 0 else None))
+    snd (Run (add_reg 0 0 1) s) = s';
+    ((REG s) RName_0usr) = 0;
+    ((REG s) RName_1usr) = 1
+  \<rbrakk> \<Longrightarrow> arm_state_related s s' (\<lambda>x. (if x = RName_0usr then Some 1 else None))
 "
   apply (
-    simp add:
-      Run_def
-      dfn'ArithLogicImmediate_def
-      DataProcessing_def
-      DataProcessingALU_def
-      ExpandImm_C_def
-      ARMExpandImm_C_def
-      Shift_C_def
-      snd_def
-      word_extract_def
-      word_bits_def
-      mask_def
-      write'R_def
-      write'Rmode_def
-      IsSecure_def
-      HaveSecurityExt_def
-      LookUpRName_def
-      IncPC_def
-      ThisInstrLength_def
-      BranchTo_def
+    clarsimp
+      simp:
+        AddWithCarry_def
+        BranchTo_def
+        DataProcessing_def
+        DataProcessingALU_def
+        HaveSecurityExt_def
+        IncPC_def
+        IsSecure_def
+        LookUpRName_def
+        R_def
+        Rmode_def
+        Run_def
+        Shift_C_def
+        ThisInstrLength_def
+        dfn'Register_def
+        doRegister_def
+        mask_def
+        snd_def
+        word_bits_def
+        word_extract_def
+        write'R_def
+        write'Rmode_def
+      split:
+        option.splits
   )
-  apply (auto)
+  done
+
+lemma "\<lbrakk>
+    Encoding s = Encoding_ARM;
+    Extensions s = {};
+    snd (Run (mov_imm 0 0) s) = s'
+  \<rbrakk> \<Longrightarrow> arm_state_related s s' (\<lambda>x. (if x = RName_0usr then Some 0 else None))
+"
+  apply (
+    clarsimp
+      simp:
+        ARMExpandImm_C_def
+        BranchTo_def
+        DataProcessing_def
+        DataProcessingALU_def
+        ExpandImm_C_def
+        HaveSecurityExt_def
+        IncPC_def
+        IsSecure_def
+        LookUpRName_def
+        Run_def
+        Shift_C_def
+        ThisInstrLength_def
+        dfn'ArithLogicImmediate_def
+        mask_def
+        snd_def
+        ucast_def
+        word_extract_def
+        word_bits_def
+        write'R_def
+        write'Rmode_def
+      split:
+        option.splits
+  )
   done
 
 end
