@@ -41,4 +41,12 @@ where
   "steps s 0 = s" |
   "steps s i = steps (snd (Next s)) (i-1)"
 
+theorem "\<lbrakk>
+  code_installed s (comp_com p);
+  state_related s t;
+  (p,t) \<Rightarrow> (Some t')
+\<rbrakk> \<Longrightarrow> (
+  \<exists>i. steps s i = s' \<and> state_related s' t'
+)"
+  sorry
 end
