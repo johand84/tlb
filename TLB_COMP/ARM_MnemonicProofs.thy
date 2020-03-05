@@ -21,6 +21,27 @@ where
     )
   )"
 
+fun
+  registers_related :: "(RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> bool"
+where
+  "registers_related rs rs' rf = (
+    register_related rs rs' rf RName_0usr \<and>
+    register_related rs rs' rf RName_1usr \<and>
+    register_related rs rs' rf RName_2usr \<and>
+    register_related rs rs' rf RName_3usr \<and>
+    register_related rs rs' rf RName_4usr \<and>
+    register_related rs rs' rf RName_5usr \<and>
+    register_related rs rs' rf RName_6usr \<and>
+    register_related rs rs' rf RName_7usr \<and>
+    register_related rs rs' rf RName_8usr \<and>
+    register_related rs rs' rf RName_9usr \<and>
+    register_related rs rs' rf RName_10usr \<and>
+    register_related rs rs' rf RName_11usr \<and>
+    register_related rs rs' rf RName_12usr \<and>
+    register_related rs rs' rf RName_SPusr \<and>
+    register_related rs rs' rf RName_LRusr
+  )"
+
 lemma "\<lbrakk>
     Encoding s = Encoding_ARM;
     Extensions s = {}
