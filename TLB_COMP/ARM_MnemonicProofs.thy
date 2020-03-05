@@ -42,6 +42,14 @@ where
     register_related rs rs' rf RName_LRusr
   )"
 
+fun
+  state_related :: "'a state_scheme \<Rightarrow> 'a state_scheme \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> bool"
+where
+  "state_related s s' rf = (
+    memory_related (MEM s) (MEM s') \<and>
+    registers_related (REG s) (REG s') rf
+  )"
+
 lemma "\<lbrakk>
     Encoding s = Encoding_ARM;
     Extensions s = {}
