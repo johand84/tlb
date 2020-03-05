@@ -1,6 +1,6 @@
 theory ARM_MnemonicProofs
   imports ARM_Mnemonic
-          TLB_COMP.MMU_Instants_TLB_PDC
+          MMU_DEFS.MMU_Instants_TLB_PDC
 begin
 
 lemma "\<lbrakk>
