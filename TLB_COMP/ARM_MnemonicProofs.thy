@@ -52,27 +52,33 @@ where
 
 lemma "\<lbrakk>
     Encoding s = Encoding_ARM;
-    Extensions s = {}
-  \<rbrakk> \<Longrightarrow> ((REG (snd (Run (mov_imm 0 0) s))) RName_0usr) = 0
+    Extensions s = {};
+    snd (Run (mov_imm 0 0) s) = s'
+  \<rbrakk> \<Longrightarrow> state_related s s' (\<lambda>x. (if x = RName_0usr then Some 0 else None))
 "
-  apply (simp add: Run_def)
-  apply (simp add: dfn'ArithLogicImmediate_def)
-  apply (simp add: DataProcessing_def)
-  apply (simp add: DataProcessingALU_def)
-  apply (simp add: ExpandImm_C_def)
-  apply (simp add: ARMExpandImm_C_def)
-  apply (simp add: Shift_C_def)
-  apply (simp add: write'R_def)
-  apply (simp add: write'Rmode_def)
-  apply (simp add: IsSecure_def)
-  apply (simp add: HaveSecurityExt_def)
-  apply (simp add: LookUpRName_def)
-  apply (simp add: IncPC_def)
-  apply (simp add: ThisInstrLength_def)
-  apply (simp add: BranchTo_def)
-  apply (simp add: L3_Lib.word_extract_def)
-  apply (simp add: L3_Lib.word_bits_def)
-  apply (simp add: mask_def)
+  apply (
+    simp add:
+      Run_def
+      dfn'ArithLogicImmediate_def
+      DataProcessing_def
+      DataProcessingALU_def
+      ExpandImm_C_def
+      ARMExpandImm_C_def
+      Shift_C_def
+      snd_def
+      word_extract_def
+      word_bits_def
+      mask_def
+      write'R_def
+      write'Rmode_def
+      IsSecure_def
+      HaveSecurityExt_def
+      LookUpRName_def
+      IncPC_def
+      ThisInstrLength_def
+      BranchTo_def
+  )
+  apply (auto)
   done
 
 end
