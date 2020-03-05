@@ -3,6 +3,13 @@ theory ARM_MnemonicProofs
           MMU_DEFS.MMU_Instants_TLB_PDC
 begin
 
+fun
+  memory_related :: "(paddr \<rightharpoonup> byte) \<Rightarrow> (paddr \<rightharpoonup> byte) \<Rightarrow> bool"
+where
+  "memory_related m m' = (
+    \<forall>x. m x = m' x
+  )"
+
 lemma "\<lbrakk>
     Encoding s = Encoding_ARM;
     Extensions s = {}
