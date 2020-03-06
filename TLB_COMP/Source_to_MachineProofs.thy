@@ -25,4 +25,14 @@ where
     \<forall>x. m x = m' x
   )"
 
+(* TODO Change the lambda into something returning bytes *)
+fun
+  state_related :: "'a::mmu state_scheme \<Rightarrow> p_state \<Rightarrow> bool"
+where
+  "state_related s t = memory_related (MEM s) (
+    \<lambda>x. do {
+      Some 0
+    }
+  )"
+
 end
