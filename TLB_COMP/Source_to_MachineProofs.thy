@@ -35,4 +35,10 @@ where
     }
   )"
 
+fun
+  steps :: "'a::mmu state_scheme \<Rightarrow> nat \<Rightarrow> 'a::mmu state_scheme"
+where
+  "steps s 0 = s" |
+  "steps s i = steps (snd (Next s)) (i-1)"
+
 end
