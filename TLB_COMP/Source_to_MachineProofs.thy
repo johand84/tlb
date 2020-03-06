@@ -18,4 +18,11 @@ where
     in i=j \<and> code_installed s' is
   )"
 
+fun
+  memory_related :: "(paddr \<rightharpoonup> byte) \<Rightarrow> (paddr \<rightharpoonup> byte) \<Rightarrow> bool"
+where
+  "memory_related m m' = (
+    \<forall>x. m x = m' x
+  )"
+
 end
