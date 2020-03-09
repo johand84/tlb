@@ -11,6 +11,14 @@ where
   )"
 
 definition
+  arm_pc_related :: "32 word \<Rightarrow> 32 word \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> bool"
+where
+  "arm_pc_related pc pc' rf = (
+    case rf RName_PC of Some x \<Rightarrow> x = pc' |
+                        None \<Rightarrow> (pc+4) = pc'
+  )"
+
+definition
   arm_register_related :: "(RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> RName \<Rightarrow> bool"
 where
   "arm_register_related rs rs' rf r = (
@@ -39,7 +47,8 @@ where
     arm_register_related rs rs' rf RName_11usr \<and>
     arm_register_related rs rs' rf RName_12usr \<and>
     arm_register_related rs rs' rf RName_SPusr \<and>
-    arm_register_related rs rs' rf RName_LRusr
+    arm_register_related rs rs' rf RName_LRusr \<and>
+    arm_pc_related (rs RName_PC) (rs' RName_PC) rf
   )"
 
 definition
@@ -76,6 +85,7 @@ lemma add_reg_proof: "\<lbrakk>
         ThisInstrLength_def
         add_reg_def
         arm_memory_related_def
+        arm_pc_related_def
         arm_register_related_def
         arm_registers_related_def
         arm_state_related_def
@@ -114,6 +124,7 @@ lemma mov_imm_proof: "\<lbrakk>
         Shift_C_def
         ThisInstrLength_def
         arm_memory_related_def
+        arm_pc_related_def
         arm_register_related_def
         arm_registers_related_def
         arm_state_related_def
