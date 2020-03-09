@@ -72,6 +72,19 @@ lemma comp_aunop_proof: "\<lbrakk>
   apply(induction op)
   sorry
 
+lemma comp_abinop_proof: "\<lbrakk>
+  c = comp_abinop op;
+  x = (REG s) RName_0usr;
+  y = (REG s) RName_1usr;
+  z = abinopval op x y;
+  code_installed s c;
+  s' = steps s (length c)
+\<rbrakk> \<Longrightarrow>
+  z = (REG s') RName_0usr
+"
+  apply(induction op)
+  sorry
+
 theorem compiler_correctness: "\<lbrakk>
   code_installed s (comp_com p);
   state_related s t;
