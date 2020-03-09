@@ -85,6 +85,16 @@ lemma comp_abinop_proof: "\<lbrakk>
   apply(induction op)
   sorry
 
+lemma comp_aexp_proof: "\<lbrakk>
+  aval a t = Some v;
+  code_installed s (comp_aexp a);
+  state_related s t
+\<rbrakk> \<Longrightarrow>
+  \<exists>i. steps s i = s' \<and> state_related s' t'
+"
+  apply (induction a)
+  sorry
+
 theorem compiler_correctness: "\<lbrakk>
   code_installed s (comp_com p);
   state_related s t;
