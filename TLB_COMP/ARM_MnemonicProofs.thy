@@ -74,6 +74,7 @@ lemma "\<lbrakk>
         Run_def
         Shift_C_def
         ThisInstrLength_def
+        add_reg_def
         dfn'Register_def
         doRegister_def
         mask_def
@@ -110,6 +111,7 @@ lemma "\<lbrakk>
         ThisInstrLength_def
         dfn'ArithLogicImmediate_def
         mask_def
+        mov_imm_def
         snd_def
         ucast_def
         word_extract_def

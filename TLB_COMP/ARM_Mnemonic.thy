@@ -2,19 +2,14 @@ theory ARM_Mnemonic
   imports TLBJ.ARM_Monadic
 begin
 
-definition
-  setflags :: "bool"
-where
-  "setflags = False"
-
 (* add rd, rn, rm *)
-fun
+definition
   add_reg :: "4 word \<Rightarrow> 4 word \<Rightarrow> 4 word \<Rightarrow> instruction"
 where
   "add_reg rd rn rm = Data (
     Register (
       0x4,
-      setflags,
+      False,
       rd,
       rn,
       rm,
@@ -24,13 +19,13 @@ where
   )"
 
 (* and rd, rn, rm *)
-fun
+definition
   and_reg :: "4 word \<Rightarrow> 4 word \<Rightarrow> 4 word \<Rightarrow> instruction"
 where
   "and_reg rd rn rm = Data (
     Register (
       0x0,
-      setflags,
+      False,
       rd,
       rn,
       rm,
@@ -39,7 +34,7 @@ where
     )
   )"
 
-fun
+definition
   b_imm :: "32 word \<Rightarrow> instruction"
 where
   "b_imm imm24 = Branch (
@@ -47,7 +42,7 @@ where
   )"
 
 (* cmp rn, #imm12 *)
-fun
+definition
   cmp_imm :: "4 word \<Rightarrow> 12 word \<Rightarrow> instruction"
 where
   "cmp_imm rn imm12 = Data (
@@ -61,7 +56,7 @@ where
   )"
 
 (* cmp rn, rm *)
-fun
+definition
   cmp_reg :: "4 word \<Rightarrow> 4 word \<Rightarrow> instruction"
 where
   "cmp_reg rn rm = Data (
@@ -77,7 +72,7 @@ where
   )"
 
 (* ldr rt, [rn, #imm12] *)
-fun
+definition
   ldr_imm :: "bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> 4 word \<Rightarrow> 4 word \<Rightarrow> 12 word \<Rightarrow> instruction"
 where
   "ldr_imm p u w rt rn imm12 = Load (
@@ -92,7 +87,7 @@ where
   )"
 
 (* ldr rt, [pc, #imm32] *)
-fun
+definition
   ldr_lit :: "bool \<Rightarrow> 4 word \<Rightarrow> 32 word \<Rightarrow> instruction"
 where
   "ldr_lit u rt imm32 = Load (
@@ -104,13 +99,13 @@ where
   )"
 
 (* mov rd, #imm12 *)
-fun
+definition
   mov_imm :: "4 word \<Rightarrow> 12 word \<Rightarrow> instruction"
 where
   "mov_imm rd imm12 = Data (
     ArithLogicImmediate (
       0xd,
-      setflags,
+      False,
       rd,
       0,
       imm12
@@ -118,13 +113,13 @@ where
   )"
 
 (* orr rd, rn, rm *)
-fun
+definition
   or_reg :: "4 word \<Rightarrow> 4 word \<Rightarrow> 4 word \<Rightarrow> instruction"
 where
   "or_reg rd rn rm = Data (
     Register (
       0xc,
-      setflags,
+      False,
       rd,
       rn,
       rm,
@@ -134,13 +129,13 @@ where
   )"
 
 (* rsb rd, rn, #imm12 *)
-fun
+definition
   rsb_imm :: "4 word \<Rightarrow> 4 word \<Rightarrow> 12 word \<Rightarrow> instruction"
 where
   "rsb_imm rd rn imm12 = Data (
     ArithLogicImmediate (
       0x03,
-      setflags,
+      False,
       rd,
       rn,
       imm12
@@ -148,7 +143,7 @@ where
   )"
 
 (* str rt, [rn, #imm12] *)
-fun
+definition
   str_imm :: "bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> 4 word \<Rightarrow> 4 word \<Rightarrow> 12 word \<Rightarrow> instruction"
 where
   "str_imm p u w rt rn imm12 = Store (
@@ -163,13 +158,13 @@ where
   )"
 
 (* sub rd, rn, rm *)
-fun
+definition
   sub_reg :: "4 word \<Rightarrow> 4 word \<Rightarrow> 4 word \<Rightarrow> instruction"
 where
   "sub_reg rd rn rm = Data (
     Register (
       0x2,
-      setflags,
+      False,
       rd,
       rn,
       rm,
@@ -180,17 +175,17 @@ where
 
 (* Aliases *)
 
-fun
+definition
   neg :: "4 word \<Rightarrow> 4 word \<Rightarrow> instruction"
 where
   "neg rd rm = rsb_imm rd rm 0"
 
-fun
+definition
   pop :: "4 word \<Rightarrow> instruction"
 where
   "pop r = ldr_imm False True False r 13 4"
 
-fun
+definition
   push :: "4 word \<Rightarrow> instruction"
 where
   "push r = str_imm True False True r 13 4"
