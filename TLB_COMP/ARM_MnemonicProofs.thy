@@ -3,14 +3,14 @@ theory ARM_MnemonicProofs
           MMU_DEFS.MMU_Instants_TLB_PDC
 begin
 
-fun
+definition
   arm_memory_related :: "(paddr \<rightharpoonup> byte) \<Rightarrow> (paddr \<rightharpoonup> byte) \<Rightarrow> bool"
 where
   "arm_memory_related m m' = (
     \<forall>x. m x = m' x
   )"
 
-fun
+definition
   arm_register_related :: "(RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> RName \<Rightarrow> bool"
 where
   "arm_register_related rs rs' rf r = (
@@ -21,7 +21,7 @@ where
     )
   )"
 
-fun
+definition
   arm_registers_related :: "(RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> bool"
 where
   "arm_registers_related rs rs' rf = (
@@ -42,7 +42,7 @@ where
     arm_register_related rs rs' rf RName_LRusr
   )"
 
-fun
+definition
   arm_state_related :: "'a state_scheme \<Rightarrow> 'a state_scheme \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> bool"
 where
   "arm_state_related s s' rf = (
@@ -50,7 +50,7 @@ where
     arm_registers_related (REG s) (REG s') rf
   )"
 
-lemma "\<lbrakk>
+lemma add_reg_proof: "\<lbrakk>
     Encoding s = Encoding_ARM;
     Extensions s = {};
     snd (Run (add_reg 0 0 1) s) = s';
@@ -75,6 +75,10 @@ lemma "\<lbrakk>
         Shift_C_def
         ThisInstrLength_def
         add_reg_def
+        arm_memory_related_def
+        arm_register_related_def
+        arm_registers_related_def
+        arm_state_related_def
         dfn'Register_def
         doRegister_def
         mask_def
@@ -88,7 +92,7 @@ lemma "\<lbrakk>
   )
   done
 
-lemma "\<lbrakk>
+lemma mov_imm_proof: "\<lbrakk>
     Encoding s = Encoding_ARM;
     Extensions s = {};
     snd (Run (mov_imm 0 0) s) = s'
@@ -109,6 +113,10 @@ lemma "\<lbrakk>
         Run_def
         Shift_C_def
         ThisInstrLength_def
+        arm_memory_related_def
+        arm_register_related_def
+        arm_registers_related_def
+        arm_state_related_def
         dfn'ArithLogicImmediate_def
         mask_def
         mov_imm_def
