@@ -60,6 +60,18 @@ where
   "steps s 0 = s" |
   "steps s i = steps (snd (Next s)) (i-1)"
 
+lemma comp_aunop_proof: "\<lbrakk>
+  c = comp_aunop op;
+  x = (REG s) RName_0usr;
+  y = aunopval op x;
+  code_installed s c;
+  s' = steps s (length c)
+\<rbrakk> \<Longrightarrow>
+  y = (REG s') RName_0usr
+"
+  apply(induction op)
+  sorry
+
 theorem compiler_correctness: "\<lbrakk>
   code_installed s (comp_com p);
   state_related s t;
