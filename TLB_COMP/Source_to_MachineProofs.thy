@@ -95,6 +95,16 @@ lemma comp_aexp_proof: "\<lbrakk>
   apply (induction a)
   sorry
 
+lemma comp_bexp_proof: "\<lbrakk>
+  bval b t = Some v;
+  code_installed s (comp_bexp b);
+  state_related s t
+\<rbrakk> \<Longrightarrow>
+  \<exists>i. steps s i = s' \<and> state_related s' t'
+"
+  apply (induction b)
+  sorry
+
 theorem compiler_correctness: "\<lbrakk>
   code_installed s (comp_com p);
   state_related s t;
