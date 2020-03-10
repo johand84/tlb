@@ -98,6 +98,8 @@ where
     )
   )" |
   "comp_com (Flush t) = comp_flush t" |
+  "comp_com (UpdateTTBR0 a) = comp_aexp a @ []" |
+  "comp_com (UpdateASID v) = []" |
   "comp_com c = []"
 
 end
