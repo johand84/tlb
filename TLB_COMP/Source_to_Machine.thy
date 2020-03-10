@@ -69,6 +69,11 @@ where
   "comp_flush (flushASIDvarange x vaddrs) = []"
 
 fun
+  comp_set_mode :: "mode_t \<Rightarrow> instruction list"
+where
+  "comp_set_mode m = []"
+
+fun
   comp_com :: "com \<Rightarrow> instruction list"
 where
   "comp_com SKIP = []" |
@@ -100,6 +105,6 @@ where
   "comp_com (Flush t) = comp_flush t" |
   "comp_com (UpdateTTBR0 a) = comp_aexp a @ []" |
   "comp_com (UpdateASID v) = []" |
-  "comp_com c = []"
+  "comp_com (SetMode m) = comp_set_mode m"
 
 end
