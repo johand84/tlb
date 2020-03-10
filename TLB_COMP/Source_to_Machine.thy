@@ -61,6 +61,14 @@ where
   "code_size (i#is) = code_size is + 1"
 
 fun
+  comp_flush :: "flush_type \<Rightarrow> instruction list"
+where
+  "comp_flush flushTLB = []" |
+  "comp_flush (flushASID x) = []" |
+  "comp_flush (flushvarange vaddrs) = []" |
+  "comp_flush (flushASIDvarange x vaddrs) = []"
+
+fun
   comp_com :: "com \<Rightarrow> instruction list"
 where
   "comp_com SKIP = []" |
@@ -89,6 +97,7 @@ where
       [b_imm (-((code_size i1) + (code_size i2) + 4))]
     )
   )" |
+  "comp_com (Flush t) = comp_flush t" |
   "comp_com c = []"
 
 end
