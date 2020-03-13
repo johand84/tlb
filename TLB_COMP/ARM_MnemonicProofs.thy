@@ -114,48 +114,32 @@ lemmas arithm_instr_lemmas =
   write'Rmode_def
 
 lemma add_reg_proof: "\<lbrakk>
-    Encoding s = Encoding_ARM;
-    Extensions s = {};
-    snd (Run (add_reg (reg_to_bin RName_0usr) (reg_to_bin RName_0usr) (reg_to_bin RName_1usr)) s) = s';
-    ((REG s) RName_0usr) = 0;
-    ((REG s) RName_1usr) = 1
-  \<rbrakk> \<Longrightarrow> arm_state_related s s' (\<lambda>x. (if x = RName_0usr then Some 1 else None))
+    Decode m s1 = (i,s2);
+    Fetch s = (m,s1);
+    ITAdvance () s3 = ((),s');
+    REG s RName_0usr = x;
+    REG s RName_1usr = y;
+    Run i s2 = ((),s3);
+    arm_preconditions s;
+    i = add_reg 0 0 1
+  \<rbrakk> \<Longrightarrow>
+    s\<lparr>REG := (REG s)(RName_0usr := x+y, RName_PC := REG s RName_PC + 4)\<rparr> = s'
 "
   apply (
     clarsimp
       simp:
         AddWithCarry_def
-        BranchTo_def
-        DataProcessing_def
-        DataProcessingALU_def
-        HaveSecurityExt_def
-        IncPC_def
-        IsSecure_def
-        LookUpRName_def
-        R_def
-        Rmode_def
-        Run_def
-        Shift_C_def
-        ThisInstrLength_def
+        HaveThumb2_def
+        ITAdvance_def
+        Let_def
         add_reg_def
-        arm_memory_related_def
-        arm_pc_related_def
-        arm_register_related_def
-        arm_registers_related_def
-        arm_state_related_def
-        dfn'Register_def
-        doRegister_def
+        arithm_instr_lemmas
+        arm_preconditions_def
         mask_def
         reg_to_bin_def
-        snd_def
-        word_bits_def
-        word_extract_def
-        write'R_def
-        write'Rmode_def
-      split:
-        option.splits
+        wi_hom_syms
   )
-  done
+  sorry
 
 lemma mov_imm_proof: "\<lbrakk>
     Encoding s = Encoding_ARM;
