@@ -139,6 +139,53 @@ lemma b_imm_proof: "\<lbrakk>
   )
   sorry
 
+lemma cmp_imm_proof: "\<lbrakk>
+    Run (cmp_imm (reg_to_bin r0) (ucast imm)) s = (u,s');
+    arm_preconditions s;
+    imm = 0;
+    r0 = RName_0usr
+  \<rbrakk> \<Longrightarrow>
+    s\<lparr>
+      CPSR := (CPSR s)\<lparr>
+        PSR.C := REG s r0 \<ge> imm,
+        PSR.N := REG s r0 < imm,
+        PSR.V := REG s r0 \<ge> 0 \<and> imm < 0 \<and> REG s r0 - imm < 0,
+        PSR.Z := REG s r0 = imm
+      \<rparr>,
+      REG := (REG s)(RName_PC := REG s RName_PC + 4)
+    \<rparr> = s'
+"
+  apply(
+    clarsimp
+      simp:
+        AddWithCarry_def
+        ARMExpandImm_C_def
+        ArithmeticOpcode_def
+        BranchTo_def
+        DataProcessing_def
+        DataProcessingALU_def
+        ExpandImm_C_def
+        HaveSecurityExt_def
+        IncPC_def
+        IsSecure_def
+        Let_def
+        LookUpRName_def
+        R_def
+        Rmode_def
+        Run_def
+        Shift_C_def
+        ThisInstrLength_def
+        arm_preconditions_def
+        cmp_imm_def
+        dfn'ArithLogicImmediate_def
+        mask_def
+        max_word_def
+        reg_to_bin_def
+        word_bits_def
+        word_extract_def
+  )
+  sorry
+
 lemma mov_imm_proof: "\<lbrakk>
     Decode m s1 = (i,s2);
     Fetch s = (m,s1);
