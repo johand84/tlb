@@ -142,44 +142,15 @@ lemma add_reg_proof: "\<lbrakk>
   sorry
 
 lemma mov_imm_proof: "\<lbrakk>
-    Encoding s = Encoding_ARM;
-    Extensions s = {};
-    snd (Run (mov_imm (reg_to_bin RName_0usr) 0) s) = s'
-  \<rbrakk> \<Longrightarrow> arm_state_related s s' (\<lambda>x. (if x = RName_0usr then Some 0 else None))
+    Decode m s1 = (i,s2);
+    Fetch s = (m,s1);
+    ITAdvance () s3 = ((),s');
+    Run (mov_imm 0 v) s2 = (u,s3);
+    arm_preconditions s;
+    word_bits 31 12 v = 0
+  \<rbrakk> \<Longrightarrow>
+    s\<lparr>REG := (REG s)(RName_0usr := (ucast v), RName_PC := REG s RName_PC + 4)\<rparr> = s'
 "
-  apply (
-    clarsimp
-      simp:
-        ARMExpandImm_C_def
-        BranchTo_def
-        DataProcessing_def
-        DataProcessingALU_def
-        ExpandImm_C_def
-        HaveSecurityExt_def
-        IncPC_def
-        IsSecure_def
-        LookUpRName_def
-        Run_def
-        Shift_C_def
-        ThisInstrLength_def
-        arm_memory_related_def
-        arm_pc_related_def
-        arm_register_related_def
-        arm_registers_related_def
-        arm_state_related_def
-        dfn'ArithLogicImmediate_def
-        mask_def
-        mov_imm_def
-        reg_to_bin_def
-        snd_def
-        ucast_def
-        word_extract_def
-        word_bits_def
-        write'R_def
-        write'Rmode_def
-      split:
-        option.splits
-  )
-  done
+  sorry
 
 end
