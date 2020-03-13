@@ -105,6 +105,40 @@ lemma and_reg_proof: "\<lbrakk>
   )
   done
 
+lemma b_imm_proof: "\<lbrakk>
+    Decode m s1 = (i,s2);
+    Fetch s = (m,s1);
+    ITAdvance () s3 = ((),s');
+    Run (b_imm offset) s2 = (u,s');
+    arm_preconditions s
+  \<rbrakk> \<Longrightarrow>
+    s\<lparr>REG := (REG s)(RName_PC := REG s RName_PC + 8 + offset * 4)\<rparr> = s'
+"
+  apply(
+    clarsimp
+      simp:
+        ArchVersion_def
+        Bit_def
+        BranchTo_def
+        BranchWritePC_def
+        CurrentInstrSet_def
+        ISETSTATE_def
+        If_def
+        PC_def
+        R_def
+        Run_def
+        arm_preconditions_def
+        b_imm_def
+        bin_cat_def
+        dfn'BranchTarget_def
+        mask_def
+        ucast_def
+        word_bits_def
+        word_cat_def
+        word_extract_def
+  )
+  sorry
+
 lemma mov_imm_proof: "\<lbrakk>
     Decode m s1 = (i,s2);
     Fetch s = (m,s1);
