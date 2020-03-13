@@ -19,6 +19,17 @@ where
   )"
 
 definition
+  arm_preconditions :: "'a state_scheme \<Rightarrow> bool"
+where
+  "arm_preconditions s = (
+    Architecture s = ARMv7_A \<and>
+    Encoding s = Encoding_ARM \<and>
+    Extensions s = {} \<and>
+    \<not>J (CPSR s) \<and>
+    \<not>T (CPSR s)
+  )"
+
+definition
   arm_register_related :: "(RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> RName \<Rightarrow> bool"
 where
   "arm_register_related rs rs' rf r = (
