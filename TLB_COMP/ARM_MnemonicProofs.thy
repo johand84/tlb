@@ -209,4 +209,49 @@ lemma mov_reg_proof: "\<lbrakk>
 "
   sorry
 
+lemma neg_proof: "\<lbrakk>
+    Decode m s1 = (i,s2);
+    Fetch s = (m,s1);
+    ITAdvance () s3 = ((),s');
+    REG s RName_0usr = v;
+    Run i s2 = ((),s3);
+    arm_preconditions s;
+    i = (neg 0 0)
+  \<rbrakk> \<Longrightarrow>
+    s\<lparr>REG := (REG s)(RName_0usr := -v, RName_PC := REG s RName_PC + 4)\<rparr> = s'
+"
+  apply(
+    clarsimp
+      simp:
+        AddWithCarry_def
+        ARMExpandImm_C_def
+        BranchTo_def
+        DataProcessing_def
+        DataProcessingALU_def
+        ExpandImm_C_def
+        HaveSecurityExt_def
+        HaveThumb2_def
+        ITAdvance_def
+        IncPC_def
+        IsSecure_def
+        Let_def
+        LookUpRName_def
+        NOT_eq
+        R_def
+        Rmode_def
+        Run_def
+        Shift_C_def
+        ThisInstrLength_def
+        arm_preconditions_def
+        dfn'ArithLogicImmediate_def
+        neg_def
+        rsb_imm_def
+        wi_hom_syms
+        write'R_def
+        write'Rmode_def
+        word_bits_def
+        word_extract_def
+  )
+  sorry
+
 end
