@@ -85,6 +85,26 @@ lemma add_reg_proof: "\<lbrakk>
   )
   sorry
 
+lemma and_reg_proof: "\<lbrakk>
+    REG s r0 = x;
+    REG s r1 = y;
+    Run (and_reg (reg_to_bin r0) (reg_to_bin r0) (reg_to_bin r1)) s = (u,s');
+    arm_preconditions s;
+    r0 = RName_0usr;
+    r1 = RName_1usr
+  \<rbrakk> \<Longrightarrow>
+    s\<lparr>REG := (REG s)(r0 := x && y, RName_PC := REG s RName_PC + 4)\<rparr> = s'
+"
+  apply (
+    clarsimp
+      simp:
+        and_reg_def
+        arithm_instr_lemmas
+        arm_preconditions_def
+        reg_to_bin_def
+  )
+  done
+
 lemma mov_imm_proof: "\<lbrakk>
     Decode m s1 = (i,s2);
     Fetch s = (m,s1);
