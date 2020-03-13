@@ -93,6 +93,26 @@ where
     else HOL.undefined
   )"
 
+lemmas arithm_instr_lemmas =
+  BranchTo_def
+  DataProcessing_def
+  DataProcessingALU_def
+  HaveSecurityExt_def
+  IncPC_def
+  IsSecure_def
+  LookUpRName_def
+  R_def
+  Rmode_def
+  Run_def
+  Shift_C_def
+  ThisInstrLength_def
+  dfn'Register_def
+  doRegister_def
+  word_bits_def
+  word_extract_def
+  write'R_def
+  write'Rmode_def
+
 lemma add_reg_proof: "\<lbrakk>
     Encoding s = Encoding_ARM;
     Extensions s = {};
