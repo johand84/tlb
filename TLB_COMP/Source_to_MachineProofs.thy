@@ -1,6 +1,7 @@
 theory Source_to_MachineProofs
 
-imports Source_to_Machine
+imports ARM_MnemonicProofs
+        Source_to_Machine
 
 begin
 
@@ -60,16 +61,21 @@ where
   "steps s i = steps (snd (Next s)) (i-1)"
 
 lemma comp_aunop_proof: "\<lbrakk>
+  arm_preconditions s;
   c = comp_aunop op;
-  x = (REG s) RName_0usr;
-  y = aunopval op x;
+  x = REG s RName_0usr;
   code_installed s c;
   s' = steps s (length c)
 \<rbrakk> \<Longrightarrow>
-  y = (REG s') RName_0usr
+  s\<lparr>REG := (REG s)(RName_0usr := aunopval op x, RName_PC := REG s RName_PC + 4)\<rparr> = s'
 "
-  apply(induction op)
-  sorry
+  apply (induction op)
+  apply (clarsimp simp: Next_def snd_def)
+  apply (case_tac "Run (neg 0 0) ya", simp)
+  apply (case_tac "ITAdvance () b", simp)
+  apply (rule neg_proof)
+  apply (auto)
+  done
 
 lemma comp_abinop_proof: "\<lbrakk>
   c = comp_abinop op;
