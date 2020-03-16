@@ -78,17 +78,29 @@ lemma comp_aunop_proof: "\<lbrakk>
   done
 
 lemma comp_abinop_proof: "\<lbrakk>
+  arm_preconditions s;
   c = comp_abinop op;
-  x = (REG s) RName_0usr;
-  y = (REG s) RName_1usr;
-  z = abinopval op x y;
+  x = REG s RName_0usr;
+  y = REG s RName_1usr;
   code_installed s c;
   s' = steps s (length c)
 \<rbrakk> \<Longrightarrow>
-  z = (REG s') RName_0usr
+  s\<lparr>REG := (REG s)(RName_0usr := abinopval op x y, RName_PC := REG s RName_PC + 4)\<rparr> = s'
 "
-  apply(induction op)
-  sorry
+  apply (induction op)
+
+  apply (clarsimp simp: Next_def snd_def)
+  apply (case_tac "Run (add_reg 0 0 1) yaa", simp)
+  apply (case_tac "ITAdvance () b", simp)
+  apply (rule add_reg_proof)
+  apply (auto)
+
+  apply (clarsimp simp: Next_def snd_def)
+  apply (case_tac "Run (sub_reg 0 0 1) yaa", simp)
+  apply (case_tac "ITAdvance () b", simp)
+  apply (rule sub_reg_proof)
+  apply (auto)
+  done
 
 lemma comp_aexp_proof: "\<lbrakk>
   aval a t = Some v;
