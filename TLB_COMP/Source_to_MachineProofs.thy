@@ -14,8 +14,12 @@ fun
 where
   "code_installed s [] = True" |
   "code_installed s (i#is) = (
-    let (j,s') = fetch_decode s
-    in i=j \<and> code_installed s' is
+    case Fetch s of (m,s1) \<Rightarrow> (
+      case Decode m s1 of (j,s2) \<Rightarrow> i=j \<and> code_installed (
+        s2\<lparr>REG := (REG s)(RName_PC := REG s RName_PC + 4)\<rparr>
+      )
+      is
+    )
   )"
 
 (*
