@@ -4,21 +4,6 @@ theory ARM_MnemonicProofs
 begin
 
 definition
-  arm_memory_related :: "(paddr \<rightharpoonup> byte) \<Rightarrow> (paddr \<rightharpoonup> byte) \<Rightarrow> bool"
-where
-  "arm_memory_related m m' = (
-    \<forall>x. m x = m' x
-  )"
-
-definition
-  arm_pc_related :: "32 word \<Rightarrow> 32 word \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> bool"
-where
-  "arm_pc_related pc pc' rf = (
-    case rf RName_PC of Some x \<Rightarrow> x = pc' |
-                        None \<Rightarrow> (pc+4) = pc'
-  )"
-
-definition
   arm_preconditions :: "'a state_scheme \<Rightarrow> bool"
 where
   "arm_preconditions s = (
@@ -27,47 +12,6 @@ where
     Extensions s = {} \<and>
     \<not>J (CPSR s) \<and>
     \<not>T (CPSR s)
-  )"
-
-definition
-  arm_register_related :: "(RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> RName \<Rightarrow> bool"
-where
-  "arm_register_related rs rs' rf r = (
-    let y = rs' r
-    in (
-      case rf r of Some x \<Rightarrow> x = y |
-                   None \<Rightarrow> rs r = y
-    )
-  )"
-
-definition
-  arm_registers_related :: "(RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<Rightarrow> 32 word) \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> bool"
-where
-  "arm_registers_related rs rs' rf = (
-    arm_register_related rs rs' rf RName_0usr \<and>
-    arm_register_related rs rs' rf RName_1usr \<and>
-    arm_register_related rs rs' rf RName_2usr \<and>
-    arm_register_related rs rs' rf RName_3usr \<and>
-    arm_register_related rs rs' rf RName_4usr \<and>
-    arm_register_related rs rs' rf RName_5usr \<and>
-    arm_register_related rs rs' rf RName_6usr \<and>
-    arm_register_related rs rs' rf RName_7usr \<and>
-    arm_register_related rs rs' rf RName_8usr \<and>
-    arm_register_related rs rs' rf RName_9usr \<and>
-    arm_register_related rs rs' rf RName_10usr \<and>
-    arm_register_related rs rs' rf RName_11usr \<and>
-    arm_register_related rs rs' rf RName_12usr \<and>
-    arm_register_related rs rs' rf RName_SPusr \<and>
-    arm_register_related rs rs' rf RName_LRusr \<and>
-    arm_pc_related (rs RName_PC) (rs' RName_PC) rf
-  )"
-
-definition
-  arm_state_related :: "'a state_scheme \<Rightarrow> 'a state_scheme \<Rightarrow> (RName \<rightharpoonup> 32 word) \<Rightarrow> bool"
-where
-  "arm_state_related s s' rf = (
-    arm_memory_related (MEM s) (MEM s') \<and>
-    arm_registers_related (REG s) (REG s') rf
   )"
 
 definition
