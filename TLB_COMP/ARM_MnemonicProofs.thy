@@ -254,4 +254,33 @@ lemma neg_proof: "\<lbrakk>
   )
   sorry
 
+lemma sub_reg_proof: "\<lbrakk>
+    Decode m s1 = (i,s2);
+    Fetch s = (m,s1);
+    ITAdvance () s3 = ((),s');
+    REG s RName_0usr = x;
+    REG s RName_1usr = y;
+    Run i s2 = ((),s3);
+    arm_preconditions s;
+    i = sub_reg 0 0 1
+  \<rbrakk> \<Longrightarrow>
+    s\<lparr>REG := (REG s)(RName_0usr := x-y, RName_PC := REG s RName_PC + 4)\<rparr> = s'
+"
+  apply (
+    clarsimp
+      simp:
+        AddWithCarry_def
+        HaveThumb2_def
+        ITAdvance_def
+        If_def
+        Let_def
+        sub_reg_def
+        arithm_instr_lemmas
+        arm_preconditions_def
+        mask_def
+        reg_to_bin_def
+        wi_hom_syms
+  )
+  sorry
+
 end
