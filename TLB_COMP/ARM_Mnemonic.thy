@@ -112,6 +112,21 @@ where
     )
   )"
 
+definition
+  mov_reg :: "4 word \<Rightarrow> 4 word \<Rightarrow> instruction"
+where
+  "mov_reg rd rm = Data (
+    Register (
+      0xd,
+      False,
+      0,
+      rd,
+      rm,
+      SRType_LSL,
+      0
+    )
+  )"
+
 (* orr rd, rn, rm *)
 definition
   or_reg :: "4 word \<Rightarrow> 4 word \<Rightarrow> 4 word \<Rightarrow> instruction"
