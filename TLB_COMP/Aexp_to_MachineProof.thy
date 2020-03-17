@@ -20,7 +20,7 @@ fun
   steps :: "'a set_tlb_state_scheme \<Rightarrow> nat \<Rightarrow> 'a set_tlb_state_scheme"
 where
   "steps s 0 = s" |
-  "steps s i = steps (snd (Next s)) (i-1)"
+  "steps s (Suc i) = steps (snd (Next s)) i"
 
 (*
 record p_state =
@@ -107,21 +107,11 @@ lemma word_extracts_d:
   by (clarsimp simp: word_extract_def word_bits_def mask_def)
   
 
-lemma comp_aexp_proof: 
-  "\<lbrakk>aval e s = Some val;
-    (\<exists>v. e = Const v \<or> (\<exists>a v. e = UnOp a (Const v)) \<or> 
-     (\<exists>b v v'. e = BinOp b (Const v) (Const v')) \<or>
-     (\<exists>v. e = HeapLookup (Const v)));
-    code_installed t (comp_aexp e);
-    state_rel s t\<rbrakk> \<Longrightarrow>
-      \<exists>i t'. steps t i = t' \<and> REG t' RName_0usr = val"
-  apply (safe;clarsimp)
-     apply (clarsimp split: if_split_asm)
-      apply (rule_tac x="1" in exI, clarsimp)
-      apply (clarsimp simp: Next_def)
-      apply (clarsimp split: prod.splits)
-      apply (clarsimp simp: itadvance_RName_0usr_eq)
-      apply (clarsimp simp: mov_imm_def Run_def dfn'ArithLogicImmediate_def split: prod.splits)
+lemma comp_aexp_proof_Const_1:
+  "\<lbrakk>state_rel s t; e = Const val; val < 0x1000; Fetch t = (x, y); Decode x y = (mov_imm 0 (UCAST(32 \<rightarrow> 12) val), ya);
+        Run (mov_imm 0 (UCAST(32 \<rightarrow> 12) val)) ya = ((), x2)\<rbrakk>
+       \<Longrightarrow> state.REG x2 RName_0usr = val"
+apply (clarsimp simp: mov_imm_def Run_def dfn'ArithLogicImmediate_def split: prod.splits)
 
       (* update comp expression to remove v < 0x1000 
          open ExpandImm_C, then prove not IsSecure and keep processing *)
@@ -129,27 +119,27 @@ lemma comp_aexp_proof:
       apply (clarsimp simp: DataProcessing_def DataProcessingALU_def word_extracts_d split: prod.splits)
       apply (clarsimp simp: write'R_def)
       apply (drule incpc_RName_0usr, simp)
-      apply (thin_tac "state.REG x2 RName_0usr = state.REG x2b RName_0usr")
+      (*apply (thin_tac "state.REG x2 RName_0usr = state.REG x2b RName_0usr")*)
       apply (clarsimp simp: write'Rmode_def split: prod.splits)
       
 
 
       apply (subgoal_tac "\<not>(\<not> x1 \<and> PSR.M (CPSR x2a) = 0x16)",simp)
       apply(subgoal_tac "x1",simp)
-      
-  thm IsSecure_def
-  thm dfn'ArithLogicImmediate_def
+  sorry
 
-     
-
-
-  thm prod.splits
-  thm exI
-
-
-
-
-
+lemma comp_aexp_proof: 
+  "\<lbrakk>aval e s = Some val;
+    code_installed t (comp_aexp e);
+    state_rel s t\<rbrakk> \<Longrightarrow>
+      \<exists>i t'. steps t i = t' \<and> REG t' RName_0usr = val"
+  apply(case_tac e;clarsimp)
+     apply (clarsimp split: if_split_asm)
+      apply (rule_tac x="1" in exI, clarsimp)
+      apply (clarsimp simp: Next_def)
+      apply (clarsimp split: prod.splits)
+      apply (clarsimp simp: itadvance_RName_0usr_eq)
+  apply(clarsimp simp: comp_aexp_proof_Const_1)
 
 
 
@@ -160,10 +150,6 @@ lemma comp_aexp_proof:
 
 lemma comp_bexp_proof: 
   "\<lbrakk>bval e s = Some val;
-    (\<exists>v. e = BConst v \<or>
-     (\<exists>b v v'. e = BComp b (Const v) (Const v')) \<or>
-     (\<exists>b v v'. e = BBinOp b (BConst v) (BConst v')) \<or>
-     (\<exists>b v. e = BUnOp b (BConst v)));
     code_installed t (comp_bexp e);
     state_rel s t\<rbrakk> \<Longrightarrow>
       \<exists>i t'. steps t i = t' \<and> REG t' RName_0usr = (if val then 1 else 0)"
@@ -172,10 +158,69 @@ lemma comp_bexp_proof:
 
 (* s\<lparr>REG := (REG s)(RName_0usr := aunopval op x, RName_PC := REG s RName_PC + 4)\<rparr> = s' *)
 
+lemma comp_aexp_proof': 
+  "\<lbrakk>aval e s = Some val;
+    code_installed t (comp_aexp e @ ins);
+    state_rel s t\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t (length (comp_aexp e)) = t' \<and>
+      code_installed t' ins \<and>
+      state_rel s t' \<and>
+      REG t' RName_0usr = val"
+  apply(case_tac e;clarsimp)
+     apply (clarsimp split: if_split_asm)
+      apply (rule_tac x="1" in exI, clarsimp)
+      apply (clarsimp simp: Next_def)
+      apply (clarsimp split: prod.splits)
+      apply (clarsimp simp: itadvance_RName_0usr_eq)
+  apply(clarsimp simp: comp_aexp_proof_Const_1)
+
+
+
+
+
+
+  sorry
+
 lemma comp_com_correct:
   "\<lbrakk>(p, s) \<Rightarrow> st; 
     st \<noteq> None; state_rel s t;
     code_installed t (comp_com p) \<rbrakk> \<Longrightarrow>
       \<exists>i t'. steps t i = t' \<and> state_rel (the st) t'"
-  apply(induction arbitrary: t rule: big_step_induct)
+  apply (induction arbitrary: t rule: big_step_induct; clarsimp)
+  apply (rule_tac x="0" in exI, clarsimp)
+  apply (drule_tac t="t" and ins="comp_aexp rval @ [str_imm False False False 0 1 0]" in comp_aexp_proof')
+  apply (simp)
+  apply (simp)
+  apply (clarsimp)
+ apply (drule_tac t="steps t (length (comp_aexp lval))" and 
+ ins="[str_imm False False False 0 1 0]" in comp_aexp_proof')
+             apply(simp)
+            apply(simp)
+           apply(simp)
+  apply(clarsimp split: prod.splits)
+
+
+
+
+
+
+           apply(rule_tac x="Suc 2" in exI)
+           apply(simp only: steps.simps(2))
+           apply(subgoal_tac "2=Suc 1") prefer 2 apply force
+            apply(simp only: )
+           apply(simp only: steps.simps(2))
+            apply(subgoal_tac "1=Suc 0") prefer 2 apply force
+             apply(thin_tac "2 = Suc 1")
+           apply clarsimp
+ thm comp_aexp_proof
+  apply(clarsimp simp: Next_def split: prod.splits)
+ 
+           
+
+  find_theorems name : "steps"
+
+
+  oops
+
+
 end
