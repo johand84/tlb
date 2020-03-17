@@ -198,4 +198,15 @@ lemma mov_imm_proof: "\<lbrakk>
 "
   sorry
 
+lemma mov_reg_proof: "\<lbrakk>
+    Decode m s1 = (i,s2);
+    Fetch s = (m,s1);
+    ITAdvance () s3 = ((),s');
+    Run (mov_reg 0 1) s2 = (u,s');
+    arm_preconditions s
+  \<rbrakk> \<Longrightarrow>
+    s\<lparr>REG := (REG s)(RName_0usr := REG s RName_1usr, RName_PC := REG s RName_PC + 4)\<rparr> = s'
+"
+  sorry
+
 end
