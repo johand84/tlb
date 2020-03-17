@@ -18,17 +18,22 @@ where
   "comp_abinop Plus = [add_reg 0 0 1]" |
   "comp_abinop Minus = [sub_reg 0 0 1]"
 
+definition
+  comp_aexp_mov :: "4 word \<Rightarrow> 32 word \<Rightarrow> instruction list"
+where
+  "comp_aexp_mov rt v = (
+    if word_bits 31 12 v = 0
+    then [mov_imm rt (ucast v)]
+    else [b_imm 0, Undefined v, ldr_lit False rt 12]
+  )"
+
 fun
   comp_aexp :: "aexp \<Rightarrow> instruction list"
 where
-  "comp_aexp (Const v) = (
-    if v < 0x1000
-    then [mov_imm 0 (ucast v)]
-    else [b_imm 0, Undefined v, ldr_lit False 0 12]
-  )" |
-  "comp_aexp (UnOp op a) = comp_aexp a @ comp_aunop op" |
-  "comp_aexp (BinOp op a1 a2) = comp_aexp a2 @ push 0 # comp_aexp a1 @ pop 1 # comp_abinop op" |
-  "comp_aexp (HeapLookup a) = comp_aexp a @ [ldr_imm False False False 0 0 0]"
+  "comp_aexp (Const v) = comp_aexp_mov 0 v" |
+  "comp_aexp (UnOp op a) = comp_aexp_mov 0 a @ comp_aunop op" |
+  "comp_aexp (BinOp op a1 a2) = comp_aexp_mov 0 a1 @ comp_aexp_mov 1 a2 @ comp_abinop op" |
+  "comp_aexp (HeapLookup a) = comp_aexp_mov 0 a @ [ldr_imm False False False 0 0 0]"
 
 fun
   comp_bunop :: "bunop \<Rightarrow> instruction list"
@@ -50,9 +55,13 @@ fun
   comp_bexp :: "bexp \<Rightarrow> instruction list"
 where
   "comp_bexp (BConst v) = [mov_imm 0 (if v then 1 else 0)]" |
-  "comp_bexp (BUnOp op b) = comp_bexp b @ comp_bunop op" |
-  "comp_bexp (BBinOp op b1 b2) = comp_bexp b2 @ push 0 # comp_bexp b1 @ pop 1 # comp_bbinop op" |
-  "comp_bexp (BComp op a1 a2) = comp_aexp a2 @ push 0 # comp_aexp a1 @ pop 1 # comp_bcomp op"
+  "comp_bexp (BUnOp op b) = mov_imm 0 (if b then 1 else 0) # comp_bunop op" |
+  "comp_bexp (BBinOp op b1 b2) = (
+    mov_imm 0 (if b1 then 1 else 0) #
+    mov_imm 1 (if b2 then 1 else 0) #
+    comp_bbinop op
+  )" |
+  "comp_bexp (BComp op a1 a2) = comp_aexp a1 @ mov_reg 0 2 # comp_aexp a2 @ mov_reg 2 1 # comp_bcomp op"
 
 fun
   code_size :: "instruction list \<Rightarrow> 32 word"
@@ -77,7 +86,7 @@ fun
   comp_com :: "com \<Rightarrow> instruction list"
 where
   "comp_com SKIP = []" |
-  "comp_com (Assign a1 a2) = comp_aexp a2 @ push 0 # comp_aexp a1 @ pop 1 # [str_imm False False False 0 1 0]" |
+  "comp_com (Assign a1 a2) = comp_aexp a1 @ comp_aexp a2 @ [str_imm False False False 0 1 0]" |
   "comp_com (Seq c1 c2) = (comp_com c1) @ (comp_com c2)" |
   "comp_com (If b c1 c2) = (
     let i1 = comp_com c1;

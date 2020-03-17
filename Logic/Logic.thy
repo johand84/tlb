@@ -9,9 +9,9 @@ datatype aunop = Neg
 datatype abinop = Plus | Minus
 
 datatype aexp = Const val
-              | UnOp aunop aexp
-              | BinOp abinop aexp aexp
-              | HeapLookup aexp
+              | UnOp aunop val
+              | BinOp abinop val val
+              | HeapLookup val
 
 
 datatype bcomp = Less
@@ -20,8 +20,8 @@ datatype bbinop = And | Or
 
 datatype bexp = BConst bool
               | BComp bcomp aexp aexp
-              | BBinOp bbinop bexp bexp
-              | BUnOp bunop bexp
+              | BBinOp bbinop bool bool
+              | BUnOp bunop bool
 
 
 
@@ -48,13 +48,13 @@ fun aval :: "aexp \<Rightarrow> p_state  \<rightharpoonup> val" ( "\<lbrakk>_\<r
   "aval (Const c) s = Some c"
 |
   "aval (UnOp op e) s =
-         (case (aval e s) of Some v \<Rightarrow> Some (aunopval op v) | None \<Rightarrow> None )"
+         (Some (aunopval op e))"
 |
   "aval (BinOp op e1 e2) s =
-         (case (aval e1 s , aval e2 s) of (Some v1, Some v2) \<Rightarrow> Some (abinopval op v1 v2) | _ \<Rightarrow> None )"
+         (Some (abinopval op e1 e2))"
 |
   "aval (HeapLookup vp) s =
-         (case (aval vp s) of None \<Rightarrow> None | Some v \<Rightarrow> mem_read_hp' (incon_set s) (heap s) (root s) (mode s) (Addr v))"
+         (mem_read_hp' (incon_set s) (heap s) (root s) (mode s) (Addr vp))"
 
 fun bcompval :: "bcomp \<Rightarrow> val \<Rightarrow> val \<Rightarrow> bool" where
 "bcompval Less v1 v2 = False"
@@ -75,10 +75,10 @@ fun bval :: "bexp \<Rightarrow> p_state \<rightharpoonup> bool"  ( "\<lbrakk>_\<
     (case (aval e1 s , aval e2 s) of (Some v1, Some v2) \<Rightarrow> Some (bcompval op v1 v2) | _ \<Rightarrow> None )"
 |
   "bval (BBinOp op b1 b2) s =
-    (case (bval b1 s , bval b2 s) of (Some v1, Some v2) \<Rightarrow> Some (bbinopval op v1 v2) | _ \<Rightarrow> None )"
+    (Some (bbinopval op b1 b2))"
 |
 "bval (BUnOp op b) s =
-    (case (bval b s) of Some v \<Rightarrow> Some (bunopval op v) | _ \<Rightarrow> None )"
+    (Some (bunopval op b))"
 
 
 
