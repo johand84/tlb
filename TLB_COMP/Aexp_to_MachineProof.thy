@@ -133,19 +133,15 @@ lemma comp_aexp_proof:
     code_installed t (comp_aexp e);
     state_rel s t\<rbrakk> \<Longrightarrow>
       \<exists>i t'. steps t i = t' \<and> REG t' RName_0usr = val"
-  apply(case_tac e;clarsimp)
+ (*
+ apply(case_tac e;clarsimp)
      apply (clarsimp split: if_split_asm)
       apply (rule_tac x="1" in exI, clarsimp)
       apply (clarsimp simp: Next_def)
       apply (clarsimp split: prod.splits)
       apply (clarsimp simp: itadvance_RName_0usr_eq)
   apply(clarsimp simp: comp_aexp_proof_Const_1)
-
-
-
-
-
-
+*)
   sorry
 
 lemma comp_bexp_proof: 
@@ -166,18 +162,29 @@ lemma comp_aexp_proof':
       code_installed t' ins \<and>
       state_rel s t' \<and>
       REG t' RName_0usr = val"
-  apply(case_tac e;clarsimp)
+ (* apply(case_tac e;clarsimp)
      apply (clarsimp split: if_split_asm)
       apply (rule_tac x="1" in exI, clarsimp)
       apply (clarsimp simp: Next_def)
       apply (clarsimp split: prod.splits)
       apply (clarsimp simp: itadvance_RName_0usr_eq)
-  apply(clarsimp simp: comp_aexp_proof_Const_1)
+  apply(clarsimp simp: comp_aexp_proof_Const_1) *)
+  sorry
+
+lemma  state_rel_mov_ins:
+  "\<lbrakk>state_rel s t ; 
+   code_installed t (mov_reg 1 0 # ins) \<rbrakk>\<Longrightarrow>
+   code_installed (snd (Next t)) ins \<and> state_rel s (snd (Next t)) \<and>
+   REG (snd (Next t)) RName_1usr = REG t RName_0usr "
+
+  sorry
 
 
-
-
-
+lemma  state_rel_str_imm:
+  "\<lbrakk>code_installed t [str_imm False False False 0 1 0]; state_rel s t  \<rbrakk> \<Longrightarrow>
+   state_rel (s\<lparr>heap := heap s(pp \<mapsto> val),
+                     incon_set := is,
+                     global_set := gset\<rparr>) (snd (Next t))"
 
   sorry
 
@@ -187,7 +194,40 @@ lemma comp_com_correct:
     code_installed t (comp_com p) \<rbrakk> \<Longrightarrow>
       \<exists>i t'. steps t i = t' \<and> state_rel (the st) t'"
   apply (induction arbitrary: t rule: big_step_induct; clarsimp)
-  apply (rule_tac x="0" in exI, clarsimp)
+            apply (rule_tac x="0" in exI, clarsimp)
+           apply (drule_tac t= "t" and ins= "mov_reg 1 0 # comp_aexp rval @ [str_imm False False False 0 1 0]" in
+                  comp_aexp_proof', simp, simp)   
+           apply safe  (*state.REG t' RName_0usr = vp *)
+           apply (thin_tac "code_installed t (comp_aexp lval @ mov_reg 1 0 # comp_aexp rval @ [str_imm False False False 0 1 0])")
+           apply (drule_tac t = "steps t (length (comp_aexp lval))" and 
+                  ins = "comp_aexp rval @ [str_imm False False False 0 1 0]" in state_rel_mov_ins, simp)
+           apply safe
+           apply (thin_tac " code_installed (steps t (length (comp_aexp lval))) (mov_reg 1 0 # comp_aexp rval @ [str_imm False False False 0 1 0])")
+           apply (drule_tac t= "(snd (Next (steps t (length (comp_aexp lval)))))" and ins= "[str_imm False False False 0 1 0]" in
+                  comp_aexp_proof', simp, simp)
+           apply safe  (* state.REG t' RName_0usr = v *)
+           apply (drule_tac s = "s" in state_rel_str_imm, simp)
+
+      
+
+
+
+ 
+  
+  
+  
+  oops
+
+
+
+
+
+  apply simp
+
+
+  thm comp_aexp_proof'
+
+
            apply (drule_tac t="t" and ins="mov_reg 1 0 # comp_aexp rval @ [str_imm False False False 0 1 0]" in
  comp_aexp_proof')
   apply (simp)

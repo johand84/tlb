@@ -98,8 +98,8 @@ where
   Assign:          "\<lbrakk>aval lval s = Some vp ; aval rval s = Some v ; Addr vp \<notin> incon_set s;
                          ptable_lift_m (heap s) (root s) (mode s) (Addr vp) = Some pp \<rbrakk>  \<Longrightarrow>
                           (lval ::= rval , s) \<Rightarrow> Some (s \<lparr> heap := heap s (pp \<mapsto> v) ,
-                            incon_set := incon_set s \<union>  incon_comp (asid s) (asid s) (heap s)  (heap s (pp \<mapsto> v)) (root s) (root s),
-                            global_set := global_set s \<union> (\<Union>x\<in>global_entries (ran (pt_walk (asid s) (heap s(pp \<mapsto> v)) (root s))). range_of x) \<rparr>)"
+                            incon_set := undefined,
+                            global_set := undefined \<rparr>)"
 |
   Seq:             "\<lbrakk>(c1,s1) \<Rightarrow> Some s2;  (c2,s2) \<Rightarrow> s3 \<rbrakk> \<Longrightarrow> (c1;;c2, s1) \<Rightarrow> s3"
 |
