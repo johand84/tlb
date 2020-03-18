@@ -132,7 +132,7 @@ lemma comp_aexp_proof:
   "\<lbrakk>aval e s = Some val;
     code_installed t (comp_aexp e);
     state_rel s t\<rbrakk> \<Longrightarrow>
-      \<exists>i t'. steps t i = t' \<and> REG t' RName_0usr = val"
+      \<exists>t'. steps t (length (comp_aexp e)) = t' \<and> REG t' RName_0usr = val"
  (*
  apply(case_tac e;clarsimp)
      apply (clarsimp split: if_split_asm)
@@ -148,7 +148,7 @@ lemma comp_bexp_proof:
   "\<lbrakk>bval e s = Some val;
     code_installed t (comp_bexp e);
     state_rel s t\<rbrakk> \<Longrightarrow>
-      \<exists>i t'. steps t i = t' \<and> REG t' RName_0usr = (if val then 1 else 0)"
+      \<exists>t'. steps t (length (comp_bexp e)) = t' \<and> REG t' RName_0usr = (if val then 1 else 0)"
   
   sorry
 
@@ -171,73 +171,134 @@ lemma comp_aexp_proof':
   apply(clarsimp simp: comp_aexp_proof_Const_1) *)
   sorry
 
-lemma  state_rel_mov_ins:
+lemma state_rel_mov_ins:
   "\<lbrakk>state_rel s t ; 
    code_installed t (mov_reg 1 0 # ins) \<rbrakk>\<Longrightarrow>
    code_installed (snd (Next t)) ins \<and> state_rel s (snd (Next t)) \<and>
-   REG (snd (Next t)) RName_1usr = REG t RName_0usr "
+   REG (snd (Next t)) RName_1usr = REG t RName_0usr"
 
   sorry
 
-
 lemma  state_rel_str_imm:
-  "\<lbrakk>code_installed t [str_imm False False False 0 1 0]; state_rel s t  \<rbrakk> \<Longrightarrow>
+  "\<lbrakk>code_installed t [str_imm False False False 0 1 0]; state_rel s t;
+    ptable_lift_m (heap s) (root s) (mode s) (Addr (REG t RName_1usr)) = Some pp;
+   val = REG t RName_0usr\<rbrakk> \<Longrightarrow>
    state_rel (s\<lparr>heap := heap s(pp \<mapsto> val),
-                     incon_set := is,
+                     incon_set := isett,
                      global_set := gset\<rparr>) (snd (Next t))"
 
+  sorry
+
+lemma ptable_lift_mov_ins:
+"\<lbrakk> code_installed t (mov_reg 1 0 # ins);
+   ptable_lift_m (heap s) (root s) (mode s) (Addr (state.REG t RName_0usr)) = Some pp;
+   state_rel s t \<rbrakk> \<Longrightarrow> ptable_lift_m (heap s) (root s) (mode s)
+            (Addr (REG (snd (Next t)) RName_1usr)) = Some pp"
+  sorry
+
+lemma ptable_lift_aexp: 
+  "\<lbrakk>code_installed t (comp_aexp e @ ins);
+    ptable_lift_m (heap s) (root s) (mode s) (Addr (state.REG t RName_1usr)) = Some pp;
+    state_rel s t\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t (length (comp_aexp e)) = t' \<and>
+      ptable_lift_m (heap s) (root s) (mode s)
+            (Addr (REG t' RName_1usr)) = Some pp"
+  sorry
+
+lemma val_str_imm:
+  "\<lbrakk>code_installed t [str_imm False False False 0 1 0];
+    state_rel
+         (s\<lparr>heap := heap s(pp \<mapsto> the (\<lbrakk>rval\<rbrakk> s)), incon_set := HOL.undefined, p_state.global_set := HOL.undefined\<rparr>)
+         (snd (Next t))\<rbrakk> \<Longrightarrow> state_rel
+            (s\<lparr>heap := heap s(pp \<mapsto> state.REG t RName_0usr),
+                 incon_set := HOL.undefined, p_state.global_set := HOL.undefined\<rparr>)
+            (steps (snd (Next (snd (Next t)))) (length (comp_aexp lval) + length (comp_aexp rval)))"
+  sorry
+
+lemma code_installed_append:
+  "\<lbrakk>code_installed t (c @ c')\<rbrakk> \<Longrightarrow> code_installed t c"
+  sorry
+
+lemma code_installed_prepend:
+  "\<lbrakk>code_installed t (c @ c')\<rbrakk> \<Longrightarrow> code_installed (steps t (length c)) c'"
+  sorry
+
+lemma steps_add: "steps (steps t i) i' = steps t (i+i')"
+  sorry
+
+lemma steps_inc: "snd (Next (steps t i)) = steps t (i+1)"
   sorry
 
 lemma comp_com_correct:
   "\<lbrakk>(p, s) \<Rightarrow> st; 
     st \<noteq> None; state_rel s t;
     code_installed t (comp_com p) \<rbrakk> \<Longrightarrow>
-      \<exists>i t'. steps t i = t' \<and> state_rel (the st) t'"
+      \<exists>t'. steps t (length (comp_com p)) = t' \<and> state_rel (the st) t'"
   apply (induction arbitrary: t rule: big_step_induct; clarsimp)
-            apply (rule_tac x="0" in exI, clarsimp)
-           apply (drule_tac t= "t" and ins= "mov_reg 1 0 # comp_aexp rval @ [str_imm False False False 0 1 0]" in
-                  comp_aexp_proof', simp, simp)   
-           apply safe  (*state.REG t' RName_0usr = vp *)
-           apply (thin_tac "code_installed t (comp_aexp lval @ mov_reg 1 0 # comp_aexp rval @ [str_imm False False False 0 1 0])")
-           apply (drule_tac t = "steps t (length (comp_aexp lval))" and 
-                  ins = "comp_aexp rval @ [str_imm False False False 0 1 0]" in state_rel_mov_ins, simp)
-           apply safe
-           apply (thin_tac " code_installed (steps t (length (comp_aexp lval))) (mov_reg 1 0 # comp_aexp rval @ [str_imm False False False 0 1 0])")
-           apply (drule_tac t= "(snd (Next (steps t (length (comp_aexp lval)))))" and ins= "[str_imm False False False 0 1 0]" in
-                  comp_aexp_proof', simp, simp)
-           apply safe  (* state.REG t' RName_0usr = v *)
-           apply (drule_tac s = "s" in state_rel_str_imm, simp)
-
-      
-
-
-
- 
+  apply (frule_tac t = "t" and
+                   ins = "mov_reg 1 0 # comp_aexp rval @ [str_imm False False False 0 1 0]" in
+                   comp_aexp_proof', simp, simp
+  )
+  apply safe  (*state.REG t' RName_0usr = vp *)
+  (*apply (thin_tac "code_installed t (comp_aexp lval @ mov_reg 1 0 # comp_aexp rval @ [str_imm False False False 0 1 0])")*)
+  apply (frule_tac t = "steps t (length (comp_aexp lval))" and 
+                   ins = "comp_aexp rval @ [str_imm False False False 0 1 0]" in
+                   state_rel_mov_ins, simp
+  )
+  apply safe
+  (* I would need the following assumption and ptable_lift_m assumption *)
+  (* apply (thin_tac " code_installed (steps t (length (comp_aexp lval))) (mov_reg 1 0 # comp_aexp rval @ [str_imm False False False 0 1 0])")*)
+  apply (frule_tac t = "(snd (Next (steps t (length (comp_aexp lval)))))" and
+                   ins = "[str_imm False False False 0 1 0]" in
+                   comp_aexp_proof',simp,simp
+  )
+  apply safe  (* state.REG t' RName_0usr = v *)
+  apply (frule_tac s = "s" and 
+                   t = "steps (snd (Next (steps t (length (comp_aexp lval))))) (length (comp_aexp rval))" and
+                   pp = "pp" and
+                   val = "the (aval rval s)" and
+                   isett = "HOL.undefined" and
+                   gset = "HOL.undefined" in state_rel_str_imm, simp
+  )
+  apply (frule_tac s = "s" and
+                   t = "steps t (length (comp_aexp lval))" and
+                   ins = "comp_aexp rval @ [str_imm False False False 0 1 0]" and
+                   pp = "pp" in ptable_lift_mov_ins, simp)
+  apply safe
+  apply (frule_tac t = "snd (Next (steps t (length (comp_aexp lval))))" and
+                   ins = "[str_imm False False False 0 1 0]" and
+                   pp = "pp" in ptable_lift_aexp,simp,simp,simp)
+  apply (clarsimp)
+  apply(simp add: steps_add steps_inc)
   
-  
-  
+  (*apply (rule_tac x="length (comp_aexp lval) + 1 + length (comp_aexp rval) + 1" in exI, clarsimp)*)
+  apply(frule code_installed_append)
+           apply(subgoal_tac "state_rel s2 (steps t (length (comp_com c1)))") prefer 2
+            apply(force)
+           apply(frule code_installed_prepend)
+             apply (subgoal_tac "state_rel y (steps (steps t (length (comp_com c1))) (length (comp_com c2)))") prefer 2
+            apply (force)
+           apply(simp add: steps_add)
+
   oops
 
-
-
-
-
+              apply(subgoal_tac "steps (steps t i) i' = steps t (i+i')")
+  apply(force)
+  
+  oops
   apply simp
 
 
-  thm comp_aexp_proof'
-
-
-           apply (drule_tac t="t" and ins="mov_reg 1 0 # comp_aexp rval @ [str_imm False False False 0 1 0]" in
- comp_aexp_proof')
+  apply (drule_tac t="t" and ins="mov_reg 1 0 # comp_aexp rval @ [str_imm False False False 0 1 0]" in
+       comp_aexp_proof')
   apply (simp)
-            apply (simp)
-           apply (clarsimp)
-  apply(drule_tac t="snd (Next (steps t (length (comp_aexp lval))))" and
- ins="comp_aexp rval @ [str_imm False False False 0 1 0]" in comp_aexp_proof')
-             apply(simp)
+  apply (simp)
+  apply (clarsimp)
+  apply(drule_tac t = "snd (Next (steps t (length (comp_aexp lval))))" and
+                  ins = "comp_aexp rval @ [str_imm False False False 0 1 0]" in comp_aexp_proof')
+  apply(simp)
   apply(clarsimp simp: Next_def)
-             defer defer
+  defer defer
   apply(clarsimp)
 
 (* "snd (Next (steps t (length (comp_aexp lval))))" *)
