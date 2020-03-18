@@ -86,7 +86,7 @@ fun
   comp_com :: "com \<Rightarrow> instruction list"
 where
   "comp_com SKIP = []" |
-  "comp_com (Assign a1 a2) = comp_aexp a1 @ comp_aexp a2 @ [str_imm False False False 0 1 0]" |
+  "comp_com (Assign a1 a2) = comp_aexp a1 @ mov_reg 1 0 # comp_aexp a2 @ [str_imm False False False 0 1 0]" |
   "comp_com (Seq c1 c2) = (comp_com c1) @ (comp_com c2)" |
   "comp_com (If b c1 c2) = (
     let i1 = comp_com c1;
