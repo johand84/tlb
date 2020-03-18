@@ -188,17 +188,30 @@ lemma comp_com_correct:
       \<exists>i t'. steps t i = t' \<and> state_rel (the st) t'"
   apply (induction arbitrary: t rule: big_step_induct; clarsimp)
   apply (rule_tac x="0" in exI, clarsimp)
-  apply (drule_tac t="t" and ins="comp_aexp rval @ [str_imm False False False 0 1 0]" in comp_aexp_proof')
+           apply (drule_tac t="t" and ins="mov_reg 1 0 # comp_aexp rval @ [str_imm False False False 0 1 0]" in
+ comp_aexp_proof')
   apply (simp)
-  apply (simp)
-  apply (clarsimp)
+            apply (simp)
+           apply (clarsimp)
+  apply(drule_tac t="snd (Next (steps t (length (comp_aexp lval))))" and
+ ins="comp_aexp rval @ [str_imm False False False 0 1 0]" in comp_aexp_proof')
+             apply(simp)
+  apply(clarsimp simp: Next_def)
+             defer defer
+  apply(clarsimp)
+
+(* "snd (Next (steps t (length (comp_aexp lval))))" *)
+(* "steps s (Suc i) = steps (snd (Next s)) i" *)
  apply (drule_tac t="steps t (length (comp_aexp lval))" and 
  ins="[str_imm False False False 0 1 0]" in comp_aexp_proof')
              apply(simp)
             apply(simp)
            apply(simp)
-  apply(clarsimp split: prod.splits)
-
+           apply(clarsimp split: prod.splits)
+           apply (rule_tac x="length (comp_aexp lval) + length (comp_aexp rval) + 1" in exI, clarsimp)
+  apply(clarsimp simp: str_imm_def)
+  oops
+lemma "\<lbrakk>state_rel s (steps t i); True\<rbrakk> \<Longrightarrow> True"
 
 
 
