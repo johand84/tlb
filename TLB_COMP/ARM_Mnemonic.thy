@@ -98,6 +98,20 @@ where
     )
   )"
 
+definition
+  mcr_reg :: "3 word \<Rightarrow> 4 word \<Rightarrow> 4 word \<Rightarrow> 4 word \<Rightarrow> 3 word \<Rightarrow> 4 word \<Rightarrow> instruction"
+where
+  "mcr_reg opc1 crn rt coproc opc2 crm = CoprocessorInstruction (
+    MoveToCoprocessorFromRegister(
+      opc1,
+      crn,
+      rt,
+      coproc,
+      opc2,
+      crm
+    )
+  )"
+
 (* mov rd, #imm12 *)
 definition
   mov_imm :: "4 word \<Rightarrow> 12 word \<Rightarrow> instruction"
@@ -204,5 +218,26 @@ definition
   push :: "4 word \<Rightarrow> instruction"
 where
   "push r = str_imm True False True r 13 4"
+
+definition
+  tlbiall :: "instruction"
+where
+  "tlbiall = mcr_reg 0 8 0 15 0 7"
+
+definition
+  tlbiasid :: "4 word \<Rightarrow> instruction"
+where
+  "tlbiasid rt = mcr_reg 0 8 rt 15 2 7"
+
+definition
+  tlbimva :: "4 word \<Rightarrow> instruction"
+where
+  "tlbimva rt = mcr_reg 0 8 rt 15 1 7"
+
+definition
+  tlbimvaa :: "4 word \<Rightarrow> instruction"
+where
+  "tlbimvaa rt = mcr_reg 0 8 rt 15 3 7"
+
 
 end
