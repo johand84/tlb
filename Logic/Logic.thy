@@ -81,6 +81,32 @@ fun bval :: "bexp \<Rightarrow> p_state \<rightharpoonup> bool"  ( "\<lbrakk>_\<
     (Some (bunopval op b))"
 
 
+definition 
+  addr_trans :: "p_state \<Rightarrow> vaddr  \<rightharpoonup> paddr"
+  where 
+  "addr_trans s vp = ptable_lift_m (heap s) (root s) (mode s) vp"
+
+definition 
+  iset_upd :: "p_state \<Rightarrow> paddr  \<Rightarrow> val \<Rightarrow> vaddr set"
+  where 
+  "iset_upd s pp v = incon_set s \<union>  
+                     incon_comp (asid s) (asid s) (heap s)  (heap s (pp \<mapsto> v)) (root s) (root s)"
+
+definition 
+  gset_upd :: "p_state \<Rightarrow> paddr \<Rightarrow> 32 word \<Rightarrow> vaddr set"
+  where 
+  "gset_upd s pp v = global_set s \<union> 
+                     (\<Union>x\<in>global_entries (ran (pt_walk (asid s) (heap s(pp \<mapsto> v)) (root s))). range_of x)"
+
+definition 
+  iset_upd' :: "p_state \<Rightarrow>  32 word \<Rightarrow> vaddr set"
+  where 
+  "iset_upd' s rt = incon_set s \<union>  incon_comp (asid s) (asid s) (heap s) (heap s) (root s) (Addr rt)"
+
+definition 
+  gset_upd' :: "p_state \<Rightarrow>  32 word \<Rightarrow> vaddr set"
+  where 
+  "gset_upd' s rt = global_set s \<union> (\<Union>x\<in>global_entries (ran (pt_walk (asid s) (heap s) (Addr rt))). range_of x)"
 
 
 (*  big step semantics *)
@@ -93,13 +119,13 @@ where
   AssignFail1:     "\<lbrakk>aval lval s = None \<or> aval rval s = None \<rbrakk>  \<Longrightarrow> (lval ::= rval , s) \<Rightarrow> None"
 |
   AssignFail2:     "\<lbrakk>aval lval s = Some vp ; aval rval s = Some v ; Addr vp \<in> incon_set s \<or>
-                           ptable_lift_m (heap s) (root s) (mode s) (Addr vp) = None \<rbrakk>  \<Longrightarrow> (lval ::= rval , s) \<Rightarrow> None"
+                           addr_trans s (Addr vp) = None \<rbrakk>  \<Longrightarrow> (lval ::= rval , s) \<Rightarrow> None"
 |
   Assign:          "\<lbrakk>aval lval s = Some vp ; aval rval s = Some v ; Addr vp \<notin> incon_set s;
-                         ptable_lift_m (heap s) (root s) (mode s) (Addr vp) = Some pp \<rbrakk>  \<Longrightarrow>
+                         addr_trans s (Addr vp) = Some pp \<rbrakk>  \<Longrightarrow>
                           (lval ::= rval , s) \<Rightarrow> Some (s \<lparr> heap := heap s (pp \<mapsto> v) ,
-                            incon_set := undefined,
-                            global_set := undefined \<rparr>)"
+                            incon_set := iset_upd s pp v,
+                            global_set := gset_upd s pp v \<rparr>)"
 |
   Seq:             "\<lbrakk>(c1,s1) \<Rightarrow> Some s2;  (c2,s2) \<Rightarrow> s3 \<rbrakk> \<Longrightarrow> (c1;;c2, s1) \<Rightarrow> s3"
 |
@@ -128,8 +154,8 @@ where
   UpdateTTBR0Fail: "mode s = User \<or> aval rt s = None \<Longrightarrow> (UpdateTTBR0 rt, s) \<Rightarrow>  None"
 |
   UpdateTTBR0:     "\<lbrakk>mode s = Kernel ; aval rte s = Some rt\<rbrakk> \<Longrightarrow> (UpdateTTBR0 rte, s) \<Rightarrow>  Some (s \<lparr>root := Addr rt ,
-                            incon_set := incon_set s \<union>  incon_comp (asid s) (asid s) (heap s) (heap s) (root s) (Addr rt) ,
-                            global_set := global_set s \<union> (\<Union>x\<in>global_entries (ran (pt_walk (asid s) (heap s) (Addr rt))). range_of x) \<rparr>)"
+                            incon_set := iset_upd' s rt ,
+                            global_set := gset_upd' s rt \<rparr>)"
 | 
   UpdateASID:      " \<lbrakk>snp_cur  = cur_pt_snp' (ptable_snapshot s) (incon_set s) (heap s) (root s) (asid s) ;
                         il       = incon_load snp_cur (incon_set s) (global_set s) a (heap s) (root s); mode s = Kernel\<rbrakk> \<Longrightarrow> 
