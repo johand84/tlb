@@ -7,7 +7,9 @@ definition
   arm_preconditions :: "'a state_scheme \<Rightarrow> bool"
 where
   "arm_preconditions s = (
+    Aligned1 (Addr (state.REG s RName_PC), 4) \<and>
     Architecture s = ARMv7_A \<and>
+    \<not>E (CPSR s) \<and>
     Encoding s = Encoding_ARM \<and>
     Extensions s = {} \<and>
     \<not>J (CPSR s) \<and>
@@ -57,6 +59,23 @@ lemmas arithm_instr_lemmas =
   write'R_def
   write'Rmode_def
 
+lemma Fetch_state_eq: "\<lbrakk>
+  Fetch s = (m,s1);
+  arm_preconditions s
+\<rbrakk> \<Longrightarrow> s = s1"
+  apply(clarsimp simp: arm_preconditions_def)
+  apply(clarsimp simp: CurrentInstrSet_def Fetch_def ISETSTATE_def word_cat_def)
+  apply(clarsimp simp: BadMode_def CurrentModeIsNotUser_def MemA_def split: prod.splits)
+  apply(clarsimp simp: BigEndianReverse_def MemA_with_priv_def split: prod.splits)
+  sorry
+
+lemma Decode_state_eq:
+  "\<lbrakk>Decode m s1 = (i,s2);
+    arm_preconditions s1\<rbrakk> \<Longrightarrow> s1 = s2"
+  apply (clarsimp simp: arm_preconditions_def)
+  apply (clarsimp simp: Decode_def)
+  sorry
+
 lemma add_reg_proof: "\<lbrakk>
     Decode m s1 = (i,s2);
     Fetch s = (m,s1);
@@ -105,86 +124,76 @@ lemma and_reg_proof: "\<lbrakk>
   )
   done
 
+lemma branch:
+  "(word_of_int (bin_cat (uint (word_extract 31 2 (state.REG s RName_PC + 8 + offset))) 2 0)) = (REG s RName_PC + 8 + offset)"
+  sorry
+
 lemma b_imm_proof: "\<lbrakk>
     Decode m s1 = (i,s2);
     Fetch s = (m,s1);
     ITAdvance () s3 = ((),s');
-    Run (b_imm offset) s2 = (u,s');
+    Run (b_imm offset) s2 = ((),s3);
     arm_preconditions s
   \<rbrakk> \<Longrightarrow>
-    s\<lparr>REG := (REG s)(RName_PC := REG s RName_PC + 8 + offset * 4)\<rparr> = s'
+    s\<lparr>REG := (REG s)(RName_PC := REG s RName_PC + 8 + offset)\<rparr> = s'
 "
-  apply(
-    clarsimp
-      simp:
-        ArchVersion_def
-        Bit_def
-        BranchTo_def
-        BranchWritePC_def
-        CurrentInstrSet_def
-        ISETSTATE_def
-        If_def
-        PC_def
-        R_def
-        Run_def
-        arm_preconditions_def
-        b_imm_def
-        bin_cat_def
-        dfn'BranchTarget_def
-        mask_def
-        ucast_def
-        word_bits_def
-        word_cat_def
-        word_extract_def
-  )
+  apply (drule Fetch_state_eq; safe)
+  apply (drule Decode_state_eq; safe)
+  apply (clarsimp simp: arm_preconditions_def)
+  apply (clarsimp simp: Run_def b_imm_def)
+  apply (clarsimp simp: dfn'BranchTarget_def split: prod.splits)
+  apply (clarsimp simp: CurrentInstrSet_def ISETSTATE_def PC_def R_def word_cat_def)
+  apply (clarsimp simp: ArchVersion_def CurrentInstrSet_def ISETSTATE_def BranchWritePC_def word_cat_def)
+  apply (clarsimp simp: BranchTo_def)
+  apply (clarsimp simp: branch)
+  apply (clarsimp simp: HaveThumb2_def ITAdvance_def)
+  done
+
+lemma carry:
+  "(nat (uint (word_of_int (uint (state.REG s RName_0usr) + uint max_word + 1))) \<noteq>
+    Suc (nat (uint (state.REG s RName_0usr)) + nat (uint max_word))) = (REG s RName_0usr = 0)"
+  sorry
+
+lemma negative:
+  "(bin_nth (uint (state.REG s RName_0usr) + uint max_word + 1) 31) =
+   (sint (REG s RName_0usr) < 0)"
+  sorry
+
+lemma overflow:
+  "(sint (word_of_int (uint (state.REG s RName_0usr) + uint max_word + 1)) \<noteq>
+    sint (state.REG s RName_0usr) + sint max_word + 1) = False"
+  sorry
+
+lemma zero:
+  "(word_of_int (uint (state.REG s RName_0usr) + uint max_word + 1) = 0) = (REG s RName_0usr = 0)"
   sorry
 
 lemma cmp_imm_proof: "\<lbrakk>
-    Run (cmp_imm (reg_to_bin r0) (ucast imm)) s = (u,s');
-    arm_preconditions s;
     imm = 0;
-    r0 = RName_0usr
+    Run (cmp_imm 0 0) s = (u,s');
+    arm_preconditions s
   \<rbrakk> \<Longrightarrow>
     s\<lparr>
       CPSR := (CPSR s)\<lparr>
-        PSR.C := REG s r0 \<ge> imm,
-        PSR.N := REG s r0 < imm,
-        PSR.V := REG s r0 \<ge> 0 \<and> imm < 0 \<and> REG s r0 - imm < 0,
-        PSR.Z := REG s r0 = imm
+        PSR.C := REG s RName_0usr = 0,
+        PSR.N := sint (REG s RName_0usr) < 0,
+        PSR.V := False,
+        PSR.Z := REG s RName_0usr = 0
       \<rparr>,
       REG := (REG s)(RName_PC := REG s RName_PC + 4)
     \<rparr> = s'
 "
-  apply(
-    clarsimp
-      simp:
-        AddWithCarry_def
-        ARMExpandImm_C_def
-        ArithmeticOpcode_def
-        BranchTo_def
-        DataProcessing_def
-        DataProcessingALU_def
-        ExpandImm_C_def
-        HaveSecurityExt_def
-        IncPC_def
-        IsSecure_def
-        Let_def
-        LookUpRName_def
-        R_def
-        Rmode_def
-        Run_def
-        Shift_C_def
-        ThisInstrLength_def
-        arm_preconditions_def
-        cmp_imm_def
-        dfn'ArithLogicImmediate_def
-        mask_def
-        max_word_def
-        reg_to_bin_def
-        word_bits_def
-        word_extract_def
-  )
-  sorry
+  apply (clarsimp simp: arm_preconditions_def)
+  apply (clarsimp simp: Run_def cmp_imm_def dfn'ArithLogicImmediate_def)
+  apply (clarsimp simp: ARMExpandImm_C_def ExpandImm_C_def Shift_C_def mask_def word_bits_def word_extract_def split: if_split_asm)
+
+  apply (clarsimp simp: ArithmeticOpcode_def DataProcessing_def mask_def word_bits_def word_extract_def split: if_split_asm)
+  apply (clarsimp simp: HaveSecurityExt_def IsSecure_def LookUpRName_def R_def Rmode_def)
+  apply (clarsimp simp: AddWithCarry_def DataProcessingALU_def Let_def)
+  apply (clarsimp simp: IncPC_def ThisInstrLength_def BranchTo_def)
+  apply (clarsimp simp: carry negative overflow zero)
+
+  done
 
 lemma mov_imm_proof: "\<lbrakk>
     Decode m s1 = (i,s2);
