@@ -22656,8 +22656,17 @@ val () = def
 end
 \<close>
 
+(* opc = 0 \<Rightarrow> TLBIALL *)
+(* opc = 1 \<Rightarrow> TLBIMVA *)
+(* opc = 2 \<Rightarrow> TLBIASID *)
+(* opc = 3 \<Rightarrow> TLBIMVAA *)
+
+(* if opc = 0 then flush FlushTLB read_state
+   else if opc = 1 then flush (FlushASIDvarange {rt}) read_state
+   else if opc = 2 then flush (FlushASID rt) read_state
+   else if opc = 3 then flush (Flushvarange {rt}) read_state *)
 definition dfn'MoveToCoprocessorFromRegister ::
-  "3 word \<times> 4 word \<times> 4 word \<times> 4 word \<times> 3 word \<times> 4 word \<Rightarrow> 'a state_scheme \<Rightarrow> unit \<times> 'a state_scheme"
+  "3 word \<times> 4 word \<times> 4 word \<times> 4 word \<times> 3 word \<times> 4 word \<Rightarrow> 'a::mmu state_scheme \<Rightarrow> unit \<times> 'a::mmu state_scheme"
 where
   "dfn'MoveToCoprocessorFromRegister \<equiv> \<lambda>(opc1, crn, rt, coproc, opc2, crm). do {
     return()
