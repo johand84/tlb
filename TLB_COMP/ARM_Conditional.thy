@@ -3,23 +3,28 @@ theory ARM_Conditional
 begin
 
 definition
-  eq :: "instruction"
+  always :: "28 word \<Rightarrow> MachineCode"
 where
-  "eq = IfThen (0x0,0x4)"
+  "always m = ARM (word_cat (0xe::4 word) m)"
 
 definition
-  ge :: "instruction"
+  eq :: "28 word \<Rightarrow> MachineCode"
 where
-  "ge = IfThen (0xa,0xc)"
+  "eq m = ARM (word_cat (0x0::4 word) m)"
 
 definition
-  lt :: "instruction"
+  ge :: "28 word \<Rightarrow> MachineCode"
 where
-  "lt = IfThen (0xb,0xc)"
+  "ge m = ARM (word_cat (0xa::4 word) m)"
 
 definition
-  ne :: "instruction"
+  lt :: "28 word \<Rightarrow> MachineCode"
 where
-  "ne = IfThen (0x1,0x4)"
+  "lt m = ARM (word_cat (0xb::4 word) m)"
+
+definition
+  ne :: "28 word \<Rightarrow> MachineCode"
+where
+  "ne m = ARM (word_cat (0x1::4 word) m)"
 
 end

@@ -76,6 +76,11 @@ lemma Decode_state_eq:
   apply (clarsimp simp: Decode_def)
   sorry
 
+lemma Decode_add_reg:
+  "\<lbrakk>Decode (add_reg 0 0 1) s = (i,s')\<rbrakk> \<Longrightarrow> 
+    i = Data (Register (0x4, False, 0, 0, 1, SRType_LSL, 0))"
+  sorry
+  
 lemma add_reg_proof: "\<lbrakk>
     Decode m s1 = (i,s2);
     Fetch s = (m,s1);
@@ -84,44 +89,53 @@ lemma add_reg_proof: "\<lbrakk>
     REG s RName_1usr = y;
     Run i s2 = ((),s3);
     arm_preconditions s;
-    i = add_reg 0 0 1
+    m = add_reg 0 0 1
   \<rbrakk> \<Longrightarrow>
     s\<lparr>REG := (REG s)(RName_0usr := x+y, RName_PC := REG s RName_PC + 4)\<rparr> = s'
 "
-  apply (
-    clarsimp
-      simp:
-        AddWithCarry_def
-        HaveThumb2_def
-        ITAdvance_def
-        Let_def
-        add_reg_def
-        arithm_instr_lemmas
-        arm_preconditions_def
-        mask_def
-        reg_to_bin_def
-        wi_hom_syms
-  )
+  apply (clarsimp)
+  apply (drule_tac Fetch_state_eq; simp+)
+  apply (frule_tac Decode_state_eq; simp+)
+  apply (drule_tac Decode_add_reg; simp+)
+  apply (clarsimp simp: Run_def Shift_C_def dfn'Register_def doRegister_def split: prod.splits)
+  apply (clarsimp simp: HaveSecurityExt_def IsSecure_def LookUpRName_def R_def Rmode_def arm_preconditions_def split: if_split_asm prod.splits)
+  apply (clarsimp simp: DataProcessing_def mask_def word_bits_def word_extract_def split: if_split_asm prod.splits)
+  apply (clarsimp simp: DataProcessingALU_def AddWithCarry_def Let_def)
+  apply (clarsimp simp: HaveSecurityExt_def IsSecure_def Let_def LookUpRName_def R_def Rmode_def split: prod.splits)
+  apply (clarsimp simp: HaveSecurityExt_def IsSecure_def LookUpRName_def write'R_def write'Rmode_def split: prod.splits)
+  apply (clarsimp simp: BranchTo_def IncPC_def ThisInstrLength_def)
+  apply (clarsimp simp: HaveThumb2_def ITAdvance_def)
+  apply (clarsimp simp: wi_hom_syms)
+  done
+
+lemma Decode_and_reg:
+  "\<lbrakk>Decode (and_reg 0 0 1) s = (i,s')\<rbrakk> \<Longrightarrow> 
+    i = Data (Register (0x0, False, 0, 0, 1, SRType_LSL, 0))"
   sorry
 
 lemma and_reg_proof: "\<lbrakk>
-    REG s r0 = x;
-    REG s r1 = y;
-    Run (and_reg (reg_to_bin r0) (reg_to_bin r0) (reg_to_bin r1)) s = (u,s');
+    Decode m s1 = (i,s2);
+    Fetch s = (m,s1);
+    ITAdvance () s3 = ((),s');
+    REG s RName_0usr = x;
+    REG s RName_1usr = y;
+    Run i s = (u,s');
     arm_preconditions s;
-    r0 = RName_0usr;
-    r1 = RName_1usr
+    m = and_reg 0 0 1
   \<rbrakk> \<Longrightarrow>
-    s\<lparr>REG := (REG s)(r0 := x && y, RName_PC := REG s RName_PC + 4)\<rparr> = s'
+    s\<lparr>REG := (REG s)(RName_0usr := x && y, RName_PC := REG s RName_PC + 4)\<rparr> = s'
 "
-  apply (
-    clarsimp
-      simp:
-        and_reg_def
-        arithm_instr_lemmas
-        arm_preconditions_def
-        reg_to_bin_def
-  )
+  apply (clarsimp)
+  apply (drule_tac Fetch_state_eq; simp+)
+  apply (frule_tac Decode_state_eq; simp+)
+  apply (drule_tac Decode_and_reg; simp+)
+  apply (clarsimp simp: Run_def Shift_C_def dfn'Register_def doRegister_def split: prod.splits)
+  apply (clarsimp simp: HaveSecurityExt_def IsSecure_def LookUpRName_def R_def Rmode_def arm_preconditions_def split: if_split_asm prod.splits)
+  apply (clarsimp simp: DataProcessing_def mask_def word_bits_def word_extract_def split: if_split_asm prod.splits)
+  apply (clarsimp simp: DataProcessingALU_def AddWithCarry_def Let_def)
+  apply (clarsimp simp: HaveSecurityExt_def IsSecure_def Let_def LookUpRName_def R_def Rmode_def split: prod.splits)
+  apply (clarsimp simp: HaveSecurityExt_def IsSecure_def LookUpRName_def write'R_def write'Rmode_def split: prod.splits)
+  apply (clarsimp simp: BranchTo_def IncPC_def ThisInstrLength_def)
   done
 
 lemma branch:
