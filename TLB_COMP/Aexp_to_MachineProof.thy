@@ -47,6 +47,14 @@ definition
 where
   "heap_rel s t = HOL.undefined"
 
+definition
+  mode_rel :: "mode_t \<Rightarrow> 5 word \<Rightarrow> _"
+where
+  "mode_rel m cpsrm \<equiv>
+   case m of
+      Kernel => cpsrm = 0b11111
+    | User   => cpsrm = 0b10000"
+
 (*
  * TODO
  * Figure out mode in ARM/CPSR
@@ -60,9 +68,9 @@ where
      (asid s = ASID t) \<and>
      (root s = TTBR0 t) \<and>
      (incon_set s = set_tlb.iset (set_tlb t)) \<and>
-     (HOL.undefined s = set_tlb.global_set (set_tlb t)) \<and>
+     (global_set s = set_tlb.global_set (set_tlb t)) \<and>
      (HOL.undefined s = set_tlb.snapshot (set_tlb t)) \<and>
-     (mode s = HOL.undefined t) \<and>
+     (mode_rel (mode s) (PSR.M (CPSR t))) \<and>
      heap_rel s t \<and>
      machine_config t"
 
@@ -136,6 +144,16 @@ lemma comp_bexp_true_proof:
       REG t' RName_0usr = 1"
   sorry
 
+lemma comp_bexp_false_proof:
+  "\<lbrakk>bval e s = Some False;
+    code_installed t (comp_bexp e @ ins);
+    state_rel s t\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t (length (comp_bexp e)) = t' \<and>
+      code_installed t' ins \<and>
+      state_rel s t' \<and>
+      REG t' RName_0usr = 0"
+  sorry
+
 lemma comp_aexp_proof:
   "\<lbrakk>aval e s = Some val;
     code_installed t (comp_aexp e @ ins);
@@ -151,6 +169,28 @@ lemma comp_aexp_proof:
       apply (clarsimp split: prod.splits)
       apply (clarsimp simp: itadvance_RName_0usr_eq)
   apply(clarsimp simp: comp_aexp_proof_Const_1) *)
+  sorry
+
+lemma comp_flushTLB_proof:
+  "\<lbrakk>code_installed t (comp_flush f); f = flushTLB;
+    state_rel s t\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t (length (comp_flush f)) = t' \<and>
+      state_rel (s\<lparr>incon_set := flush_effect_iset f (incon_set s) (p_state.global_set s) (asid s),
+                 p_state.global_set := flush_effect_glb f (p_state.global_set s) (asid s) (heap s) (root s),
+                 ptable_snapshot := flush_effect_snp f (ptable_snapshot s) (asid s)\<rparr>) t'"
+  sorry
+
+lemma comp_flush_proof:
+  "\<lbrakk>code_installed t (comp_flush f);
+    state_rel s t\<rbrakk> \<Longrightarrow> state_rel
+            (s\<lparr>incon_set := flush_effect_iset f (incon_set s) (p_state.global_set s) (asid s),
+                 p_state.global_set := flush_effect_glb f (p_state.global_set s) (asid s) (heap s) (root s),
+                 ptable_snapshot := flush_effect_snp f (ptable_snapshot s) (asid s)\<rparr>)
+            (steps t (length (comp_flush f)))"
+  (* case flushTLB *)
+  apply (cases f)
+     apply (drule_tac s="s" and f="f" in comp_flushTLB_proof,simp,simp)
+     apply safe
   sorry
 
 lemma state_rel_mov_ins:
@@ -200,7 +240,19 @@ lemma steps_add: "steps (steps t i) i' = steps t (i+i')"
 lemma steps_inc: "snd (Next (steps t i)) = steps t (i+1)"
   sorry
 
-lemma state_rel_cmp_ins:
+lemma state_rel_cmp_false_ins:
+  "\<lbrakk>state_rel s t;
+   code_installed t (cmp_imm 0 0 # ins);
+   REG t RName_0usr = 0\<rbrakk> \<Longrightarrow>
+   code_installed (snd (Next t)) ins \<and>
+   state_rel s (snd (Next t)) \<and>
+   PSR.C (CPSR (snd (Next t))) \<and>
+   \<not>PSR.N (CPSR (snd (Next t))) \<and>
+   \<not>PSR.V (CPSR (snd (Next t))) \<and>
+   PSR.Z (CPSR (snd (Next t)))"
+  sorry
+
+lemma state_rel_cmp_true_ins:
   "\<lbrakk>state_rel s t;
    code_installed t (cmp_imm 0 0 # ins);
    REG t RName_0usr = 1\<rbrakk> \<Longrightarrow>
@@ -219,6 +271,15 @@ lemma state_rel_beq_imm_false_ins:
       \<not>PSR.Z (CPSR (snd (Next t))) \<and>
       code_installed (snd (Next t)) ins \<and>
       state_rel s (snd (Next t))"
+  sorry
+
+lemma state_rel_beq_imm_true_ins:
+  "\<lbrakk>PSR.Z (CPSR t);
+    state_rel s t;
+    code_installed t
+         (beq_imm (code_size (comp_com c1) - 1) # comp_com c1 @ b_imm (code_size ins - 1) # ins)\<rbrakk> \<Longrightarrow>
+      code_installed (steps t (length (comp_com c1) + 2)) ins \<and>
+      state_rel s (steps t (length (comp_com c1) + 2))"
   sorry
 
 lemma state_rel_b_imm_ins:
@@ -255,7 +316,7 @@ lemma comp_com_correct:
            apply (force)
           apply(simp add: steps_add)
 
-          (* IfTrue case *)
+         (* IfTrue case *)
          apply (clarsimp simp: Let_def)
          apply (drule_tac t = "ta" and ins = "cmp_imm 0 0 # beq_imm (code_size (comp_com c1) - 1) # comp_com c1 @ b_imm (code_size (comp_com c2) - 1) # comp_com c2" in comp_bexp_true_proof, simp, simp)
          apply safe
@@ -264,7 +325,7 @@ lemma comp_com_correct:
          (comp_bexp b @
           cmp_imm 0 0 #
           beq_imm (code_size (comp_com c1) - 1) # comp_com c1 @ b_imm (code_size (comp_com c2) - 1) # comp_com c2)")
-         apply (drule_tac t = "steps ta (length (comp_bexp b))" and ins = "beq_imm (code_size (comp_com c1) - 1) # comp_com c1 @ b_imm (code_size (comp_com c2) - 1) # comp_com c2" in state_rel_cmp_ins,simp,simp)
+         apply (drule_tac t = "steps ta (length (comp_bexp b))" and ins = "beq_imm (code_size (comp_com c1) - 1) # comp_com c1 @ b_imm (code_size (comp_com c2) - 1) # comp_com c2" in state_rel_cmp_true_ins,simp,simp)
          apply safe
          apply(thin_tac "code_installed (steps ta (length (comp_bexp b)))
          (cmp_imm 0 0 #
@@ -281,12 +342,57 @@ lemma comp_com_correct:
          apply (thin_tac "\<not> PSR.Z (CPSR (snd (Next (snd (Next (steps ta (length (comp_bexp b))))))))")
          apply (frule code_installed_append)
          apply (subgoal_tac "state_rel y (steps (snd (Next (snd (Next (steps ta (length (comp_bexp b))))))) (length (comp_com c1)))") prefer 2
-          apply(force)
-         apply(thin_tac "code_installed (snd (Next (snd (Next (steps ta (length (comp_bexp b))))))) (comp_com c1)")
-         apply(thin_tac "state_rel s (snd (Next (snd (Next (steps ta (length (comp_bexp b)))))))")
+          apply (force)
+         apply (thin_tac "code_installed (snd (Next (snd (Next (steps ta (length (comp_bexp b))))))) (comp_com c1)")
+         apply (thin_tac "state_rel s (snd (Next (snd (Next (steps ta (length (comp_bexp b)))))))")
          apply (drule code_installed_prepend)
-         apply(frule_tac ins = "comp_com c2" in state_rel_b_imm_ins, simp)
+         apply (drule_tac ins = "comp_com c2" in state_rel_b_imm_ins, simp)
+         apply (thin_tac "code_installed (steps (snd (Next (snd (Next (steps ta (length (comp_bexp b))))))) (length (comp_com c1)))
+         (b_imm (code_size (comp_com c2) - 1) # comp_com c2)")
+         apply (simp add: steps_inc)
+         apply (simp add: steps_add)
+         apply (metis steps_add)
 
+        (* IfFalse case *)
+        apply(clarsimp simp: Let_def)
+        apply (drule_tac t = "ta" and ins = "cmp_imm 0 0 # beq_imm (code_size (comp_com c1) - 1) # comp_com c1 @ b_imm (code_size (comp_com c2) - 1) # comp_com c2" in comp_bexp_false_proof, simp, simp)
+        apply safe
+        apply (thin_tac "state_rel s ta")
+        apply (thin_tac "code_installed ta
+        (comp_bexp b @
+         cmp_imm 0 0 #
+         beq_imm (code_size (comp_com c1) - 1) # comp_com c1 @ b_imm (code_size (comp_com c2) - 1) # comp_com c2)")
+        apply (drule_tac t = "steps ta (length (comp_bexp b))" and ins = "beq_imm (code_size (comp_com c1) - 1) # comp_com c1 @ b_imm (code_size (comp_com c2) - 1) # comp_com c2" in state_rel_cmp_false_ins,simp,simp)
+        apply safe
+        apply (thin_tac "code_installed (steps ta (length (comp_bexp b)))
+         (cmp_imm 0 0 #
+          beq_imm (code_size (comp_com c1) - 1) # comp_com c1 @ b_imm (code_size (comp_com c2) - 1) # comp_com c2)")
+        apply (thin_tac "state.REG (steps ta (length (comp_bexp b))) RName_0usr = 0")
+        apply (thin_tac "PSR.C (CPSR (snd (Next (steps ta (length (comp_bexp b))))))")
+        apply (thin_tac "\<not>PSR.N (CPSR (snd (Next (steps ta (length (comp_bexp b))))))")
+        apply (thin_tac "\<not>PSR.V (CPSR (snd (Next (steps ta (length (comp_bexp b))))))")
+        apply (drule_tac t = "snd (Next (steps ta (length (comp_bexp b))))" in state_rel_beq_imm_true_ins, simp, simp)
+        apply safe
+        apply (thin_tac "code_installed (snd (Next (steps ta (length (comp_bexp b)))))
+        (beq_imm (code_size (comp_com c1) - 1) # comp_com c1 @ b_imm (code_size (comp_com c2) - 1) # comp_com c2)")
+        apply (thin_tac "state_rel s (snd (Next (steps ta (length (comp_bexp b)))))")
+        apply (subgoal_tac "state_rel y (steps (steps (snd (Next (steps ta (length (comp_bexp b))))) (length (comp_com c1) + 2)) (length (comp_com c2)))") prefer 2
+         apply (force)
+        apply (thin_tac "code_installed (steps (snd (Next (steps ta (length (comp_bexp b))))) (length (comp_com c1) + 2)) (comp_com c2)")
+        apply (thin_tac "state_rel s (steps (snd (Next (steps ta (length (comp_bexp b))))) (length (comp_com c1) + 2))")
+        apply (simp add: steps_add)
+        apply (simp add: steps_inc)
+        apply (simp add: steps_add)
+
+       (* WhileFalse *)
+       defer
+
+       (* WhileTrue *)
+       defer
+
+       (* Flush *)
+       apply(frule_tac s="s" in comp_flush_proof)
+        apply safe
   oops
 
     
