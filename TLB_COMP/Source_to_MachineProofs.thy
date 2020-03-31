@@ -606,4 +606,24 @@ lemma comp_SetMode_correct:
        \<Longrightarrow> state_rel (s\<lparr>mode := m\<rparr>) (steps t (length (comp_com (SetMode m))))"
   sorry
 
+theorem comp_com_correct:
+  "\<lbrakk>(p,s) \<Rightarrow> st;
+    code_installed t (comp_com p);
+    st \<noteq> None;
+    state_rel s t
+    \<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t (length (comp_com p)) = t' \<and> state_rel (the st) t'"
+  apply (induction arbitrary: t rule: big_step_induct; clarsimp)
+           apply(drule comp_Assign_correct, force+)
+          apply(rule comp_Seq_correct,force+)
+         apply(rule comp_IfTrue_correct,force+)
+        apply(rule comp_IfFalse_correct,force+)
+       apply(rule comp_WhileFalse_correct,simp+)
+      apply(rule comp_WhileTrue_correct,force+)
+     apply(rule comp_Flush_correct,simp+)
+    apply(rule comp_UpdateTTBR0_correct,simp+)
+   apply(rule comp_UpdateASID_correct,simp+)
+  apply(rule comp_SetMode_correct,simp+)
+  done
+
 end
