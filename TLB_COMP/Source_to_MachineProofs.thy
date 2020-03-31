@@ -53,4 +53,10 @@ where
      heap_rel s t \<and>
      machine_config t"
 
+fun
+  steps :: "'a set_tlb_state_scheme \<Rightarrow> nat \<Rightarrow> 'a set_tlb_state_scheme"
+where
+  "steps s 0 = s" |
+  "steps s (Suc i) = steps (snd (Next s)) i"
+
 end
