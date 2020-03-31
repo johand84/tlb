@@ -40,4 +40,17 @@ where
       Kernel => cpsrm = 0b10011
     | User   => cpsrm = 0b10000"
 
+definition
+  state_rel :: "p_state \<Rightarrow> 'a set_tlb_state_scheme \<Rightarrow> bool"
+where
+  "state_rel s t \<equiv>
+     (asid s = ASID t) \<and>
+     (root s = TTBR0 t) \<and>
+     (p_state.incon_set s = set_tlb.iset (set_tlb t)) \<and>
+     (p_state.global_set s = set_tlb.global_set (set_tlb t)) \<and>
+     (HOL.undefined s = set_tlb.snapshot (set_tlb t)) \<and>
+     mode_rel (mode s) (PSR.M (CPSR t)) \<and>
+     heap_rel s t \<and>
+     machine_config t"
+
 end
