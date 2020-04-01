@@ -514,4 +514,21 @@ lemma comp_bexp_correct:
   apply (rule comp_bexp_BUnOp_correct, force+)
   done
 
+lemma comp_Assign_correct:
+  "\<lbrakk>\<lbrakk>lval\<rbrakk> s = Some vp;
+    \<lbrakk>rval\<rbrakk> s = Some v;
+    Addr vp \<notin> incon_set s;
+    addr_trans s (Addr vp) = Some pp;
+    code_installed t (comp_aexp lval @ mov_reg 2 0 # comp_aexp rval @ str_imm 0 2 0 # ins);
+    state_rel s t\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps (snd (Next (snd (Next t)))) (length (comp_aexp lval) + length (comp_aexp rval)) = t' \<and>
+        code_installed t' ins \<and>
+        state_rel (s\<lparr>heap := heap s(pp \<mapsto> v), incon_set := iset_upd s pp v, p_state.global_set := gset_upd s pp v\<rparr>) t'"
+  apply (drule_tac ins = "mov_reg 2 0 # comp_aexp rval @ str_imm 0 2 0 # ins" in comp_aexp_correct, simp, simp, safe)
+  apply (drule_tac ins = "comp_aexp rval @ str_imm 0 2 0 # ins" and val = "vp" in mov_reg_correct, simp, simp, safe)
+  apply (drule_tac ins = "str_imm 0 2 0 # ins" in comp_aexp_correct, simp, simp, safe)
+  apply (drule_tac ins = "ins" and pp = "pp" in str_imm_correct, simp, simp, simp, safe)
+  apply (simp add: steps_add steps_inc)
+  done
+
 end
