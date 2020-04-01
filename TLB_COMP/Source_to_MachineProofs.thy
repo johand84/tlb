@@ -563,4 +563,12 @@ lemma comp_WhileFalse_correct:
        \<Longrightarrow> state_rel s (steps t (length (comp_com (WHILE b DO c))))"
   sorry
 
+lemma comp_WhileTrue_correct:
+  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some True; (c, s) \<Rightarrow> Some s'';
+        \<And>t. \<lbrakk>code_installed t (comp_com c); state_rel s t\<rbrakk> \<Longrightarrow> state_rel s'' (steps t (length (comp_com c))); (WHILE b DO c, s'') \<Rightarrow> Some y;
+        \<And>t. \<lbrakk>code_installed t (comp_com (WHILE b DO c)); state_rel s'' t\<rbrakk> \<Longrightarrow> state_rel y (steps t (length (comp_com (WHILE b DO c))));
+        code_installed t (comp_com (WHILE b DO c)); state_rel s t\<rbrakk>
+       \<Longrightarrow> state_rel y (steps t (length (comp_com (WHILE b DO c))))"
+  sorry
+
 end
