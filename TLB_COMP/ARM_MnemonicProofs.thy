@@ -12,6 +12,7 @@ where
     \<not>E (CPSR s) \<and>
     Encoding s = Encoding_ARM \<and>
     Extensions s = {} \<and>
+    PSR.M (CPSR s) = 0x13 \<and>
     \<not>J (CPSR s) \<and>
     \<not>T (CPSR s)
   )"
@@ -76,9 +77,24 @@ lemma Decode_state_eq:
   apply (clarsimp simp: Decode_def)
   sorry
 
+lemma word_extract_cond: "word_extract 31 28 (word_cat (cond::4 word) (add_reg1 0 0 1)::32 word) = (cond::4 word)"
+  sorry
+
+lemma word_extract_instr: "word_extract 27 0 (word_cat (cond::4 word) (instr::28 word)::32 word) = (instr::28 word)"
+  sorry
+
+(*declare [[show_types]]*)
+
 lemma Decode_add_reg:
   "\<lbrakk>Decode (add_reg 0 0 1) s = (i,s')\<rbrakk> \<Longrightarrow> 
     i = Data (Register (0x4, False, 0, 0, 1, SRType_LSL, 0))"
+  apply(clarsimp simp: Decode_def add_reg_def always_def)
+
+  apply(clarsimp simp: DecodeARM_def)
+  apply(clarsimp simp: word_extract_cond)
+  apply(clarsimp simp: word_extract_instr)
+  apply(clarsimp simp: Let_def)
+  apply(clarsimp simp: add_reg1_def data_register_def split: if_split_asm)
   sorry
   
 lemma add_reg_proof: "\<lbrakk>
@@ -142,17 +158,24 @@ lemma branch:
   "(word_of_int (bin_cat (uint (word_extract 31 2 (state.REG s RName_PC + 8 + offset))) 2 0)) = (REG s RName_PC + 8 + offset)"
   sorry
 
+lemma Decode_b_imm:
+  "\<lbrakk>Decode (b_imm (ucast offset)) s = (i,s')\<rbrakk> \<Longrightarrow>
+    i = Branch (BranchTarget offset)"
+  sorry
+
 lemma b_imm_proof: "\<lbrakk>
     Decode m s1 = (i,s2);
     Fetch s = (m,s1);
     ITAdvance () s3 = ((),s');
-    Run (b_imm offset) s2 = ((),s3);
-    arm_preconditions s
+    Run i s2 = ((),s3);
+    arm_preconditions s;
+    m = b_imm (ucast offset)
   \<rbrakk> \<Longrightarrow>
     s\<lparr>REG := (REG s)(RName_PC := REG s RName_PC + 8 + offset)\<rparr> = s'
 "
   apply (drule Fetch_state_eq; safe)
-  apply (drule Decode_state_eq; safe)
+  apply (frule Decode_state_eq; safe)
+  apply (drule Decode_b_imm; safe)
   apply (clarsimp simp: arm_preconditions_def)
   apply (clarsimp simp: Run_def b_imm_def)
   apply (clarsimp simp: dfn'BranchTarget_def split: prod.splits)
@@ -182,10 +205,19 @@ lemma zero:
   "(word_of_int (uint (state.REG s RName_0usr) + uint max_word + 1) = 0) = (REG s RName_0usr = 0)"
   sorry
 
+lemma Decode_cmp_imm:
+  "\<lbrakk>Decode (cmp_imm 0 imm) s = (i,s')\<rbrakk> \<Longrightarrow>
+    i = Data (ArithLogicImmediate (0xa, True, 0, 0, imm))"
+  sorry
+
 lemma cmp_imm_proof: "\<lbrakk>
+    Decode m s1 = (i,s2);
+    Fetch s = (m,s1);
+    ITAdvance () s3 = ((),s');
+    Run i s2 = (u,s');
+    arm_preconditions s;
     imm = 0;
-    Run (cmp_imm 0 0) s = (u,s');
-    arm_preconditions s
+    m = cmp_imm 0 imm
   \<rbrakk> \<Longrightarrow>
     s\<lparr>
       CPSR := (CPSR s)\<lparr>
@@ -197,11 +229,13 @@ lemma cmp_imm_proof: "\<lbrakk>
       REG := (REG s)(RName_PC := REG s RName_PC + 4)
     \<rparr> = s'
 "
-  apply (clarsimp simp: arm_preconditions_def)
-  apply (clarsimp simp: Run_def cmp_imm_def dfn'ArithLogicImmediate_def)
-  apply (clarsimp simp: ARMExpandImm_C_def ExpandImm_C_def Shift_C_def mask_def word_bits_def word_extract_def split: if_split_asm)
-
-  apply (clarsimp simp: ArithmeticOpcode_def DataProcessing_def mask_def word_bits_def word_extract_def split: if_split_asm)
+  apply (drule Fetch_state_eq; safe)
+  apply (frule Decode_state_eq; safe)
+  apply (drule Decode_cmp_imm; safe)
+  apply (clarsimp simp: Run_def dfn'ArithLogicImmediate_def split: prod.splits)
+  apply (clarsimp simp: ExpandImm_C_def ThumbExpandImm_C_def arm_preconditions_def split: if_split_asm)
+  apply (clarsimp simp: ARMExpandImm_C_def Shift_C_def mask_def word_bits_def word_extract_def split: if_split_asm)
+  apply (clarsimp simp: ArithmeticOpcode_def DataProcessing_def mask_def word_bits_def word_extract_def split: if_split_asm prod.splits)
   apply (clarsimp simp: HaveSecurityExt_def IsSecure_def LookUpRName_def R_def Rmode_def)
   apply (clarsimp simp: AddWithCarry_def DataProcessingALU_def Let_def)
   apply (clarsimp simp: IncPC_def ThisInstrLength_def BranchTo_def)
@@ -213,8 +247,9 @@ lemma mov_imm_proof: "\<lbrakk>
     Decode m s1 = (i,s2);
     Fetch s = (m,s1);
     ITAdvance () s3 = ((),s');
-    Run (mov_imm 0 v) s2 = (u,s3);
+    Run i s2 = (u,s3);
     arm_preconditions s;
+    m = mov_imm 0 v;
     word_bits 31 12 v = 0
   \<rbrakk> \<Longrightarrow>
     s\<lparr>REG := (REG s)(RName_0usr := (ucast v), RName_PC := REG s RName_PC + 4)\<rparr> = s'
@@ -225,12 +260,57 @@ lemma mov_reg_proof: "\<lbrakk>
     Decode m s1 = (i,s2);
     Fetch s = (m,s1);
     ITAdvance () s3 = ((),s');
-    Run (mov_reg 0 1) s2 = (u,s');
-    arm_preconditions s
+    Run i s2 = (u,s');
+    arm_preconditions s;
+    m = mov_reg 0 1
   \<rbrakk> \<Longrightarrow>
     s\<lparr>REG := (REG s)(RName_0usr := REG s RName_1usr, RName_PC := REG s RName_PC + 4)\<rparr> = s'
 "
   sorry
+
+lemma Decode_msr_reg:
+  "\<lbrakk>Decode (msr_reg 0 0x1 0) s = (i,s')\<rbrakk> \<Longrightarrow>
+    i = System (MoveToSpecialFromRegister (False, 0, 0x1))"
+  sorry
+
+lemma CPSRWriteByInstr_proof:
+  "(CPSRWriteByInstr (value, 1, False) s = ((), s1)) \<Longrightarrow>  (s\<lparr>
+        CPSR := (CPSR s)\<lparr>PSR.M := ucast value\<rparr>\<rparr> = s1)"
+  sorry
+
+lemma msr_imm_proof:
+  "\<lbrakk>Decode m s1 = (i,s2);
+    Fetch s = (m,s1);
+    ITAdvance () s3 = ((),s');
+    REG s RName_0usr = 0x10;
+    Run i s2 = ((),s3);
+    arm_preconditions s;
+    m = msr_reg 0 0x1 0\<rbrakk> \<Longrightarrow>
+      s\<lparr>
+        CPSR := (CPSR s)\<lparr>PSR.M := 0x10 \<rparr>,
+        REG := (REG s)(RName_PC := REG s RName_PC + 4)
+      \<rparr> = s'"
+  apply (drule Fetch_state_eq; safe)
+  apply (frule Decode_state_eq; safe)
+  apply (drule Decode_msr_reg; safe)
+  apply (clarsimp simp: Run_def arm_preconditions_def dfn'MoveToSpecialFromRegister_def split: if_split_asm prod.splits)
+    apply (clarsimp simp: R_def Rmode_def split: if_split_asm prod.splits)
+  apply(clarsimp simp: HaveSecurityExt_def IsSecure_def)
+    apply(clarsimp simp: LookUpRName_def)
+    apply(drule CPSRWriteByInstr_proof; simp)
+    apply(clarsimp simp: CurrentInstrSet_def)
+   apply (clarsimp simp: R_def Rmode_def split: if_split_asm prod.splits)
+   apply(clarsimp simp: HaveSecurityExt_def IsSecure_def)
+   apply(clarsimp simp: LookUpRName_def)
+   apply(drule CPSRWriteByInstr_proof; clarsimp)
+  apply (clarsimp simp: R_def Rmode_def split: if_split_asm prod.splits)
+  apply(clarsimp simp: HaveSecurityExt_def IsSecure_def)
+  apply(clarsimp simp: LookUpRName_def)
+  apply(drule CPSRWriteByInstr_proof; clarsimp)
+  (*apply(clarsimp simp: BadMode_def CurrentModeIsNotUser_def CPSRWriteByInstr_def HaveSecurityExt_def IsSecure_def mask_def word_bits_def word_extract_def)*)
+  apply(clarsimp simp: BranchTo_def IncPC_def ThisInstrLength_def)
+  apply(clarsimp simp: HaveThumb2_def ITAdvance_def)
+  done
 
 lemma neg_proof: "\<lbrakk>
     Decode m s1 = (i,s2);
@@ -239,42 +319,10 @@ lemma neg_proof: "\<lbrakk>
     REG s RName_0usr = v;
     Run i s2 = ((),s3);
     arm_preconditions s;
-    i = (neg 0 0)
+    m = neg 0 0
   \<rbrakk> \<Longrightarrow>
     s\<lparr>REG := (REG s)(RName_0usr := -v, RName_PC := REG s RName_PC + 4)\<rparr> = s'
 "
-  apply(
-    clarsimp
-      simp:
-        AddWithCarry_def
-        ARMExpandImm_C_def
-        BranchTo_def
-        DataProcessing_def
-        DataProcessingALU_def
-        ExpandImm_C_def
-        HaveSecurityExt_def
-        HaveThumb2_def
-        ITAdvance_def
-        IncPC_def
-        IsSecure_def
-        Let_def
-        LookUpRName_def
-        NOT_eq
-        R_def
-        Rmode_def
-        Run_def
-        Shift_C_def
-        ThisInstrLength_def
-        arm_preconditions_def
-        dfn'ArithLogicImmediate_def
-        neg_def
-        rsb_imm_def
-        wi_hom_syms
-        write'R_def
-        write'Rmode_def
-        word_bits_def
-        word_extract_def
-  )
   sorry
 
 lemma sub_reg_proof: "\<lbrakk>
@@ -285,25 +333,10 @@ lemma sub_reg_proof: "\<lbrakk>
     REG s RName_1usr = y;
     Run i s2 = ((),s3);
     arm_preconditions s;
-    i = sub_reg 0 0 1
+    m = sub_reg 0 0 1
   \<rbrakk> \<Longrightarrow>
     s\<lparr>REG := (REG s)(RName_0usr := x-y, RName_PC := REG s RName_PC + 4)\<rparr> = s'
 "
-  apply (
-    clarsimp
-      simp:
-        AddWithCarry_def
-        HaveThumb2_def
-        ITAdvance_def
-        If_def
-        Let_def
-        sub_reg_def
-        arithm_instr_lemmas
-        arm_preconditions_def
-        mask_def
-        reg_to_bin_def
-        wi_hom_syms
-  )
   sorry
 
 end
