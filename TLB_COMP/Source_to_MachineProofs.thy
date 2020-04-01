@@ -531,4 +531,17 @@ lemma comp_Assign_correct:
   apply (simp add: steps_add steps_inc)
   done
 
+lemma comp_Seq_correct:
+  "\<lbrakk>\<forall>t::'a set_tlb_state_scheme. code_installed t (comp_com c1) \<and> state_rel s1 t \<longrightarrow> state_rel s2 (steps t (length (comp_com c1)));
+    \<forall>t::'a set_tlb_state_scheme. code_installed t (comp_com c2) \<and> state_rel s2 t \<longrightarrow> state_rel y (steps t (length (comp_com c2)));
+    code_installed (t::'a set_tlb_state_scheme) (comp_com c1 @ comp_com c2);
+    state_rel s1 t\<rbrakk>
+       \<Longrightarrow> state_rel y (steps t (length (comp_com c1) + length (comp_com c2)))"
+  apply (frule code_installed_append)
+  apply (subgoal_tac "state_rel s2 (steps t (length (comp_com c1)))")
+   apply (drule code_installed_prepend)
+   apply (subgoal_tac "state_rel y (steps (steps t (length (comp_com c1))) (length (comp_com c2)))")
+    apply (clarsimp simp: steps_add)
+  by (force+)
+
 end
