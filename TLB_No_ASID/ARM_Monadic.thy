@@ -22656,20 +22656,34 @@ val () = def
 end
 \<close>
 
-(* opc = 0 \<Rightarrow> TLBIALL *)
-(* opc = 1 \<Rightarrow> TLBIMVA *)
-(* opc = 2 \<Rightarrow> TLBIASID *)
-(* opc = 3 \<Rightarrow> TLBIMVAA *)
-
-(* if opc = 0 then flush FlushTLB read_state
-   else if opc = 1 then flush (FlushASIDvarange {rt}) read_state
-   else if opc = 2 then flush (FlushASID rt) read_state
-   else if opc = 3 then flush (Flushvarange {rt}) read_state *)
 definition dfn'MoveToCoprocessorFromRegister ::
-  "3 word \<times> 4 word \<times> 4 word \<times> 4 word \<times> 3 word \<times> 4 word \<Rightarrow> 'a::mmu state_scheme \<Rightarrow> unit \<times> 'a::mmu state_scheme"
+  "3 word \<times> 4 word \<times> 4 word \<times> 4 word \<times> 3 word \<times> 4 word \<Rightarrow> 'b::mmu state_scheme \<Rightarrow> unit \<times> 'b::mmu state_scheme"
 where
   "dfn'MoveToCoprocessorFromRegister \<equiv> \<lambda>(opc1, crn, rt, coproc, opc2, crm). do {
-    return()
+     v \<leftarrow> CurrentModeIsNotUser ();
+    if v then (
+      if opc1 = 0 then flush FlushTLB
+      else if opc1 = 1 then do {
+        reg \<leftarrow> read_state REG;
+        value \<leftarrow> return(reg RName_0usr);
+        asid \<leftarrow> return(word_extract 31 24 value);
+        addr \<leftarrow> return(word_extract 23 0 value);
+        flush (FlushASIDvarange asid {(Addr addr)::vaddr})
+      }
+      else if opc1 = 2 then do {
+        reg \<leftarrow> read_state REG;
+        asid32 \<leftarrow> return(reg RName_0usr);
+        asid \<leftarrow> return(ucast asid32::8 word);
+        flush (FlushASID asid)
+      }
+      else if opc1 = 3 then do {
+        reg \<leftarrow> read_state REG;
+        addr \<leftarrow> return(reg RName_0usr);
+        flush (Flushvarange {(Addr addr)::vaddr})
+      }
+      else raise'exception (IMPLEMENTATION_DEFINED HOL.undefined)
+    )
+    else raise'exception (IMPLEMENTATION_DEFINED HOL.undefined)
   }"
 
 ML \<open>
