@@ -551,4 +551,11 @@ lemma comp_IfTrue_correct:
     state_rel y (steps ta (length (comp_com (IF b THEN c1 ELSE c2))))"
   sorry
 
+lemma comp_IfFalse_correct:
+  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some False; (c2, s) \<Rightarrow> Some y;
+        \<And>t. \<lbrakk>code_installed t (comp_com c2); state_rel s t\<rbrakk> \<Longrightarrow> state_rel y (steps t (length (comp_com c2)));
+        code_installed ta (comp_com (IF b THEN c1 ELSE c2)); state_rel s ta\<rbrakk>
+       \<Longrightarrow> state_rel y (steps ta (length (comp_com (IF b THEN c1 ELSE c2))))"
+  sorry
+
 end
