@@ -544,4 +544,11 @@ lemma comp_Seq_correct:
     apply (clarsimp simp: steps_add)
   by (force+)
 
+lemma comp_IfTrue_correct:
+  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some True; (c1, s) \<Rightarrow> Some y;
+   \<And>t. \<lbrakk>code_installed t (comp_com c1); state_rel s t\<rbrakk> \<Longrightarrow> state_rel y (steps t (length (comp_com c1)));
+   code_installed ta (comp_com (IF b THEN c1 ELSE c2)); state_rel s ta\<rbrakk> \<Longrightarrow>
+    state_rel y (steps ta (length (comp_com (IF b THEN c1 ELSE c2))))"
+  sorry
+
 end
