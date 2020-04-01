@@ -129,6 +129,36 @@ where
     ::28 word)"
 
 definition
+  mcr_reg1 :: "3 word \<Rightarrow> 4 word \<Rightarrow> 4 word \<Rightarrow> 4 word \<Rightarrow> 3 word \<Rightarrow> 4 word \<Rightarrow> 28 word"
+where
+  "mcr_reg1 opc1 crn rt coproc opc2 crm =
+    (word_cat
+      (word_cat
+        (word_cat
+          (word_cat
+            (word_cat
+              (word_cat
+                (word_cat
+                  (word_cat
+                    (0xe::4 word)
+                    opc1
+                  ::7 word)
+                  (0x0::1 word)
+                ::8 word)
+                crn
+              ::12 word)
+              rt
+            ::16 word)
+            coproc
+          ::20 word)
+          opc2
+        ::23 word)
+        (0x1::1 word)
+      ::24 word)
+      crm
+    ::28 word)"
+
+definition
   mov_imm1 :: "4 word \<Rightarrow> 12 word \<Rightarrow> 28 word"
 where
   "mov_imm1 rd imm12 = data_arith_logic_imm 0xd 0 0 rd imm12"
@@ -137,6 +167,48 @@ definition
   mov_reg1 :: "4 word \<Rightarrow> 4 word \<Rightarrow> 28 word"
 where
   "mov_reg1 rd rm = data_register 0xd 0 rd 0 rm"
+
+definition
+  msr_imm1 :: "1 word \<Rightarrow> 4 word \<Rightarrow> 12 word \<Rightarrow> 28 word"
+where
+  "msr_imm1 r m imm12 =
+    (word_cat
+      (word_cat
+        (word_cat
+          (word_cat
+            (word_cat
+              (0x10::5 word)
+              r
+            ::6 word)
+            (0x2::2 word)
+          ::8 word)
+          m
+        ::12 word)
+        (0xf::4 word)
+      ::16 word)
+      imm12
+    ::28 word)"
+
+definition
+  msr_reg1 :: "1 word \<Rightarrow> 4 word \<Rightarrow> 4 word \<Rightarrow> 28 word"
+where
+  "msr_reg1 r m rn =
+    (word_cat
+      (word_cat
+        (word_cat
+          (word_cat
+            (word_cat
+              (0x02::5 word)
+              r
+            ::6 word)
+            (0x2::2 word)
+          ::8 word)
+          m
+        ::12 word)
+        (0xf00::12 word)
+      ::24 word)
+      rn
+    ::28 word)"
 
 definition
   or_reg1 :: "4 word \<Rightarrow> 4 word \<Rightarrow> 4 word \<Rightarrow> 28 word"
@@ -229,19 +301,10 @@ definition
 where
   "ldr_lit u rt imm12 = always (ldr_lit1 u rt imm12)"
 
-(*definition
+definition
   mcr_reg :: "3 word \<Rightarrow> 4 word \<Rightarrow> 4 word \<Rightarrow> 4 word \<Rightarrow> 3 word \<Rightarrow> 4 word \<Rightarrow> MachineCode"
 where
-  "mcr_reg opc1 crn rt coproc opc2 crm = CoprocessorInstruction (
-    MoveToCoprocessorFromRegister(
-      opc1,
-      crn,
-      rt,
-      coproc,
-      opc2,
-      crm
-    )
-  )"*)
+  "mcr_reg opc1 crn rt coproc opc2 crm = always (mcr_reg1 opc1 crn rt coproc opc2 crm)"
 
 (* mov rd, #imm12 *)
 definition
@@ -273,6 +336,16 @@ definition
   movne_imm :: "4 word \<Rightarrow> 12 word \<Rightarrow> MachineCode"
 where
   "movne_imm rd imm12 = ne (mov_imm1 rd imm12)"
+
+definition
+  msr_imm :: "1 word \<Rightarrow> 4 word \<Rightarrow> 12 word \<Rightarrow> MachineCode"
+where
+  "msr_imm r m imm12 = always (msr_imm1 r m imm12)"
+
+definition
+  msr_reg :: "1 word \<Rightarrow> 4 word \<Rightarrow> 4 word \<Rightarrow> MachineCode"
+where
+  "msr_reg r m rn = always (msr_reg1 r m rn)"
 
 (* orr rd, rn, rm *)
 definition
@@ -315,7 +388,7 @@ definition
 where
   "push r = always (str_imm1 1 0 1 r 13 4)"
 
-(*definition
+definition
   tlbiall :: "MachineCode"
 where
   "tlbiall = mcr_reg 0 8 0 15 0 7"
@@ -333,7 +406,7 @@ where
 definition
   tlbimvaa :: "4 word \<Rightarrow> MachineCode"
 where
-  "tlbimvaa rt = mcr_reg 0 8 rt 15 3 7"*)
+  "tlbimvaa rt = mcr_reg 0 8 rt 15 3 7"
 
 
 end
