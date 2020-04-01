@@ -360,9 +360,13 @@ datatype VFP =
   | vstr "bool \<times> bool \<times> 5 word \<times> 4 word \<times> 32 word"
   | vsub "bool \<times> 5 word \<times> 5 word \<times> 5 word"
 
+datatype CoprocessorInstruction =
+  MoveToCoprocessorFromRegister "3 word \<times> 4 word \<times> 4 word \<times> 4 word \<times> 3 word \<times> 4 word"
+
 datatype instruction =
     Branch Branch
   | ClearExclusive
+  | CoprocessorInstruction CoprocessorInstruction
   | Data Data
   | Divide "bool \<times> 4 word \<times> 4 word \<times> 4 word"
   | Hint Hint
@@ -22652,6 +22656,36 @@ val () = def
 end
 \<close>
 
+definition dfn'MoveToCoprocessorFromRegister ::
+  "3 word \<times> 4 word \<times> 4 word \<times> 4 word \<times> 3 word \<times> 4 word \<Rightarrow> 'b::mmu state_scheme \<Rightarrow> unit \<times> 'b::mmu state_scheme"
+where
+  "dfn'MoveToCoprocessorFromRegister \<equiv> \<lambda>(opc1, crn, rt, coproc, opc2, crm). do {
+     v \<leftarrow> CurrentModeIsNotUser ();
+    if v then (
+      if opc1 = 0 then flush FlushTLB
+      else if opc1 = 1 then do {
+        reg \<leftarrow> read_state REG;
+        value \<leftarrow> return(reg RName_0usr);
+        asid \<leftarrow> return(word_extract 31 24 value);
+        addr \<leftarrow> return(word_extract 23 0 value);
+        flush (FlushASIDvarange asid {(Addr addr)::vaddr})
+      }
+      else if opc1 = 2 then do {
+        reg \<leftarrow> read_state REG;
+        asid32 \<leftarrow> return(reg RName_0usr);
+        asid \<leftarrow> return(ucast asid32::8 word);
+        flush (FlushASID asid)
+      }
+      else if opc1 = 3 then do {
+        reg \<leftarrow> read_state REG;
+        addr \<leftarrow> return(reg RName_0usr);
+        flush (Flushvarange {(Addr addr)::vaddr})
+      }
+      else raise'exception (IMPLEMENTATION_DEFINED HOL.undefined)
+    )
+    else raise'exception (IMPLEMENTATION_DEFINED HOL.undefined)
+  }"
+
 ML \<open>
 local 
 open L3 
@@ -26570,6 +26604,7 @@ where
             | Load (LoadMultipleExceptionReturn v48) \<Rightarrow> dfn'LoadMultipleExceptionReturn v48 | Load (LoadMultipleUserRegisters v49) \<Rightarrow> dfn'LoadMultipleUserRegisters v49
             | Load (LoadSignedByteUnprivileged v50) \<Rightarrow> dfn'LoadSignedByteUnprivileged v50 | Load (LoadUnprivileged v51) \<Rightarrow> dfn'LoadUnprivileged v51
             | Load (LoadWord v52) \<Rightarrow> dfn'LoadWord v52 | Media (BitFieldClearOrInsert v54) \<Rightarrow> dfn'BitFieldClearOrInsert v54 | Media (BitFieldExtract v55) \<Rightarrow> dfn'BitFieldExtract v55
+            | CoprocessorInstruction (MoveToCoprocessorFromRegister v156) \<Rightarrow> dfn'MoveToCoprocessorFromRegister v156
             | Media (ByteReverse v56) \<Rightarrow> dfn'ByteReverse v56 | Media (ByteReversePackedHalfword v57) \<Rightarrow> dfn'ByteReversePackedHalfword v57
             | Media (ByteReverseSignedHalfword v58) \<Rightarrow> dfn'ByteReverseSignedHalfword v58 | Media (ExtendByte v59) \<Rightarrow> dfn'ExtendByte v59
             | Media (ExtendByte16 v60) \<Rightarrow> dfn'ExtendByte16 v60 | Media (ExtendHalfword v61) \<Rightarrow> dfn'ExtendHalfword v61 | Media (PackHalfword v62) \<Rightarrow> dfn'PackHalfword v62
