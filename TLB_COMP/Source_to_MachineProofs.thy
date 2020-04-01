@@ -558,4 +558,9 @@ lemma comp_IfFalse_correct:
        \<Longrightarrow> state_rel y (steps ta (length (comp_com (IF b THEN c1 ELSE c2))))"
   sorry
 
+lemma comp_WhileFalse_correct:
+  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some False; code_installed t (comp_com (WHILE b DO c)); state_rel s t\<rbrakk>
+       \<Longrightarrow> state_rel s (steps t (length (comp_com (WHILE b DO c))))"
+  sorry
+
 end
