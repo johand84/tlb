@@ -590,4 +590,15 @@ lemma comp_UpdateTTBR0_correct:
             (steps t (length (comp_com (UpdateTTBR0 rte))))"
   sorry
 
+lemma comp_UpdateASID_correct:
+  "\<lbrakk>mode s = Kernel; code_installed t (comp_com (UpdateASID a)); state_rel s t\<rbrakk>
+       \<Longrightarrow> state_rel
+            (s\<lparr>asid := a,
+                 incon_set :=
+                   incon_load (cur_pt_snp' (ptable_snapshot s) (incon_set s) (heap s) (root s) (asid s)) (incon_set s) (p_state.global_set s)
+                    a (heap s) (root s),
+                 ptable_snapshot := cur_pt_snp' (ptable_snapshot s) (incon_set s) (heap s) (root s) (asid s)\<rparr>)
+            (steps t (length (comp_com (UpdateASID a))))"
+  sorry
+
 end
