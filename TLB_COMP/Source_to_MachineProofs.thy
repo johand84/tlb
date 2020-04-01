@@ -580,4 +580,14 @@ lemma comp_Flush_correct:
             (steps t (length (comp_com (Flush f))))"
   sorry
 
+lemma comp_UpdateTTBR0_correct:
+  "\<lbrakk>mode s = Kernel; \<lbrakk>rte\<rbrakk> s = Some rt; code_installed t (comp_com (UpdateTTBR0 rte)); state_rel s t\<rbrakk>
+       \<Longrightarrow> state_rel
+            (s\<lparr>root := Addr rt, incon_set := incon_set s \<union> MMU_Prg_Logic.incon_comp (asid s) (asid s) (heap s) (heap s) (root s) (Addr rt),
+                 p_state.global_set :=
+                   p_state.global_set s \<union>
+                   \<Union> (MMU_Prg_Logic.range_of ` MMU_Prg_Logic.global_entries (ran (MMU_Prg_Logic.pt_walk (asid s) (heap s) (Addr rt))))\<rparr>)
+            (steps t (length (comp_com (UpdateTTBR0 rte))))"
+  sorry
+
 end
