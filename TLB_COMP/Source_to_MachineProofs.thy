@@ -571,4 +571,13 @@ lemma comp_WhileTrue_correct:
        \<Longrightarrow> state_rel y (steps t (length (comp_com (WHILE b DO c))))"
   sorry
 
+lemma comp_Flush_correct:
+  "\<lbrakk>mode s = Kernel; code_installed t (comp_com (Flush f)); state_rel s t\<rbrakk>
+       \<Longrightarrow> state_rel
+            (s\<lparr>incon_set := flush_effect_iset f (incon_set s) (p_state.global_set s) (asid s),
+                 p_state.global_set := flush_effect_glb f (p_state.global_set s) (asid s) (heap s) (root s),
+                 ptable_snapshot := flush_effect_snp f (ptable_snapshot s) (asid s)\<rparr>)
+            (steps t (length (comp_com (Flush f))))"
+  sorry
+
 end
