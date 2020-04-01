@@ -69,18 +69,31 @@ where
   "code_size [] = 0" |
   "code_size (i#is) = code_size is + 1"
 
+term addr_val
+
 fun
   comp_flush :: "flush_type \<Rightarrow> MachineCode list"
 where
-  "comp_flush flushTLB = []" |
-  "comp_flush (flushASID x) = []" |
-  "comp_flush (flushvarange vaddrs) = []" |
-  "comp_flush (flushASIDvarange x vaddrs) = []"
+  "comp_flush flushTLB = [tlbiall]" |
+  "comp_flush (flushASID a) = [mov_imm 0 (ucast a), tlbiasid 0]" |
+  "comp_flush (flushvarange va) = [
+    b_imm 0,
+    ARM (addr_val va),
+    ldr_lit 0 0 12,
+    tlbimvaa 0
+  ]" |
+  "comp_flush (flushASIDvarange a va) = [
+    b_imm 0,
+    ARM (word_cat a (word_extract 23 0 (addr_val va)::24 word)),
+    ldr_lit 0 0 12,
+    tlbimva 0
+  ]"
 
 fun
   comp_set_mode :: "mode_t \<Rightarrow> MachineCode list"
 where
-  "comp_set_mode m = []"
+  "comp_set_mode Kernel = []" |
+  "comp_set_mode User = [mov_imm 0 0x10, msr_reg 0 0x1 0]"
 
 fun
   comp_com :: "com \<Rightarrow> MachineCode list"
@@ -95,7 +108,7 @@ where
       comp_bexp b @
       cmp_imm 0 0 #
       beq_imm ((code_size i1)-1) #
-      i1 @ b_imm ((code_size i2)-2) #
+      i1 @ b_imm ((code_size i2)-1) #
       i2
     )
   )" |
@@ -112,8 +125,8 @@ where
     )
   )" |
   "comp_com (Flush t) = comp_flush t" |
-  "comp_com (UpdateTTBR0 a) = comp_aexp a @ []" |
-  "comp_com (UpdateASID v) = []" |
+  "comp_com (UpdateTTBR0 a) = comp_aexp a @ [mcr_reg 0 2 0 15 0 0]" |
+  "comp_com (UpdateASID v) = [mov_imm 0 (ucast v), mcr_reg 0 13 0 15 0 0]" |
   "comp_com (SetMode m) = comp_set_mode m"
 
 end
