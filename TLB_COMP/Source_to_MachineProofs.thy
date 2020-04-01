@@ -601,4 +601,9 @@ lemma comp_UpdateASID_correct:
             (steps t (length (comp_com (UpdateASID a))))"
   sorry
 
+lemma comp_SetMode_correct:
+  "\<lbrakk>mode s = Kernel; code_installed t (comp_com (SetMode m)); state_rel s t\<rbrakk>
+       \<Longrightarrow> state_rel (s\<lparr>mode := m\<rparr>) (steps t (length (comp_com (SetMode m))))"
+  sorry
+
 end
