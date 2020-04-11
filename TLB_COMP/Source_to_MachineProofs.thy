@@ -162,7 +162,11 @@ lemma and_reg_correct:
 
 lemma b_imm_correct:
   "\<lbrakk>state_rel s t;
-    code_installed t (b_imm offset # ins1 @ ins2) \<rbrakk> \<Longrightarrow> True"
+    code_installed t (b_imm (code_size (insa) - 1) # insa @ insb)\<rbrakk> \<Longrightarrow>
+      code_installed (t\<lparr>REG := (REG t)(RName_PC := REG t RName_PC + 4)\<rparr>) (insa @ insb) \<and>
+      (\<exists>t'. (t\<lparr>REG := (REG t)(RName_PC := REG t RName_PC + ucast ((code_size insa + 1) * 4))\<rparr>) = t' \<and>
+        code_installed t' insb \<and>
+        state_rel s t')"
   sorry
 
 lemma cmp_imm_correct:
@@ -184,6 +188,16 @@ lemma ldr_imm_correct:
         state_rel s t' \<and>
         REG t' RName_0usr = val \<and>
         REG t' RName_2usr = REG t RName_2usr"
+  sorry
+
+lemma ldr_lit_correct:
+  "\<lbrakk>state_rel s t;
+    code_installed t (ldr_lit 0 reg 0xC # ins);
+    code_installed (t\<lparr>REG := (REG t)(RName_PC := REG t RName_PC - 4)\<rparr>) (ARM val # ldr_lit 0 reg 0xC # ins)\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t 1 = t' \<and>
+        code_installed t' ins \<and>
+        state_rel s t' \<and>
+        REG t' (if reg = 0 then RName_0usr else RName_1usr) = val"
   sorry
 
 lemma mov_imm_correct:
@@ -546,64 +560,110 @@ lemma comp_Seq_correct:
 
 lemma comp_IfTrue_correct:
   "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some True; (c1, s) \<Rightarrow> Some y;
-   \<And>t. \<lbrakk>code_installed t (comp_com c1); state_rel s t\<rbrakk> \<Longrightarrow> state_rel y (steps t (length (comp_com c1)));
-   code_installed ta (comp_com (IF b THEN c1 ELSE c2)); state_rel s ta\<rbrakk> \<Longrightarrow>
-    state_rel y (steps ta (length (comp_com (IF b THEN c1 ELSE c2))))"
+        \<forall>t::'a set_tlb_state_scheme. code_installed t (comp_com c1) \<and> state_rel s t \<longrightarrow> state_rel y (steps t (length (comp_com c1)));
+        code_installed ta
+         (let i1 = comp_com c1; i2 = comp_com c2
+          in comp_bexp b @ cmp_imm 0 0 # beq_imm (code_size i1 - 1) # i1 @ b_imm (code_size i2 - 1) # i2);
+        state_rel s ta\<rbrakk>
+       \<Longrightarrow> state_rel y
+            (steps ta
+              (length
+                (let i1 = comp_com c1; i2 = comp_com c2
+                 in comp_bexp b @ cmp_imm 0 0 # beq_imm (code_size i1 - 1) # i1 @ b_imm (code_size i2 - 1) # i2)))"
+  apply (clarsimp simp: Let_def)
+  apply (drule_tac ins = "cmp_imm 0 0 # beq_imm (code_size (comp_com c1) - 1) # comp_com c1 @ b_imm (code_size (comp_com c2) - 1) # comp_com c2" in comp_bexp_correct, simp, simp)
+  apply safe
+  apply (drule_tac ins = "beq_imm (code_size (comp_com c1) - 1) # comp_com c1 @ b_imm (code_size (comp_com c2) - 1) # comp_com c2" in cmp_imm_correct, simp, simp)
+  apply safe
+  apply (drule code_installed_append)
   sorry
 
 lemma comp_IfFalse_correct:
-  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some False; (c2, s) \<Rightarrow> Some y;
+  "\<And>b s c2 c1 ta y.
+       \<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some False; (c2, s) \<Rightarrow> Some y;
         \<And>t. \<lbrakk>code_installed t (comp_com c2); state_rel s t\<rbrakk> \<Longrightarrow> state_rel y (steps t (length (comp_com c2)));
-        code_installed ta (comp_com (IF b THEN c1 ELSE c2)); state_rel s ta\<rbrakk>
-       \<Longrightarrow> state_rel y (steps ta (length (comp_com (IF b THEN c1 ELSE c2))))"
+        code_installed ta
+         (let i1 = comp_com c1; i2 = comp_com c2
+          in comp_bexp b @ cmp_imm 0 0 # beq_imm (code_size i1 - 1) # i1 @ b_imm (code_size i2 - 1) # i2);
+        state_rel s ta\<rbrakk>
+       \<Longrightarrow> state_rel y
+            (steps ta
+              (length
+                (let i1 = comp_com c1; i2 = comp_com c2
+                 in comp_bexp b @ cmp_imm 0 0 # beq_imm (code_size i1 - 1) # i1 @ b_imm (code_size i2 - 1) # i2)))"
   sorry
 
 lemma comp_WhileFalse_correct:
-  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some False; code_installed t (comp_com (WHILE b DO c)); state_rel s t\<rbrakk>
-       \<Longrightarrow> state_rel s (steps t (length (comp_com (WHILE b DO c))))"
+  "\<And>b s c t.
+       \<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some False;
+        code_installed t
+         (let i1 = comp_bexp b; i2 = comp_com c
+          in i1 @ cmp_imm 0 0 # beq_imm (code_size i2 - 1) # i2 @ [b_imm (- code_size i1 - code_size i2 + 0xFFFFFC)]);
+        state_rel s t\<rbrakk>
+       \<Longrightarrow> state_rel s
+            (steps t
+              (length
+                (let i1 = comp_bexp b; i2 = comp_com c
+                 in i1 @ cmp_imm 0 0 # beq_imm (code_size i2 - 1) # i2 @ [b_imm (- code_size i1 - code_size i2 + 0xFFFFFC)])))"
   sorry
 
 lemma comp_WhileTrue_correct:
-  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some True; (c, s) \<Rightarrow> Some s'';
+  "\<And>b s c s'' t y.
+       \<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some True; (c, s) \<Rightarrow> Some s'';
         \<And>t. \<lbrakk>code_installed t (comp_com c); state_rel s t\<rbrakk> \<Longrightarrow> state_rel s'' (steps t (length (comp_com c))); (WHILE b DO c, s'') \<Rightarrow> Some y;
-        \<And>t. \<lbrakk>code_installed t (comp_com (WHILE b DO c)); state_rel s'' t\<rbrakk> \<Longrightarrow> state_rel y (steps t (length (comp_com (WHILE b DO c))));
-        code_installed t (comp_com (WHILE b DO c)); state_rel s t\<rbrakk>
-       \<Longrightarrow> state_rel y (steps t (length (comp_com (WHILE b DO c))))"
+        \<And>t. \<lbrakk>code_installed t
+               (let i1 = comp_bexp b; i2 = comp_com c
+                in i1 @ cmp_imm 0 0 # beq_imm (code_size i2 - 1) # i2 @ [b_imm (- code_size i1 - code_size i2 + 0xFFFFFC)]);
+              state_rel s'' t\<rbrakk>
+             \<Longrightarrow> state_rel y
+                  (steps t
+                    (length
+                      (let i1 = comp_bexp b; i2 = comp_com c
+                       in i1 @ cmp_imm 0 0 # beq_imm (code_size i2 - 1) # i2 @ [b_imm (- code_size i1 - code_size i2 + 0xFFFFFC)])));
+        code_installed t
+         (let i1 = comp_bexp b; i2 = comp_com c
+          in i1 @ cmp_imm 0 0 # beq_imm (code_size i2 - 1) # i2 @ [b_imm (- code_size i1 - code_size i2 + 0xFFFFFC)]);
+        state_rel s t\<rbrakk>
+       \<Longrightarrow> state_rel y
+            (steps t
+              (length
+                (let i1 = comp_bexp b; i2 = comp_com c
+                 in i1 @ cmp_imm 0 0 # beq_imm (code_size i2 - 1) # i2 @ [b_imm (- code_size i1 - code_size i2 + 0xFFFFFC)])))"
   sorry
 
 lemma comp_Flush_correct:
-  "\<lbrakk>mode s = Kernel; code_installed t (comp_com (Flush f)); state_rel s t\<rbrakk>
+  "\<And>s f flush_effect_snp flush_effect_glb flush_effect_iset t.
+       \<lbrakk>mode s = Kernel; code_installed t (comp_flush f); state_rel s t\<rbrakk>
        \<Longrightarrow> state_rel
             (s\<lparr>incon_set := flush_effect_iset f (incon_set s) (p_state.global_set s) (asid s),
                  p_state.global_set := flush_effect_glb f (p_state.global_set s) (asid s) (heap s) (root s),
                  ptable_snapshot := flush_effect_snp f (ptable_snapshot s) (asid s)\<rparr>)
-            (steps t (length (comp_com (Flush f))))"
+            (steps t (length (comp_flush f)))"
   sorry
 
 lemma comp_UpdateTTBR0_correct:
-  "\<lbrakk>mode s = Kernel; \<lbrakk>rte\<rbrakk> s = Some rt; code_installed t (comp_com (UpdateTTBR0 rte)); state_rel s t\<rbrakk>
-       \<Longrightarrow> state_rel
-            (s\<lparr>root := Addr rt, incon_set := incon_set s \<union> MMU_Prg_Logic.incon_comp (asid s) (asid s) (heap s) (heap s) (root s) (Addr rt),
-                 p_state.global_set :=
-                   p_state.global_set s \<union>
-                   \<Union> (MMU_Prg_Logic.range_of ` MMU_Prg_Logic.global_entries (ran (MMU_Prg_Logic.pt_walk (asid s) (heap s) (Addr rt))))\<rparr>)
-            (steps t (length (comp_com (UpdateTTBR0 rte))))"
+  "\<And>s rte rt t.
+       \<lbrakk>mode s = Kernel; \<lbrakk>rte\<rbrakk> s = Some rt; code_installed t (comp_aexp rte @ [mcr_reg 0 2 0 0xF 0 0]); state_rel s t\<rbrakk>
+       \<Longrightarrow> state_rel (s\<lparr>root := Addr rt, incon_set := iset_upd' s rt, p_state.global_set := gset_upd' s rt\<rparr>)
+            (steps (snd (Next t)) (length (comp_aexp rte)))"
   sorry
 
 lemma comp_UpdateASID_correct:
-  "\<lbrakk>mode s = Kernel; code_installed t (comp_com (UpdateASID a)); state_rel s t\<rbrakk>
+  "\<And>s a t y ya.
+       \<lbrakk>mode s = Kernel; state_rel s t; Fetch t = (mov_imm 0 (UCAST(8 \<rightarrow> 12) a), y);
+        Fetch (y\<lparr>state.REG := (state.REG t)(RName_PC := state.REG t RName_PC + 4)\<rparr>) = (mcr_reg 0 0xD 0 0xF 0 0, ya)\<rbrakk>
        \<Longrightarrow> state_rel
             (s\<lparr>asid := a,
                  incon_set :=
                    incon_load (cur_pt_snp' (ptable_snapshot s) (incon_set s) (heap s) (root s) (asid s)) (incon_set s) (p_state.global_set s)
                     a (heap s) (root s),
                  ptable_snapshot := cur_pt_snp' (ptable_snapshot s) (incon_set s) (heap s) (root s) (asid s)\<rparr>)
-            (steps t (length (comp_com (UpdateASID a))))"
+            (snd (Next (snd (Next t))))"
   sorry
 
 lemma comp_SetMode_correct:
-  "\<lbrakk>mode s = Kernel; code_installed t (comp_com (SetMode m)); state_rel s t\<rbrakk>
-       \<Longrightarrow> state_rel (s\<lparr>mode := m\<rparr>) (steps t (length (comp_com (SetMode m))))"
+  "\<And>s m t.
+       \<lbrakk>mode s = Kernel; code_installed t (comp_set_mode m); state_rel s t\<rbrakk> \<Longrightarrow> state_rel (s\<lparr>mode := m\<rparr>) (steps t (length (comp_set_mode m)))"
   sorry
 
 theorem comp_com_correct:
