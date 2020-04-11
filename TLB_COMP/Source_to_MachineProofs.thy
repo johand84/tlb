@@ -65,4 +65,8 @@ lemma code_installed_append:
   "\<lbrakk>code_installed t (ca @ cb)\<rbrakk> \<Longrightarrow> code_installed t ca"
   by (induction ca arbitrary: t, clarsimp+)
 
+lemma code_installed_prepend:
+  "\<lbrakk>code_installed t (ca @ cb)\<rbrakk> \<Longrightarrow> code_installed (steps t (length ca)) cb"
+  sorry
+
 end
