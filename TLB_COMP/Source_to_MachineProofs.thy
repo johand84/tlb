@@ -69,4 +69,8 @@ lemma code_installed_prepend:
   "\<lbrakk>code_installed t (ca @ cb)\<rbrakk> \<Longrightarrow> code_installed (steps t (length ca)) cb"
   sorry
 
+lemma steps_add:
+  "(steps (steps t l1) l2) = (steps t (l1 + l2))"
+  sorry
+
 end
