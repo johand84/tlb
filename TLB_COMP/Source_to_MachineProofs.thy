@@ -59,4 +59,10 @@ where
   "steps s 0 = s" |
   "steps s (Suc i) = steps (snd (Next s)) i"
 
+(* Proofs *)
+
+lemma code_installed_append:
+  "\<lbrakk>code_installed t (ca @ cb)\<rbrakk> \<Longrightarrow> code_installed t ca"
+  by (induction ca arbitrary: t, clarsimp+)
+
 end
