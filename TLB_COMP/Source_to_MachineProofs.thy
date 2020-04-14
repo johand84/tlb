@@ -32,4 +32,12 @@ where
     \<not>T (CPSR s)
   )"
 
+definition
+  mode_rel :: "mode_t \<Rightarrow> 5 word \<Rightarrow> _"
+where
+  "mode_rel m cpsrm \<equiv>
+   case m of
+      Kernel => cpsrm = 0b10011
+    | User   => cpsrm = 0b10000"
+
 end
