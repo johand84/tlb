@@ -273,4 +273,20 @@ lemma sub_reg_correct:
         REG t' RName_2usr = REG t RName_2usr"
   sorry
 
+lemma comp_aexp_mov_correct:
+  "\<lbrakk>state_rel s t;
+    code_installed t (comp_aexp_mov reg val @ ins)\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t (length (comp_aexp_mov reg val)) = t' \<and>
+        code_installed t' ins \<and>
+        state_rel s t' \<and>
+        REG t' RName_0usr = (if reg = 0 then val else REG t RName_0usr) \<and>
+        REG t' RName_1usr = (if reg = 1 then val else REG t RName_1usr) \<and>
+        REG t' RName_2usr = REG t RName_2usr"
+  apply (simp only: comp_aexp_mov_def split: if_split_asm)
+   apply (drule mov_imm_correct, simp, safe, simp)
+   apply (drule_tac insa = "[ARM val]" and insb = "ldr_lit 0 reg 0xC # ins" in b_imm_correct)
+   apply (simp add: code_size_def word_arith_wis word_of_int_def, safe)
+  apply (drule_tac ins = "ins" and reg = "reg" and val = "val" in ldr_lit_correct, simp)
+  sorry
+
 end
