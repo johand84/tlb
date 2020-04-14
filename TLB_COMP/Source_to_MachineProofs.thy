@@ -20,4 +20,16 @@ definition
 where
   "heap_rel s t = HOL.undefined"
 
+definition
+  machine_config :: "'a set_tlb_state_scheme \<Rightarrow> bool"
+where
+  "machine_config s = (
+    Architecture s = ARMv7_A \<and>
+    Encoding s = Encoding_ARM \<and>
+    Extensions s = {} \<and>
+    \<not>J (CPSR s) \<and>
+    (PSR.M (CPSR s) = 0x10 \<or> PSR.M (CPSR s) = 0x13) \<and>
+    \<not>T (CPSR s)
+  )"
+
 end
