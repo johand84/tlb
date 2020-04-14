@@ -165,4 +165,14 @@ lemma b_imm_correct:
     code_installed t (b_imm offset # ins1 @ ins2) \<rbrakk> \<Longrightarrow> True"
   sorry
 
+lemma cmp_imm_correct:
+  "\<lbrakk>state_rel s t;
+    code_installed t (cmp_imm 0 0 # ins);
+    REG t RName_0usr = (if val then 1 else 0)\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t 1 = t' \<and>
+        code_installed t' ins \<and>
+        state_rel s t' \<and>
+        (if val then \<not>PSR.Z (CPSR t') else PSR.Z (CPSR t'))"
+  sorry
+
 end
