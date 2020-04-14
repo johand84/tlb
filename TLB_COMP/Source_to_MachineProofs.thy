@@ -373,4 +373,20 @@ lemma comp_aexp_HeapLookup_correct:
   apply (simp add: steps_add steps_inc)
   done
 
+lemma comp_aexp_correct:
+  "\<lbrakk>aval e s = Some val;
+    code_installed t (comp_aexp e @ ins);
+    state_rel s t\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t (length (comp_aexp e)) = t' \<and>
+        code_installed t' ins \<and>
+        state_rel s t' \<and>
+        REG t' RName_0usr = val \<and>
+        REG t' RName_2usr = REG t RName_2usr"
+  apply (cases e)
+     apply (rule comp_aexp_Const_correct, force+)
+    apply (rule comp_aexp_UnOp_correct, force+)
+   apply (rule comp_aexp_BinOp_correct, force+)
+  apply (rule comp_aexp_HeapLookup_correct, force+)
+  done
+
 end
