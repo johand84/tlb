@@ -15,4 +15,9 @@ where
       xs
   )"
 
+definition
+  heap_rel :: "p_state \<Rightarrow> 'a set_tlb_state_scheme \<Rightarrow> bool"
+where
+  "heap_rel s t = HOL.undefined"
+
 end
