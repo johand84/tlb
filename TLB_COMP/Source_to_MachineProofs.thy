@@ -499,4 +499,19 @@ lemma comp_bexp_BUnOp_correct:
   apply (rule comp_bexp_BUnOp_Not_correct, force+)
   done
 
+lemma comp_bexp_correct:
+  "\<lbrakk>bval e s = Some value;
+    code_installed t (comp_bexp e @ ins);
+    state_rel s t\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t (length (comp_bexp e)) = t' \<and>
+      code_installed t' ins \<and>
+      state_rel s t' \<and>
+      REG t' RName_0usr = (if value then 1 else 0)"
+  apply (cases e)
+     apply (rule comp_bexp_BConst_correct, force+)
+    apply (rule comp_bexp_BComp_correct, force+)
+   apply (rule comp_bexp_BBinOp_correct, force+)
+  apply (rule comp_bexp_BUnOp_correct, force+)
+  done
+
 end
