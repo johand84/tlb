@@ -385,8 +385,8 @@ where
 
 datatype flush_type = flushTLB
                     | flushASID    asid
-                    | flushvarange "vaddr set"
-                    | flushASIDvarange  asid "vaddr set"
+                    | flushvarange "vaddr"
+                    | flushASIDvarange  asid "vaddr"
 
 
 
@@ -750,9 +750,9 @@ where
 |
   "flush_effect_iset (flushASID a) iset gset a' = (if a = a' then  iset \<inter> gset else iset)"
 |
-  "flush_effect_iset (flushvarange vset) iset gset a' = iset - vset"
+  "flush_effect_iset (flushvarange vset) iset gset a' = iset - {vset}"
 |
-  "flush_effect_iset (flushASIDvarange a vset) iset gset a' =  (if a = a' then iset - (vset - gset)  else iset)"
+  "flush_effect_iset (flushASIDvarange a vset) iset gset a' =  (if a = a' then iset - ({vset} - gset)  else iset)"
 
 
 fun
@@ -762,7 +762,7 @@ where
 |
   "flush_effect_glb (flushASID a)  gset a' m rt = gset"
 |
-  "flush_effect_glb (flushvarange vset)  gset a' m rt = (gset - vset) \<union> (\<Union>x\<in>global_entries (ran(pt_walk a' m rt)). range_of x)"
+  "flush_effect_glb (flushvarange vset)  gset a' m rt = (gset - {vset}) \<union> (\<Union>x\<in>global_entries (ran(pt_walk a' m rt)). range_of x)"
 |
   "flush_effect_glb (flushASIDvarange a vset)  gset a' m rt =  gset"
 
@@ -774,10 +774,10 @@ where
 |   
   "flush_effect_snp (flushASID a) snp a'= (if a = a' then snp else snp(a := ({}, \<lambda>v. Fault)))"
 |
-  "flush_effect_snp (flushvarange vset) snp a' = (\<lambda>a. (fst (snp a) - vset,  \<lambda>v. if v \<in> vset then Fault else snd (snp a) v ))"
+  "flush_effect_snp (flushvarange vset) snp a' = (\<lambda>a. (fst (snp a) - {vset},  \<lambda>v. if v \<in> {vset} then Fault else snd (snp a) v ))"
 |   
   "flush_effect_snp (flushASIDvarange a vset)  snp  a'= (if a = a' then snp else 
-                                                        (\<lambda>x. if x = a then (fst (snp x) - vset, \<lambda>v. if v \<in> vset then Fault else snd (snp x) v) else snp x))"
+                                                        (\<lambda>x. if x = a then (fst (snp x) - {vset}, \<lambda>v. if v \<in> {vset} then Fault else snd (snp x) v) else snp x))"
 
 
 
