@@ -227,4 +227,15 @@ lemma movne_imm_correct:
         REG t' RName_0usr = (if PSR.Z (CPSR t) then REG t RName_0usr else val)"
   sorry
 
+lemma neg_correct:
+  "\<lbrakk>state_rel s t;
+    code_installed t (neg 0 0 # ins);
+    REG t RName_0usr = val\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t 1 = t' \<and>
+        code_installed t' ins \<and>
+        state_rel s t' \<and>
+        REG t' RName_0usr = -val \<and>
+        REG t' RName_2usr = REG t RName_2usr"
+  sorry
+
 end
