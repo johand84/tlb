@@ -160,4 +160,9 @@ lemma and_reg_correct:
         REG t' RName_0usr = val1 && val2"
   sorry
 
+lemma b_imm_correct:
+  "\<lbrakk>state_rel s t;
+    code_installed t (b_imm offset # ins1 @ ins2) \<rbrakk> \<Longrightarrow> True"
+  sorry
+
 end
