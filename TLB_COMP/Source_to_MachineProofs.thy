@@ -137,4 +137,16 @@ lemma Decode_sub_reg_correct:
   "Decode (sub_reg rd rn rm) t = (i,t') \<Longrightarrow> i = Data (Register (0x2, False, rd, rn, rm, SRType_LSL, 0))"
   sorry
 
+lemma add_reg_correct:
+  "\<lbrakk>state_rel s t;
+    code_installed t (add_reg 0 0 1 # ins);
+    REG t RName_0usr = val1;
+    REG t RName_1usr = val2\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t 1 = t' \<and>
+        code_installed t' ins \<and>
+        state_rel s t' \<and>
+        REG t' RName_0usr = val1 + val2 \<and>
+        REG t' RName_2usr = REG t RName_2usr"
+  sorry
+
 end
