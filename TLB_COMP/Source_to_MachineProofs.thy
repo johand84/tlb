@@ -73,4 +73,8 @@ lemma steps_add:
   "(steps (steps t l1) l2) = (steps t (l1 + l2))"
   sorry
 
+lemma steps_inc:
+  "(snd (Next (steps t l))) = (steps (snd (Next t)) l)"
+  sorry
+
 end
