@@ -443,4 +443,16 @@ lemma comp_bexp_BBinOp_And_correct:
   apply (simp add: steps_add steps_inc, safe)
   done
 
+lemma comp_bexp_BBinOp_Or_correct:
+  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some val; code_installed t (comp_bexp b @ ins); state_rel s t; b = BBinOp op b1 b2; op = Or\<rbrakk> \<Longrightarrow>
+    \<exists>t'. steps t (length (comp_bexp b)) = t' \<and>
+      code_installed t' ins \<and>
+      state_rel s t' \<and>
+      state.REG t' RName_0usr = (if val then 1 else 0)"
+  apply (drule comp_bexp_mov_correct, simp, safe)
+  apply (drule comp_bexp_mov_correct, simp, safe)
+  apply (drule or_reg_correct, simp, simp, simp, safe)
+  apply (simp add: steps_add steps_inc, safe)
+  done
+
 end
