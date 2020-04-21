@@ -197,4 +197,14 @@ lemma mov_imm_correct:
         REG t' RName_2usr = REG t RName_2usr"
   sorry
 
+lemma mov_reg_correct:
+  "\<lbrakk>state_rel s t;
+    code_installed t (mov_reg 2 0 # ins);
+    REG t' RName_0usr = val\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t 1 = t' \<and>
+        code_installed t' ins \<and>
+        state_rel s t' \<and>
+        REG t' RName_2usr  = val"
+  sorry
+
 end
