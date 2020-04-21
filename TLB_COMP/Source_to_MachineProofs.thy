@@ -323,4 +323,17 @@ lemma comp_aexp_UnOp_correct:
   apply (rule comp_aexp_UnOp_Neg_correct, force+)
   done
 
+lemma comp_aexp_BinOp_Plus_correct:
+  "\<lbrakk>\<lbrakk>e\<rbrakk> s = Some val; code_installed t (comp_aexp e @ ins); state_rel s t; e = BinOp op val1 val2; op = Plus\<rbrakk> \<Longrightarrow>
+    \<exists>t'. steps t (length (comp_aexp e)) = t' \<and>
+      code_installed t' ins \<and>
+      state_rel s t' \<and>
+      state.REG t' RName_0usr = val \<and>
+      REG t' RName_2usr = REG t RName_2usr"
+  apply (drule comp_aexp_mov_correct, simp, safe)
+  apply (drule comp_aexp_mov_correct, simp, safe)
+  apply (drule add_reg_correct, simp, simp, simp, safe)
+  apply (simp add: steps_add steps_inc)
+  done
+
 end
