@@ -466,4 +466,27 @@ lemma comp_bexp_BBinOp_correct:
   apply (rule comp_bexp_BBinOp_Or_correct, force+)
   done
 
+lemma comp_bexp_BUnOp_Not_correct:
+  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some val; code_installed t (comp_bexp b @ ins); state_rel s t; b = BUnOp op a; op = bunop.Not\<rbrakk> \<Longrightarrow>
+    \<exists>t'. steps t (length (comp_bexp b)) = t' \<and>
+      code_installed t' ins \<and>
+      state_rel s t' \<and>
+      state.REG t' RName_0usr = (if val then 1 else 0)"
+  apply (cases val)
+   apply (drule_tac ins = "cmp_imm 0 0 # moveq_imm 0 1 # movne_imm 0 0 # ins" in comp_bexp_mov_correct, simp, safe)
+   apply (drule_tac ins = "moveq_imm 0 1 # movne_imm 0 0 # ins" in cmp_imm_correct, simp, simp, safe)
+   apply (drule_tac ins = "movne_imm 0 0 # ins" and val = "1" in moveq_imm_correct, simp, safe)
+    apply (drule_tac ins = "ins" and val = "0" in movne_imm_correct, simp, safe)
+    apply (simp add: comp_bexp_mov_def)
+   apply (drule_tac ins = "ins" and val = "0" in movne_imm_correct, simp, safe)
+   apply (simp add: comp_bexp_mov_def)
+  apply (drule_tac ins = "cmp_imm 0 0 # moveq_imm 0 1 # movne_imm 0 0 # ins" in comp_bexp_mov_correct, simp, safe)
+  apply (drule_tac ins = "moveq_imm 0 1 # movne_imm 0 0 # ins" in cmp_imm_correct, simp, simp, safe)
+  apply (drule_tac ins = "movne_imm 0 0 # ins" and val = "1" in moveq_imm_correct, simp, safe)
+   apply (drule_tac ins = "ins" and val = "0" in movne_imm_correct, simp, safe)
+   apply (simp add: comp_bexp_mov_def)
+  apply (drule_tac ins = "ins" and val = "0" in movne_imm_correct, simp, safe)
+  apply (simp add: comp_bexp_mov_def)
+  done
+
 end
