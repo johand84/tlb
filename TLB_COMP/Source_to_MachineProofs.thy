@@ -489,4 +489,14 @@ lemma comp_bexp_BUnOp_Not_correct:
   apply (simp add: comp_bexp_mov_def)
   done
 
+lemma comp_bexp_BUnOp_correct:
+  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some val; code_installed t (comp_bexp b @ ins); state_rel s t; b = BUnOp op a\<rbrakk> \<Longrightarrow>
+    \<exists>t'. steps t (length (comp_bexp b)) = t' \<and>
+      code_installed t' ins \<and>
+      state_rel s t' \<and>
+      state.REG t' RName_0usr = (if val then 1 else 0)"
+  apply (cases op)
+  apply (rule comp_bexp_BUnOp_Not_correct, force+)
+  done
+
 end
