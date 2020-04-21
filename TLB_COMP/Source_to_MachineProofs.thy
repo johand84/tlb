@@ -404,4 +404,13 @@ lemma comp_bexp_mov_correct:
   apply (drule_tac val = "0" in mov_imm_correct, simp, safe, simp)
   done
 
+lemma comp_bexp_BConst_correct:
+  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some val; code_installed t (comp_bexp b @ ins); state_rel s t; b = BConst x\<rbrakk> \<Longrightarrow>
+    \<exists>t'. steps t (length (comp_bexp b)) = t' \<and>
+      code_installed t' ins \<and>
+      state_rel s t' \<and>
+      state.REG t' RName_0usr = (if val then 1 else 0)"
+  apply (drule comp_bexp_mov_correct, simp, simp)
+  done
+
 end
