@@ -389,4 +389,19 @@ lemma comp_aexp_correct:
   apply (rule comp_aexp_HeapLookup_correct, force+)
   done
 
+lemma comp_bexp_mov_correct:
+  "\<lbrakk>state_rel s t;
+    code_installed t (comp_bexp_mov reg val @ ins)\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t (length (comp_bexp_mov reg val)) = t' \<and>
+        code_installed t' ins \<and>
+        state_rel s t' \<and>
+        REG t' RName_0usr = (if reg = 0 then (if val then 1 else 0) else REG t RName_0usr) \<and>
+        REG t' RName_1usr = (if reg = 1 then (if val then 1 else 0) else REG t RName_1usr)"
+  apply (cases val)
+   apply (simp only: comp_bexp_mov_def)
+   apply (drule_tac val = "1" in mov_imm_correct, simp, safe, simp)
+  apply (simp only: comp_bexp_mov_def)
+  apply (drule_tac val = "0" in mov_imm_correct, simp, safe, simp)
+  done
+
 end
