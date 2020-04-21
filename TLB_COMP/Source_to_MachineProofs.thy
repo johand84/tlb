@@ -207,4 +207,14 @@ lemma mov_reg_correct:
         REG t' RName_2usr  = val"
   sorry
 
+lemma moveq_imm_correct:
+  "\<lbrakk>state_rel s t;
+    code_installed t (moveq_imm 0 (ucast val) # ins)\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t 1 = t' \<and>
+        code_installed t' ins \<and>
+        state_rel s t' \<and>
+        PSR.Z (CPSR t') = PSR.Z (CPSR t) \<and>
+        REG t' RName_0usr = (if PSR.Z (CPSR t) then val else REG t RName_0usr)"
+  sorry
+
 end
