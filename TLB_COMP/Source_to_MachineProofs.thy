@@ -149,4 +149,15 @@ lemma add_reg_correct:
         REG t' RName_2usr = REG t RName_2usr"
   sorry
 
+lemma and_reg_correct:
+  "\<lbrakk>state_rel s t;
+    code_installed t (and_reg 0 0 1 # ins);
+    REG t RName_0usr = val1;
+    REG t RName_1usr = val2\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t 1 = t' \<and>
+        code_installed t' ins \<and>
+        state_rel s t' \<and>
+        REG t' RName_0usr = val1 && val2"
+  sorry
+
 end
