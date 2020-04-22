@@ -175,4 +175,15 @@ lemma cmp_imm_correct:
         (if val then \<not>PSR.Z (CPSR t') else PSR.Z (CPSR t'))"
   sorry
 
+lemma ldr_imm_correct:
+  "\<lbrakk>state_rel s t;
+    code_installed t (ldr_imm 0 0 0 # ins);
+    mem_read_hp' (incon_set s) (heap s) (root s) (mode s) (Addr (REG t RName_0usr)) = Some val\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t 1 = t' \<and>
+        code_installed t' ins \<and>
+        state_rel s t' \<and>
+        REG t' RName_0usr = val \<and>
+        REG t' RName_2usr = REG t RName_2usr"
+  sorry
+
 end
