@@ -128,4 +128,9 @@ lemma Decode_or_reg_correct:
   "Decode (or_reg rd rn rm) t = (i,t') \<Longrightarrow> i = Data (Register (0xc, False, rd, rn, rm, SRType_LSL, 0))"
   sorry
 
+lemma Decode_str_imm_correct:
+  "Decode (str_imm rt rn imm12) t = (i,t') \<Longrightarrow>
+    i = Store (StoreWord (False, False, False, rt, rn, immediate_form1 (ucast imm12)))"
+  sorry
+
 end
