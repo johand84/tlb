@@ -124,4 +124,8 @@ lemma Decode_neg_correct:
   "Decode (neg rd rm) t = (i,t') \<Longrightarrow> i = Data (ArithLogicImmediate (0x3, False, rd, rm, imm12))"
   sorry
 
+lemma Decode_or_reg_correct:
+  "Decode (or_reg rd rn rm) t = (i,t') \<Longrightarrow> i = Data (Register (0xc, False, rd, rn, rm, SRType_LSL, 0))"
+  sorry
+
 end
