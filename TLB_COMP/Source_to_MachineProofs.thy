@@ -85,4 +85,8 @@ lemma Decode_and_reg_correct:
   "Decode (and_reg rd rn rm) t = (i,t') \<Longrightarrow> i = Data (Register (0x0, False, rd, rn, rm, SRType_LSL, 0))"
   sorry
 
+lemma Decode_b_imm_correct:
+  "Decode (b_imm imm24) t = (i,t') \<Longrightarrow> i = Branch (BranchTarget (ucast imm24))"
+  sorry
+
 end
