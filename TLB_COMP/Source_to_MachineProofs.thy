@@ -115,4 +115,9 @@ lemma Decode_moveq_imm_correct:
     i = (if PSR.Z (CPSR t) then Data (ArithLogicImmediate (0xd, False, rd, 0, imm12)) else NoOperation)"
   sorry
 
+lemma Decode_movne_imm_correct:
+  "Decode (movne_imm rd imm12) t = (i,t') \<Longrightarrow>
+    i = (if PSR.Z (CPSR t) then NoOperation else Data (ArithLogicImmediate (0xd, False, rd, 0, imm12)))"
+  sorry
+
 end
