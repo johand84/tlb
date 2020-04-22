@@ -106,4 +106,8 @@ lemma Decode_mov_imm_correct:
   "Decode (mov_imm rd imm12) t = (i,t') \<Longrightarrow> i = Data (ArithLogicImmediate (0xd, False, rd, 0, imm12))"
   sorry
 
+lemma Decode_mov_reg_correct:
+  "Decode (mov_reg rd rm) t = (i,t') \<Longrightarrow> i = Data (Register (0xd, False, rd, 0, rm, SRType_LSL, 0))"
+  sorry
+
 end
