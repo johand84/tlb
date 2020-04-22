@@ -89,4 +89,8 @@ lemma Decode_b_imm_correct:
   "Decode (b_imm imm24) t = (i,t') \<Longrightarrow> i = Branch (BranchTarget (ucast imm24))"
   sorry
 
+lemma Decode_cmp_imm_correct:
+  "Decode (cmp_imm rn imm12) t = (i,t') \<Longrightarrow> i = Data (ArithLogicImmediate (0xa, True, 0, rn, imm12))"
+  sorry
+
 end
