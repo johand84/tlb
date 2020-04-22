@@ -102,4 +102,8 @@ lemma Decode_ldr_lit_correct:
   "Decode (ldr_lit u rt imm12) t = (i,t') \<Longrightarrow> i = Load (LoadLiteral ((imm12 < 0), rt, (ucast imm12)))"
   sorry
 
+lemma Decode_mov_imm_correct:
+  "Decode (mov_imm rd imm12) t = (i,t') \<Longrightarrow> i = Data (ArithLogicImmediate (0xd, False, rd, 0, imm12))"
+  sorry
+
 end
