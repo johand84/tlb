@@ -120,4 +120,8 @@ lemma Decode_movne_imm_correct:
     i = (if PSR.Z (CPSR t) then NoOperation else Data (ArithLogicImmediate (0xd, False, rd, 0, imm12)))"
   sorry
 
+lemma Decode_neg_correct:
+  "Decode (neg rd rm) t = (i,t') \<Longrightarrow> i = Data (ArithLogicImmediate (0x3, False, rd, rm, imm12))"
+  sorry
+
 end
