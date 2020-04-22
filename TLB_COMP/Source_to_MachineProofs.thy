@@ -98,4 +98,8 @@ lemma Decode_ldr_imm_correct:
     i = Load (LoadWord (False, False, False, rt, rn, immediate_form1 (ucast imm12)))"
   sorry
 
+lemma Decode_ldr_lit_correct:
+  "Decode (ldr_lit u rt imm12) t = (i,t') \<Longrightarrow> i = Load (LoadLiteral ((imm12 < 0), rt, (ucast imm12)))"
+  sorry
+
 end
