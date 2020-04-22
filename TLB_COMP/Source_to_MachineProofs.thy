@@ -93,4 +93,9 @@ lemma Decode_cmp_imm_correct:
   "Decode (cmp_imm rn imm12) t = (i,t') \<Longrightarrow> i = Data (ArithLogicImmediate (0xa, True, 0, rn, imm12))"
   sorry
 
+lemma Decode_ldr_imm_correct:
+  "Decode (ldr_imm rt rn imm12) t = (i,t') \<Longrightarrow>
+    i = Load (LoadWord (False, False, False, rt, rn, immediate_form1 (ucast imm12)))"
+  sorry
+
 end
