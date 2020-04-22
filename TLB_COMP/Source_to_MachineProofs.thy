@@ -133,4 +133,8 @@ lemma Decode_str_imm_correct:
     i = Store (StoreWord (False, False, False, rt, rn, immediate_form1 (ucast imm12)))"
   sorry
 
+lemma Decode_sub_reg_correct:
+  "Decode (sub_reg rd rn rm) t = (i,t') \<Longrightarrow> i = Data (Register (0x2, False, rd, rn, rm, SRType_LSL, 0))"
+  sorry
+
 end
