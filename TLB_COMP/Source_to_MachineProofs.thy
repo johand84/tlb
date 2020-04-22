@@ -249,4 +249,16 @@ lemma or_reg_correct:
         REG t' RName_0usr = val1 || val2"
   sorry
 
+lemma str_imm_correct:
+  "\<lbrakk>state_rel s t;
+    code_installed t (str_imm 0 2 0 # ins);
+    REG t RName_0usr = val;
+    addr_trans s (Addr (REG t RName_2usr)) = Some pp\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t 1 = t' \<and>
+        code_installed t' ins \<and>
+        state_rel (s\<lparr>heap := heap s(pp \<mapsto> val),
+          p_state.incon_set := iset_upd s pp val,
+          p_state.global_set := gset_upd s pp val\<rparr>) t'"
+  sorry
+
 end
