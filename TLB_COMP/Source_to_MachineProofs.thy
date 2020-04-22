@@ -110,4 +110,9 @@ lemma Decode_mov_reg_correct:
   "Decode (mov_reg rd rm) t = (i,t') \<Longrightarrow> i = Data (Register (0xd, False, rd, 0, rm, SRType_LSL, 0))"
   sorry
 
+lemma Decode_moveq_imm_correct:
+  "Decode (moveq_imm rd imm12) t = (i,t') \<Longrightarrow>
+    i = (if PSR.Z (CPSR t) then Data (ArithLogicImmediate (0xd, False, rd, 0, imm12)) else NoOperation)"
+  sorry
+
 end
