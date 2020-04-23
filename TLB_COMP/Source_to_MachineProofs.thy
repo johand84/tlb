@@ -17,7 +17,7 @@ where
 
 definition
   aligned :: "paddr \<Rightarrow> bool"
-where 
+where
   "aligned v \<equiv> ((ucast (addr_val v))::2 word) = 0"
 
 
@@ -25,8 +25,8 @@ definition
   heap_rel :: "p_state \<Rightarrow> 'a set_tlb_state_scheme \<Rightarrow> _"
 where
   "heap_rel s t \<equiv>
-   (\<forall>adr val. 
-     (heap s) adr = Some val \<and> aligned adr \<longrightarrow> 
+   (\<forall>adr val.
+     (heap s) adr = Some val \<and> aligned adr \<longrightarrow>
      (MEM t) adr = Some (ucast val) \<and>
      (MEM t) (adr r+ 1) = Some (ucast (val >> 8)) \<and>
      (MEM t) (adr r+ 2) = Some (ucast (val >> 16)) \<and>
@@ -40,17 +40,10 @@ where
     Architecture s = ARMv7_A \<and>
     Encoding s = Encoding_ARM \<and>
     Extensions s = {} \<and>
-   Aligned1 (Addr (state.REG s RName_PC), 4) \<and>
+    Aligned1 (Addr (REG s RName_PC), 4) \<and>
     \<not>J (CPSR s) \<and> \<not>T (CPSR s) \<and> \<not>E (CPSR s) \<and>
     (PSR.M (CPSR s) = 0x10 \<or> PSR.M (CPSR s) = 0x13)
   )"
-
-(*
-definition
-  mc_preserve_inst :: " _ \<Rightarrow> 'a set_tlb_state_scheme \<Rightarrow> bool"
-where
-  "mc_preserve_inst f s \<equiv> machine_config s \<longrightarrow> machine_config (snd (f s))"
-*)
 
 definition
   mode_rel :: "mode_t \<Rightarrow> 5 word \<Rightarrow> _"
@@ -96,6 +89,38 @@ lemma steps_add:
 lemma steps_inc:
   "(snd (Next (steps t l))) = (steps (snd (Next t)) l)"
   sorry
+
+lemma machine_config_mmu_translate:
+  "\<lbrakk>mmu_translate v s = (p, t); machine_config s\<rbrakk> \<Longrightarrow> machine_config t \<and> machine_state_rel s t \<and> REG s = REG t"
+  apply (clarsimp simp: mmu_translate_set_tlb_state_ext_def Let_def machine_state_rel_def
+                  split: if_split_asm)
+  by (clarsimp simp: raise'exception_def machine_config_def split:if_split_asm)+
+
+lemma machine_config_mmu_read_size:
+  "\<lbrakk>mmu_read_size v s = (r, t); machine_config s\<rbrakk> \<Longrightarrow> machine_config t \<and> machine_state_rel s t \<and> REG s = REG t"
+  apply (clarsimp simp: mmu_read_size_set_tlb_state_ext_def split: prod.splits)
+  apply (frule machine_config_mmu_translate, simp)
+  apply (clarsimp simp: mem_read1_def split: if_split_asm)
+      apply (clarsimp simp: mem1_def raise'exception_def machine_config_def machine_state_rel_def
+                     split: option.splits if_split_asm)
+     apply (clarsimp simp: mem1_def raise'exception_def machine_config_def
+                     split: option.splits if_split_asm)
+    apply (clarsimp simp: mem1_def raise'exception_def machine_config_def machine_state_rel_def
+                    split: option.splits if_split_asm)
+  sorry
+
+lemma Fetch_correct:
+  "\<lbrakk>Fetch s = (mc, t); machine_config s\<rbrakk> \<Longrightarrow> machine_config t \<and> machine_state_rel s t \<and> REG s = REG t"
+  apply (clarsimp simp: machine_config_def Fetch_def CurrentInstrSet_def
+                        ISETSTATE_def word_cat_def)
+  apply (clarsimp simp: MemA_def CurrentModeIsNotUser_def BadMode_def)
+  apply (erule disjE; clarsimp)
+   apply (clarsimp simp: MemA_with_priv_def split: prod.splits)
+    apply (frule machine_config_mmu_read_size, clarsimp simp: machine_config_def)
+    apply (clarsimp simp: machine_config_def machine_state_rel_def)
+  apply (clarsimp simp: MemA_with_priv_def split: prod.splits)
+  apply (frule machine_config_mmu_read_size, clarsimp simp: machine_config_def)
+  by (clarsimp simp: machine_config_def machine_state_rel_def)
 
 lemma Decode_add_reg_correct:
   "Decode (add_reg rd rn rm) t = (i,t') \<Longrightarrow> i = Data (Register (0x4, False, rd, rn, rm, SRType_LSL, 0))"
@@ -158,6 +183,21 @@ lemma Decode_str_imm_correct:
 lemma Decode_sub_reg_correct:
   "Decode (sub_reg rd rn rm) t = (i,t') \<Longrightarrow> i = Data (Register (0x2, False, rd, rn, rm, SRType_LSL, 0))"
   sorry
+
+lemma armexpand_imm_c_state_eq:
+  "ARMExpandImm_C (v, c) s = ((a, b), t) \<Longrightarrow> t = s"
+  apply (clarsimp simp: ARMExpandImm_C_def Shift_C_def split: SRType.splits if_split_asm)
+  by (clarsimp simp: ROR_C_def)
+
+
+lemma armexpand_imm_c_vals:
+  "ARMExpandImm_C (v, c) s = ((a, b), t) \<Longrightarrow>
+   (uint ((word_extract 11 8 v) :: 4 word) = 0 \<longrightarrow> a = (word_of_int (uint ((word_extract 7 0 v) :: 8 word)) :: 32 word) \<and> b = c) \<and>
+   (uint ((word_extract 11 8 v) :: 4 word) \<noteq> 0 \<longrightarrow>
+     a = word_rotr (2 * nat (uint ((word_extract 11 8 v) :: 4 word))) (word_of_int (uint ((word_extract 7 0 v):: 8 word))) \<and>
+     b = msb a) "
+  apply (clarsimp simp: ARMExpandImm_C_def Shift_C_def split: SRType.splits if_split_asm)
+  by (clarsimp simp: ROR_C_def Let_def)
 
 lemma add_reg_correct:
   "\<lbrakk>state_rel s t;
@@ -325,106 +365,16 @@ lemma comp_aexp_mov_correct:
   apply (drule_tac ins = "ins" and reg = "reg" and val = "val" in ldr_lit_correct, simp)
   sorry
 
-
-lemma machine_config_mmu_translate:
-  "\<lbrakk>mmu_translate v s = (p, t); machine_config s \<rbrakk>\<Longrightarrow>
-   machine_config t"
-  apply (clarsimp simp: mmu_translate_set_tlb_state_ext_def Let_def  
-                  split: if_split_asm)
-  by (clarsimp simp: raise'exception_def machine_config_def split:if_split_asm)+
-  
-lemma machine_config_mmu_read_size:
-  "\<lbrakk>mmu_read_size v s = (r, t); machine_config s \<rbrakk>\<Longrightarrow>
-   machine_config t"
-  apply (clarsimp simp: mmu_read_size_set_tlb_state_ext_def split: prod.splits)
-  apply (frule machine_config_mmu_translate, simp)
-  apply (clarsimp simp: mem_read1_def split: if_split_asm)
-      apply (clarsimp simp: mem1_def raise'exception_def machine_config_def 
-                     split: option.splits if_split_asm)
-     apply (clarsimp simp: mem1_def raise'exception_def machine_config_def
-                     split: option.splits if_split_asm)
-    apply (clarsimp simp: mem1_def raise'exception_def machine_config_def 
-                    split: option.splits if_split_asm)
-  sorry 
-
-lemma machine_config_fetch:
-  "\<lbrakk>Fetch s = (mc, t); machine_config s \<rbrakk> \<Longrightarrow> machine_config t"
-  apply (clarsimp simp: machine_config_def Fetch_def CurrentInstrSet_def
-                        ISETSTATE_def word_cat_def)
-  apply (clarsimp simp: MemA_def CurrentModeIsNotUser_def BadMode_def)
-  apply (erule disjE; clarsimp)
-   apply (clarsimp simp: MemA_with_priv_def split: prod.splits) 
-    apply (frule machine_config_mmu_read_size, clarsimp simp: machine_config_def)
-    apply (clarsimp simp: machine_config_def)
-  apply (clarsimp simp: MemA_with_priv_def split: prod.splits) 
-  apply (frule machine_config_mmu_read_size, clarsimp simp: machine_config_def)
-  by (clarsimp simp: machine_config_def)
-
-lemma armexpand_imm_c_state_eq:
-  "ARMExpandImm_C (v, c) s = ((a, b), t) \<Longrightarrow> t = s"
-  apply (clarsimp simp: ARMExpandImm_C_def Shift_C_def split: SRType.splits if_split_asm)
-  by (clarsimp simp: ROR_C_def)
-
-
-lemma armexpand_imm_c_vals:
-  "ARMExpandImm_C (v, c) s = ((a, b), t) \<Longrightarrow>
-   (uint ((word_extract 11 8 v) :: 4 word) = 0 \<longrightarrow> a = (word_of_int (uint ((word_extract 7 0 v) :: 8 word)) :: 32 word) \<and> b = c) \<and>
-   (uint ((word_extract 11 8 v) :: 4 word) \<noteq> 0 \<longrightarrow> 
-     a = word_rotr (2 * nat (uint ((word_extract 11 8 v) :: 4 word))) (word_of_int (uint ((word_extract 7 0 v):: 8 word))) \<and>
-     b = msb a) "
-  apply (clarsimp simp: ARMExpandImm_C_def Shift_C_def split: SRType.splits if_split_asm)
-  by (clarsimp simp: ROR_C_def Let_def)
- 
-
 lemma comp_aexp_Const_correct:
-  "\<lbrakk>\<lbrakk>Const c\<rbrakk> s = Some val; machine_config t ;
-    code_installed t (comp_aexp (Const c)); state_rel s t\<rbrakk> \<Longrightarrow>
-    \<exists>t'. steps t (length (comp_aexp (Const c))) = t' \<and>
+  "\<lbrakk>\<lbrakk>e\<rbrakk> s = Some val; code_installed t (comp_aexp e @ ins); state_rel s t; e = Const x1\<rbrakk> \<Longrightarrow>
+    \<exists>t'. steps t (length (comp_aexp e)) = t' \<and>
+      code_installed t' ins \<and>
       state_rel s t' \<and>
       state.REG t' RName_0usr = val \<and>
       REG t' RName_2usr = REG t RName_2usr"
-  apply simp
-  apply (thin_tac "c = val")
-  apply (clarsimp simp: comp_aexp_mov_def)
-  apply rule
-   apply rule
-   apply (clarsimp simp: Next_def split: prod.splits)
-   apply (rename_tac "ft" "ins" "dt" "rt")
-   apply (drule_tac mc = "mov_imm 0 (UCAST(32 \<rightarrow> 12) val)" and t = "ft" 
-          in machine_config_fetch, simp)
-   apply (frule Decode_mov_imm_correct, clarsimp)
-   apply (clarsimp simp: Run_def dfn'ArithLogicImmediate_def)
-   apply (clarsimp simp: ExpandImm_C_def split: prod.splits)
-   apply (subgoal_tac "Encoding ft = Encoding_ARM", simp) prefer 2
-    apply (clarsimp simp : machine_config_def)
-   apply (rename_tac "immt")
-   apply (frule armexpand_imm_c_state_eq, simp)
-    (* now proceed with DataProcessing instead of ARMExpandImm_C*)
-   apply (clarsimp simp: DataProcessing_def word_extract_def word_bits_def mask_def 
-                   split: prod.splits)
-    apply (clarsimp simp: write'R_def write'Rmode_def IsSecure_def HaveSecurityExt_def)
-    apply (clarsimp simp: machine_config_def)
-    apply (clarsimp simp: LookUpRName_def)
-    apply (clarsimp simp: IncPC_def ThisInstrLength_def)
-   apply (clarsimp simp: BranchTo_def)
-   (* coming back to ARMExpandImm_C*)
-   apply (frule armexpand_imm_c_vals, clarsimp)
-  
-  
-
-
-
-
-
-
-
-   apply (clarsimp simp: ARMExpandImm_C_def) 
-  apply (clarsimp simp: Shift_C_def)
-   defer
-   apply rule
-   apply (clarsimp simp: Next_def split: prod.splits)
-  sorry
-thm Shift_C_def
+  apply (simp)
+  apply (drule comp_aexp_mov_correct, simp+)
+  done
 
 lemma comp_aexp_UnOp_Neg_correct:
   "\<lbrakk>\<lbrakk>e\<rbrakk> s = Some val'; code_installed t (comp_aexp e @ ins); state_rel s t; e = UnOp op val; op = Neg\<rbrakk> \<Longrightarrow> 
