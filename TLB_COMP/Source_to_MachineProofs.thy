@@ -75,6 +75,18 @@ where
   )"
 
 definition
+  machine_state_rel :: "'a set_tlb_state_scheme \<Rightarrow> 'a set_tlb_state_scheme \<Rightarrow> bool"
+where
+  "machine_state_rel s t \<equiv>
+    ASID s = ASID t \<and>
+    TTBR0 s = TTBR0 t \<and>
+    set_tlb.iset (set_tlb s) = set_tlb.iset (set_tlb t) \<and>
+    set_tlb.global_set (set_tlb s) = set_tlb.global_set (set_tlb t) \<and>
+    set_tlb.snapshot (set_tlb s) = set_tlb.snapshot (set_tlb t) \<and>
+    PSR.M (CPSR s) = PSR.M (CPSR t) \<and>
+    MEM s = MEM t"
+
+definition
   mode_rel :: "mode_t \<Rightarrow> 5 word \<Rightarrow> _"
 where
   "mode_rel m cpsrm \<equiv>
