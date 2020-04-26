@@ -56,6 +56,13 @@ where
 
 
 definition
+  general_purpose_reg  :: "4 word \<Rightarrow> bool"
+where
+  "general_purpose_reg r \<equiv> r = 0 \<or> r = 1 \<or> r = 2 \<or> r = 3 \<or> r = 4 \<or> r = 5 \<or>
+                           r = 6 \<or> r = 7 \<or> r = 8 \<or> r = 9 \<or> r = 10 \<or> r = 11 \<or>
+                           r = 12"
+
+definition
   machine_config :: "'a set_tlb_state_scheme \<Rightarrow> bool"
 where
   "machine_config s = (
