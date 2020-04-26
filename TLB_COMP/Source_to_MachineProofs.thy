@@ -281,6 +281,27 @@ lemma LookUpRName_correct:
                 machine_state_rel_def
            split: if_split_asm)
 
+lemma write'R_correct:
+  "\<lbrakk>machine_config s;
+    write'R (val, reg) s = ((),t);
+    general_purpose_reg reg\<rbrakk> \<Longrightarrow>
+      t = s\<lparr>REG := (REG s)(bin_to_reg reg := val)\<rparr> \<and>
+      machine_config t \<and>
+      machine_state_rel s t"
+  apply (frule IsSecure_correct)
+  apply (simp add: write'R_def write'Rmode_def split: if_split_asm prod.splits)
+     apply (simp add: general_purpose_reg_def)
+    apply (simp add: general_purpose_reg_def)
+   apply (simp add: general_purpose_reg_def)
+  apply (frule LookUpRName_correct, simp, simp)
+   apply (simp add: machine_config_def, simp, clarify)
+  apply (simp add: bin_to_reg_def
+                   general_purpose_reg_def
+                   machine_config_def
+                   machine_state_rel_def
+              split: if_split_asm)
+  done
+
 lemma add_reg_correct:
   "\<lbrakk>state_rel s t;
     code_installed t (add_reg 0 0 1 # ins);
