@@ -267,6 +267,20 @@ lemma IsSecure_correct:
   "machine_config s \<Longrightarrow> IsSecure () s = (True, s)"
   by (simp add: HaveSecurityExt_def IsSecure_def machine_config_def)
 
+lemma LookUpRName_correct:
+  "\<lbrakk>machine_config s;
+    LookUpRName (reg, x) s = (y, t);
+    general_purpose_reg reg;
+    x = 0x10 \<or> x = 0x13\<rbrakk> \<Longrightarrow> y = bin_to_reg reg \<and> s = t"
+  by (simp add: BadMode_def
+                LookUpRName_def
+                RBankSelect_def
+                RfiqBankSelect_def
+                bin_to_reg_def
+                general_purpose_reg_def
+                machine_state_rel_def
+           split: if_split_asm)
+
 lemma add_reg_correct:
   "\<lbrakk>state_rel s t;
     code_installed t (add_reg 0 0 1 # ins);
