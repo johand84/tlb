@@ -355,15 +355,17 @@ lemma add_reg_REG_correct:
 
 lemma add_reg_correct:
   "\<lbrakk>state_rel s t;
-    code_installed t (add_reg 0 0 1 # ins);
+    Fetch t = (add_reg 0 0 1, ft);
+    machine_config t;
     REG t RName_0usr = val1;
     REG t RName_1usr = val2\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
-        code_installed t' ins \<and>
         state_rel s t' \<and>
-        REG t' RName_0usr = val1 + val2 \<and>
-        REG t' RName_2usr = REG t RName_2usr"
-  sorry
+        REG t' = (REG t)(RName_0usr := val1 + val2,
+                        RName_PC := REG t RName_PC + 4)"
+   apply (frule add_reg_state_rel_correct, simp+)
+  apply (frule add_reg_REG_correct, simp+)
+  done
 
 lemma and_reg_correct:
   "\<lbrakk>state_rel s t;
