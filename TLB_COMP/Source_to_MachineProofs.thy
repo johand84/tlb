@@ -4,6 +4,28 @@ imports Source_to_Machine
 
 begin
 
+definition
+  bin_to_reg :: "4 word \<Rightarrow> RName"
+where
+  "bin_to_reg r = (
+    if r = 0 then RName_0usr
+    else if r = 1 then RName_1usr
+    else if r = 2 then RName_2usr
+    else if r = 3 then RName_3usr
+    else if r = 4 then RName_4usr
+    else if r = 5 then RName_5usr
+    else if r = 6 then RName_6usr
+    else if r = 7 then RName_7usr
+    else if r = 8 then RName_8usr
+    else if r = 9 then RName_9usr
+    else if r = 10 then RName_10usr
+    else if r = 11 then RName_11usr
+    else if r = 12 then RName_12usr
+    else if r = 13 then RName_SPusr
+    else if r = 14 then RName_LRusr
+    else RName_PC
+  )"
+
 fun
   code_installed :: "'a set_tlb_state_scheme \<Rightarrow> MachineCode list \<Rightarrow>  bool"
 where
