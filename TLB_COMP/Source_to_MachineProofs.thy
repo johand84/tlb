@@ -250,6 +250,19 @@ lemma ITAdvance_correct:
   "machine_config s \<Longrightarrow> ITAdvance () s = ((), s)"
   by (simp add: HaveThumb2_def ITAdvance_def machine_config_def)
 
+lemma IncPC_correct:
+  "\<lbrakk>machine_config s;
+    IncPC () s = ((),t)\<rbrakk> \<Longrightarrow>
+      t = s\<lparr>REG := (REG s)(RName_PC := REG s RName_PC + 4)\<rparr> \<and>
+      machine_config t \<and>
+      machine_state_rel s t"
+  apply (simp add: BranchTo_def
+                   IncPC_def
+                   ThisInstrLength_def
+                   machine_config_def
+                   machine_state_rel_def, safe)
+  by (drule Aligned1_correct, simp)+
+
 lemma add_reg_correct:
   "\<lbrakk>state_rel s t;
     code_installed t (add_reg 0 0 1 # ins);
