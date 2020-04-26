@@ -246,6 +246,10 @@ lemma armexpand_imm_c_vals:
   apply (clarsimp simp: ARMExpandImm_C_def Shift_C_def split: SRType.splits if_split_asm)
   by (clarsimp simp: ROR_C_def Let_def)
 
+lemma ITAdvance_correct:
+  "machine_config s \<Longrightarrow> ITAdvance () s = ((), s)"
+  by (simp add: HaveThumb2_def ITAdvance_def machine_config_def)
+
 lemma add_reg_correct:
   "\<lbrakk>state_rel s t;
     code_installed t (add_reg 0 0 1 # ins);
