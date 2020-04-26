@@ -263,6 +263,10 @@ lemma IncPC_correct:
                    machine_state_rel_def, safe)
   by (drule Aligned1_correct, simp)+
 
+lemma IsSecure_correct:
+  "machine_config s \<Longrightarrow> IsSecure () s = (True, s)"
+  by (simp add: HaveSecurityExt_def IsSecure_def machine_config_def)
+
 lemma add_reg_correct:
   "\<lbrakk>state_rel s t;
     code_installed t (add_reg 0 0 1 # ins);
