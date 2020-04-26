@@ -123,7 +123,9 @@ lemma Fetch_correct:
   by (clarsimp simp: machine_config_def machine_state_rel_def)
 
 lemma Decode_add_reg_correct:
-  "Decode (add_reg rd rn rm) t = (i,t') \<Longrightarrow> i = Data (Register (0x4, False, rd, rn, rm, SRType_LSL, 0))"
+  "\<lbrakk>machine_config s;
+    Decode (add_reg rd rn rm) s = (i,t)\<rbrakk> \<Longrightarrow>
+      t = s \<and> i = Data (Register (0x4, False, rd, rn, rm, SRType_LSL, 0))"
   sorry
 
 lemma Decode_and_reg_correct:
