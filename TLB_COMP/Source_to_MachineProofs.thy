@@ -327,6 +327,19 @@ lemma Run_add_reg_correct:
   apply (frule IncPC_correct, simp, simp)
   done
 
+lemma add_reg_state_rel_correct:
+  "\<lbrakk>state_rel s t;
+    Fetch t = (add_reg 0 0 1, ft);
+    machine_config t\<rbrakk> \<Longrightarrow> state_rel s (snd (Next t))"
+  apply (simp add: Next_def split: prod.splits, safe)
+  apply (frule Fetch_correct, simp, safe)
+  apply (frule Decode_add_reg_correct, simp, safe)
+  apply (frule Run_add_reg_correct, simp, safe)
+  apply (frule_tac s = "x2a" in ITAdvance_correct)
+  apply (simp add: machine_state_rel_def snd_def state_rel_def, safe)
+  apply (simp add: heap_rel_def)
+  done
+
 lemma add_reg_correct:
   "\<lbrakk>state_rel s t;
     code_installed t (add_reg 0 0 1 # ins);
