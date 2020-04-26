@@ -227,6 +227,10 @@ lemma Decode_sub_reg_correct:
   "Decode (sub_reg rd rn rm) t = (i,t') \<Longrightarrow> i = Data (Register (0x2, False, rd, rn, rm, SRType_LSL, 0))"
   sorry
 
+lemma Aligned1_correct:
+  "Aligned1 (Addr val, 4) \<Longrightarrow> Aligned1 (Addr (val + 4), 4)"
+  sorry
+
 lemma armexpand_imm_c_state_eq:
   "ARMExpandImm_C (v, c) s = ((a, b), t) \<Longrightarrow> t = s"
   apply (clarsimp simp: ARMExpandImm_C_def Shift_C_def split: SRType.splits if_split_asm)
