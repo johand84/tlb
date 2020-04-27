@@ -250,6 +250,10 @@ lemma armexpand_imm_c_vals:
   apply (clarsimp simp: ARMExpandImm_C_def Shift_C_def split: SRType.splits if_split_asm)
   by (clarsimp simp: ROR_C_def Let_def)
 
+lemma CurrentInstrSet_correct:
+  "machine_config s \<Longrightarrow> CurrentInstrSet () s = (InstrSet_ARM, s)"
+  by (simp add: CurrentInstrSet_def ISETSTATE_def machine_config_def word_cat_def split: if_split_asm)
+
 lemma ITAdvance_correct:
   "machine_config s \<Longrightarrow> ITAdvance () s = ((), s)"
   by (simp add: HaveThumb2_def ITAdvance_def machine_config_def)
