@@ -231,6 +231,10 @@ lemma Aligned1_correct:
   "Aligned1 (Addr val, 4) \<Longrightarrow> Aligned1 (Addr (val + 4), 4)"
   sorry
 
+lemma ArchVersion_correct:
+  "machine_config s \<Longrightarrow> ArchVersion () s = (7, s)"
+  by (simp add: ArchVersion_def machine_config_def)
+
 lemma armexpand_imm_c_state_eq:
   "ARMExpandImm_C (v, c) s = ((a, b), t) \<Longrightarrow> t = s"
   apply (clarsimp simp: ARMExpandImm_C_def Shift_C_def split: SRType.splits if_split_asm)
