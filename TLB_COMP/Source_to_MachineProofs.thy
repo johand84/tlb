@@ -405,6 +405,19 @@ lemma and_reg_correct:
         REG t' RName_0usr = val1 && val2"
   sorry
 
+lemma Run_b_imm_correct:
+  "\<lbrakk>machine_config s;
+    Run (Branch (BranchTarget (UCAST(24 \<rightarrow> 32) offset))) s = ((), t) \<rbrakk> \<Longrightarrow>
+      machine_config t \<and>
+      machine_state_rel s t \<and>
+      REG t = (REG s)(RName_PC := REG s RName_PC + (ucast offset) + 8)"
+  apply (simp add: Run_def dfn'BranchTarget_def split: prod.splits)
+  apply (frule PC_correct, simp, safe)
+    apply (frule BranchWritePC_correct, simp, safe)
+   apply (frule BranchWritePC_correct, simp, safe)
+  apply (frule BranchWritePC_correct, simp, safe, simp)
+  done
+
 lemma b_imm_correct:
   "\<lbrakk>state_rel s t;
     code_installed t (b_imm (code_size (insa) - 1) # insa @ insb)\<rbrakk> \<Longrightarrow>
