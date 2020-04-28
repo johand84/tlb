@@ -538,6 +538,21 @@ lemma mov_imm_state_rel_correct:
   apply (simp add: heap_rel_def)
   done
 
+lemma mov_imm_REG_correct:
+  "\<lbrakk>state_rel s t;
+    machine_config t;
+    Fetch t = (mov_imm reg val, ft);
+    general_purpose_reg reg;
+    word_extract 11 8 val = (0::4 word)\<rbrakk>
+    \<Longrightarrow> REG (snd (Next t)) = (REG t)(bin_to_reg reg := UCAST(12 \<rightarrow> 32) val,
+                                                 RName_PC := REG t RName_PC + 4)"
+  apply (simp add: Next_def split: prod.splits, safe)
+  apply (frule Fetch_correct, simp, safe)
+  apply (frule Decode_mov_imm_correct, simp, safe)
+  apply (frule Run_mov_imm_correct, simp, safe)
+  apply (frule_tac s = "x2a" in ITAdvance_correct, simp)
+  done
+
 lemma mov_imm_correct:
   "\<lbrakk>state_rel s t;
     code_installed t (mov_imm reg (ucast val) # ins)\<rbrakk> \<Longrightarrow>
