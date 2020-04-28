@@ -285,6 +285,17 @@ lemma BranchWritePC_correct:
     apply (simp add: BranchWritePC_def BranchTo_def machine_state_rel_def, safe, simp+)
   sorry
 
+lemma ExpandImm_C_correct:
+  "\<lbrakk>machine_config s;
+    ExpandImm_C (val, PSR.C (CPSR s)) s = (x, t);
+    word_extract 11 8 val = (0::4 word)\<rbrakk> \<Longrightarrow>
+      s = t \<and>
+      x = (ucast val, PSR.C (CPSR s))"
+  apply (simp add: ExpandImm_C_def split: if_split_asm)
+   apply (simp add: machine_config_def)
+  apply (frule ARMExpandImm_C_correct, simp, simp, simp)
+  done
+
 lemma ITAdvance_correct:
   "machine_config s \<Longrightarrow> ITAdvance () s = ((), s)"
   by (simp add: HaveThumb2_def ITAdvance_def machine_config_def)
