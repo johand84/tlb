@@ -174,7 +174,7 @@ lemma Decode_and_reg_correct:
   sorry
 
 lemma Decode_b_imm_correct:
-  "Decode (b_imm imm24) t = (i,t') \<Longrightarrow> i = Branch (BranchTarget (ucast imm24))"
+  "Decode (b_imm imm24) s = (i,t) \<Longrightarrow> t = s \<and> i = Branch (BranchTarget (ucast imm24))"
   sorry
 
 lemma Decode_cmp_imm_correct:
