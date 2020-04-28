@@ -523,6 +523,21 @@ lemma Run_mov_imm_correct:
               split: if_split_asm)
   done
 
+lemma mov_imm_state_rel_correct:
+  "\<lbrakk>state_rel s t;
+    machine_config t;
+    Fetch t = (mov_imm reg val, ft);
+    general_purpose_reg reg;
+    word_extract 11 8 val = (0::4 word)\<rbrakk> \<Longrightarrow> state_rel s (snd (Next t))"
+  apply (simp add: Next_def split: prod.splits, safe)
+  apply (frule Fetch_correct, simp, safe)
+  apply (frule Decode_mov_imm_correct, simp, safe)
+  apply (frule Run_mov_imm_correct, simp, safe)
+  apply (frule_tac s = "x2a" in ITAdvance_correct)
+  apply (simp add: machine_state_rel_def snd_def state_rel_def, safe)
+  apply (simp add: heap_rel_def)
+  done
+
 lemma mov_imm_correct:
   "\<lbrakk>state_rel s t;
     code_installed t (mov_imm reg (ucast val) # ins)\<rbrakk> \<Longrightarrow>
