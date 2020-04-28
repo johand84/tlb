@@ -303,6 +303,11 @@ lemma LookUpRName_correct:
                 machine_state_rel_def
            split: if_split_asm)
 
+lemma PC_correct:
+  "\<lbrakk>machine_config s;
+    PC s = (x, t)\<rbrakk> \<Longrightarrow> s = t \<and> x = REG s RName_PC + 8"
+  by (simp add: CurrentInstrSet_correct PC_def R_def, safe)
+
 lemma write'R_correct:
   "\<lbrakk>machine_config s;
     write'R (val, reg) s = ((),t);
