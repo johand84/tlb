@@ -232,6 +232,22 @@ lemma Aligned1_correct:
   "Aligned1 (Addr val, 4) \<Longrightarrow> Aligned1 (Addr (val + 4), 4)"
   sorry
 
+lemma ARMExpandImm_C_correct:
+  "\<lbrakk>machine_config s;
+    ARMExpandImm_C (imm12, PSR.C (CPSR s)) s = (x, t);
+    word_extract 11 8 imm12 = (0::4 word)\<rbrakk> \<Longrightarrow>
+      s = t \<and>
+      x = (ucast imm12, PSR.C (CPSR s))"
+  apply (simp add: ARMExpandImm_C_def Shift_C_def split: SRType.splits if_split_asm, clarify)
+  apply (clarsimp simp: word_extract_def word_bits_def mask_def)
+  apply (subgoal_tac "((word_of_int (uint (UCAST(12 \<rightarrow> 8) (imm12 && 0xFF)))) :: 32 word) =
+    (UCAST(8 \<rightarrow> 32) (UCAST(12 \<rightarrow> 8) (imm12 && 0xFF)))")
+   prefer 2
+   apply (force simp: ucast_def)
+  apply (simp add:)
+  apply word_bitwise
+  done
+
 lemma ArchVersion_correct:
   "machine_config s \<Longrightarrow> ArchVersion () s = (7, s)"
   by (simp add: ArchVersion_def machine_config_def)
