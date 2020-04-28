@@ -254,6 +254,20 @@ lemma CurrentInstrSet_correct:
   "machine_config s \<Longrightarrow> CurrentInstrSet () s = (InstrSet_ARM, s)"
   by (simp add: CurrentInstrSet_def ISETSTATE_def machine_config_def word_cat_def split: if_split_asm)
 
+lemma BranchWritePC_correct:
+  "\<lbrakk>machine_config s;
+    BranchWritePC (REG s RName_PC + 8 + (ucast offset)) s = ((), t)\<rbrakk> \<Longrightarrow>
+      t = s\<lparr>REG := (REG s)(RName_PC := REG s RName_PC + (ucast offset) + 8)\<rparr> \<and>
+        machine_config t \<and>
+        machine_state_rel s t"
+  apply (frule CurrentInstrSet_correct)
+  apply (frule ArchVersion_correct, safe)
+    apply (simp add: BranchWritePC_def BranchTo_def)
+    defer
+    defer
+    apply (simp add: BranchWritePC_def BranchTo_def machine_state_rel_def, safe, simp+)
+  sorry
+
 lemma ITAdvance_correct:
   "machine_config s \<Longrightarrow> ITAdvance () s = ((), s)"
   by (simp add: HaveThumb2_def ITAdvance_def machine_config_def)
