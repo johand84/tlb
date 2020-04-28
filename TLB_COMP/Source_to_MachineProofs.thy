@@ -555,14 +555,24 @@ lemma mov_imm_REG_correct:
 
 lemma mov_imm_correct:
   "\<lbrakk>state_rel s t;
-    code_installed t (mov_imm reg (ucast val) # ins)\<rbrakk> \<Longrightarrow>
+    machine_config t;
+    Fetch t = (mov_imm reg val, ft);
+    general_purpose_reg reg;
+    word_extract 11 8 val = (0::4 word)\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
-        code_installed t' ins \<and>
         state_rel s t' \<and>
-        REG t' RName_0usr = (if reg = 0 then val else REG t RName_0usr) \<and>
-        REG t' RName_1usr = (if reg = 1 then val else REG t RName_1usr) \<and>
-        REG t' RName_2usr = REG t RName_2usr"
-  sorry
+        machine_config t' \<and>
+        REG t' = (REG t)(bin_to_reg reg := ucast val,
+                         RName_PC := REG t RName_PC + 4)"
+  apply (simp, safe)
+    apply (rule mov_imm_state_rel_correct, force+)
+   apply (simp add: Next_def split: prod.splits, safe)
+   apply (frule Fetch_correct, simp, safe)
+   apply (frule Decode_mov_imm_correct, simp, safe)
+   apply (frule Run_mov_imm_correct, simp, safe)
+   apply (frule_tac s = "x2a" in ITAdvance_correct, simp)
+  apply (rule mov_imm_REG_correct, force+)
+  done
 
 lemma mov_reg_correct:
   "\<lbrakk>state_rel s t;
