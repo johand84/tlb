@@ -409,6 +409,13 @@ lemma BranchWritePC_correct:
     apply (simp add: BranchWritePC_def BranchTo_def machine_state_preserved_def, safe, simp+)
   sorry
 
+lemma CurrentModeIsNotUser_correct:
+  "machine_config s \<Longrightarrow> CurrentModeIsNotUser () s = (PSR.M (CPSR s) = 0x13, s)"
+  by (simp add: BadMode_correct
+                CurrentModeIsNotUser_def
+                machine_config_def
+           split: prod.splits, safe, simp+)
+
 lemma ExpandImm_C_correct:
   "\<lbrakk>machine_config s;
     ExpandImm_C (val, PSR.C (CPSR s)) s = (x, t);
