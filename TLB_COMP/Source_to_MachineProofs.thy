@@ -499,6 +499,30 @@ lemma ldr_lit_correct:
         REG t' (if reg = 0 then RName_0usr else RName_1usr) = val"
   sorry
 
+lemma Run_mov_imm_correct:
+  "\<lbrakk>machine_config s;
+    Run (Data (ArithLogicImmediate (0xd, False, rd, 0, imm12))) s = ((), t);
+    general_purpose_reg rd;
+    word_extract 11 8 imm12 = (0::4 word)\<rbrakk> \<Longrightarrow>
+      machine_config t \<and>
+      machine_state_rel s t \<and>
+      REG t = (REG s)(bin_to_reg rd := ucast imm12,
+                      RName_PC := REG s RName_PC + 4)"
+  apply (simp add: Run_def dfn'ArithLogicImmediate_def split: if_split_asm prod.splits)
+   apply (simp add: general_purpose_reg_def)
+  apply (frule ExpandImm_C_correct, simp, simp)
+  apply (simp add: DataProcessing_def mask_def word_bits_def word_extract_def split: prod.splits)
+   apply (simp add: DataProcessingALU_def)
+  apply (frule write'R_correct, simp, simp, clarify)
+  apply (frule IncPC_correct, simp, safe, simp)
+   apply (simp add: machine_state_rel_def, simp, rule)
+  apply (simp add: bin_to_reg_def
+                   general_purpose_reg_def
+                   machine_config_def
+                   machine_state_rel_def
+              split: if_split_asm)
+  done
+
 lemma mov_imm_correct:
   "\<lbrakk>state_rel s t;
     code_installed t (mov_imm reg (ucast val) # ins)\<rbrakk> \<Longrightarrow>
