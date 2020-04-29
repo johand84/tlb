@@ -631,6 +631,25 @@ lemma sub_reg_correct:
                          RName_PC := REG t RName_PC + 4)"
   sorry
 
+lemma comp_aexp_mov_small_correct:
+  "\<lbrakk>Fetch t = (mov_imm reg (ucast val), ft);
+    general_purpose_reg reg;
+    machine_config t;
+    state_rel s t;
+    word_extract 31 8 val = (0::24 word)\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t 1 = t' \<and>
+        machine_config t' \<and>
+        state_rel s t' \<and>
+        REG t' = (REG t)(bin_to_reg reg := val, RName_PC := REG t RName_PC + 4)"
+  apply (frule mov_imm_correct, simp, simp)
+   apply (simp add: mask_def word_bits_def word_extract_def)
+     apply (word_bitwise, simp, safe)
+  apply (subgoal_tac "UCAST(12 \<rightarrow> 32) (UCAST(32 \<rightarrow> 12) val) = val", simp)
+   apply (frule state_rel_preserved, simp, simp)
+  apply (simp add: mask_def word_bits_def word_extract_def)
+  apply (word_bitwise, simp)
+  done
+
 lemma comp_aexp_mov_correct:
   "\<lbrakk>state_rel s t;
     code_installed t (comp_aexp_mov reg val @ ins)\<rbrakk> \<Longrightarrow>
