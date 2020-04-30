@@ -482,6 +482,46 @@ lemma b_imm_correct:
   apply (frule_tac s = "x2a" in ITAdvance_correct, simp)
   done
 
+lemma Run_cmp_imm_correct:
+  "\<lbrakk>machine_config s;
+    Run (Data (ArithLogicImmediate (0xA, True, 0, 0, 0))) s = ((), t);
+    REG s RName_0usr = (if val then 1 else 0)\<rbrakk> \<Longrightarrow>
+      machine_config t \<and>
+      machine_state_rel s t \<and>
+      PSR.Z (CPSR t) = (\<not>val) \<and>
+      REG t = (REG s)(RName_PC := REG s RName_PC + 4)"
+  apply (simp add: dfn'ArithLogicImmediate_def Run_def split: prod.splits)
+  apply (frule ExpandImm_C_correct, simp)
+   apply (simp add: word_bits_def word_extract_def)
+  apply (simp add: ArithmeticOpcode_def
+                   DataProcessing_def
+                   mask_def
+                   word_bits_def
+                   word_extract_def
+              split: prod.splits)
+  apply (frule R_correct, simp)
+   apply (simp add: general_purpose_reg_def)
+  apply (simp add: AddWithCarry_def
+                   Let_def
+                   DataProcessingALU_def
+                   bin_to_reg_def
+                   max_word_def
+                   wi_hom_syms, clarify)
+  apply (subgoal_tac "machine_config (s\<lparr>CPSR := CPSR s\<lparr>PSR.N := REG s RName_0usr !! 31,
+                                                       PSR.Z := REG s RName_0usr = 0,
+                                                       PSR.C := True,
+                                                       PSR.V := False\<rparr>\<rparr>)")
+   apply (frule_tac s = "s\<lparr>CPSR := CPSR s\<lparr>PSR.N := REG s RName_0usr !! 31,
+                                          PSR.Z := REG s RName_0usr = 0,
+                                          PSR.C := True,
+                                          PSR.V := False\<rparr>\<rparr>" in IncPC_correct, simp, safe)
+      apply (simp add: machine_state_rel_def)
+     apply (simp)
+    apply (simp)
+   apply (simp)
+  apply (simp add: machine_config_def)
+  done
+
 lemma cmp_imm_correct:
   "\<lbrakk>state_rel s t;
     code_installed t (cmp_imm 0 0 # ins);
