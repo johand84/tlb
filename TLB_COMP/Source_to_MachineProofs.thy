@@ -178,7 +178,7 @@ lemma Decode_b_imm_correct:
   sorry
 
 lemma Decode_cmp_imm_correct:
-  "Decode (cmp_imm rn imm12) t = (i,t') \<Longrightarrow> i = Data (ArithLogicImmediate (0xa, True, 0, rn, imm12))"
+  "Decode (cmp_imm rn imm12) s = (i,t) \<Longrightarrow> t = s \<and> i = Data (ArithLogicImmediate (0xa, True, 0, rn, imm12))"
   sorry
 
 lemma Decode_ldr_imm_correct:
