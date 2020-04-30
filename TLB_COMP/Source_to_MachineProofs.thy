@@ -336,6 +336,20 @@ lemma PC_correct:
     PC s = (x, t)\<rbrakk> \<Longrightarrow> s = t \<and> x = REG s RName_PC + 8"
   by (simp add: CurrentInstrSet_correct PC_def R_def, safe)
 
+lemma R_correct:
+  "\<lbrakk>machine_config s;
+    R reg s = (val,t);
+    general_purpose_reg reg\<rbrakk> \<Longrightarrow>
+      t = s \<and> val = REG s (bin_to_reg reg)"
+  apply (simp add: R_def split: if_split_asm prod.splits)
+    apply (simp add: general_purpose_reg_def)
+   apply (simp add: general_purpose_reg_def)
+  apply (frule IsSecure_correct)
+  apply (simp add: Rmode_def split: prod.splits)
+  apply (frule LookUpRName_correct, simp, simp)
+   apply (simp add: machine_config_def, simp, clarify)
+  done
+
 lemma write'R_correct:
   "\<lbrakk>machine_config s;
     write'R (val, reg) s = ((),t);
