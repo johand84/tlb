@@ -22,7 +22,7 @@ definition
   comp_aexp_mov :: "4 word \<Rightarrow> 32 word \<Rightarrow> MachineCode list"
 where
   "comp_aexp_mov rt v = (
-    if word_bits 31 12 v = 0
+    if word_extract 31 8 v = (0::24 word)
     then [mov_imm rt (ucast v)]
     else [b_imm 0, (ARM v), ldr_lit 0 rt 12]
   )"
