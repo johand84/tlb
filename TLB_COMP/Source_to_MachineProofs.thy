@@ -233,6 +233,13 @@ lemma HaveVirtExt_correct:
   "machine_config s \<Longrightarrow> HaveVirtExt () s = (False, s)"
   by (simp add: ArchVersion_correct HaveVirtExt_def machine_config_def)
 
+lemma BadMode_correct:
+  "machine_config s \<Longrightarrow> BadMode (PSR.M (CPSR s)) s = (False, s)"
+  by (simp add: BadMode_def
+                HaveSecurityExt_correct
+                HaveVirtExt_correct
+                machine_config_def, safe, simp+)
+
 lemma CurrentInstrSet_correct:
   "machine_config s \<Longrightarrow> CurrentInstrSet () s = (InstrSet_ARM, s)"
   by (simp add: CurrentInstrSet_def ISETSTATE_def machine_config_def word_cat_def split: if_split_asm)
