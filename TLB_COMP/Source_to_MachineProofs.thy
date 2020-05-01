@@ -229,6 +229,10 @@ lemma HaveSecurityExt_correct:
   "machine_config s \<Longrightarrow> HaveSecurityExt () s = (False, s)"
   by (simp add: ArchVersion_correct HaveSecurityExt_def machine_config_def)
 
+lemma HaveVirtExt_correct:
+  "machine_config s \<Longrightarrow> HaveVirtExt () s = (False, s)"
+  by (simp add: ArchVersion_correct HaveVirtExt_def machine_config_def)
+
 lemma CurrentInstrSet_correct:
   "machine_config s \<Longrightarrow> CurrentInstrSet () s = (InstrSet_ARM, s)"
   by (simp add: CurrentInstrSet_def ISETSTATE_def machine_config_def word_cat_def split: if_split_asm)
