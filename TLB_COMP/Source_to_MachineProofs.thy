@@ -539,6 +539,21 @@ lemma cmp_imm_PSR_correct:
   apply (simp)
   done
 
+lemma cmp_imm_REG_correct:
+  "\<lbrakk>machine_config t;
+    Fetch t = (cmp_imm 0 0 , ft);
+    REG t RName_0usr = (if val then 1 else 0)\<rbrakk> \<Longrightarrow>
+      REG (snd (Next t)) = (REG t)(RName_PC := REG t RName_PC + 4)"
+  apply (simp add: Next_def split: prod.splits, safe)
+  apply (frule Fetch_correct, simp, safe)
+  apply (frule Decode_cmp_imm_correct, simp, safe)
+  apply (frule Run_cmp_imm_correct, simp, simp, safe)
+   apply (frule_tac s = "x2a" in ITAdvance_correct)
+   apply (simp)
+  apply (frule_tac s = "x2a" in ITAdvance_correct)
+  apply (simp)
+  done
+
 lemma cmp_imm_correct:
   "\<lbrakk>state_rel s t;
     code_installed t (cmp_imm 0 0 # ins);
