@@ -574,13 +574,17 @@ lemma cmp_imm_state_rel_correct:
 
 lemma cmp_imm_correct:
   "\<lbrakk>state_rel s t;
-    code_installed t (cmp_imm 0 0 # ins);
+    machine_config t;
+    Fetch t = (cmp_imm 0 0, ft);
     REG t RName_0usr = (if val then 1 else 0)\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
-        code_installed t' ins \<and>
         state_rel s t' \<and>
-        (if val then \<not>PSR.Z (CPSR t') else PSR.Z (CPSR t'))"
-  sorry
+        PSR.Z (CPSR t') = (\<not>val) \<and>
+        REG t' = (REG t)(RName_PC := REG t RName_PC + 4)"
+  apply (frule cmp_imm_state_rel_correct, force+)
+  apply (frule cmp_imm_PSR_correct, force+)
+  apply (frule cmp_imm_REG_correct, force+)
+  done
 
 lemma ldr_imm_correct:
   "\<lbrakk>state_rel s t;
