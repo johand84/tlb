@@ -76,9 +76,9 @@ where
   )"
 
 definition
-  machine_state_rel :: "'a set_tlb_state_scheme \<Rightarrow> 'a set_tlb_state_scheme \<Rightarrow> bool"
+  machine_config_preserved :: "'a set_tlb_state_scheme \<Rightarrow> 'a set_tlb_state_scheme \<Rightarrow> bool"
 where
-  "machine_state_rel s t \<equiv>
+  "machine_config_preserved s t \<equiv>
     ASID s = ASID t \<and>
     TTBR0 s = TTBR0 t \<and>
     set_tlb.iset (set_tlb s) = set_tlb.iset (set_tlb t) \<and>
@@ -134,33 +134,33 @@ lemma steps_inc:
   sorry
 
 lemma machine_config_mmu_translate:
-  "\<lbrakk>mmu_translate v s = (p, t); machine_config s\<rbrakk> \<Longrightarrow> machine_config t \<and> machine_state_rel s t \<and> REG s = REG t"
-  apply (clarsimp simp: mmu_translate_set_tlb_state_ext_def Let_def machine_state_rel_def
+  "\<lbrakk>mmu_translate v s = (p, t); machine_config s\<rbrakk> \<Longrightarrow> machine_config t \<and> machine_config_preserved s t \<and> REG s = REG t"
+  apply (clarsimp simp: mmu_translate_set_tlb_state_ext_def Let_def machine_config_preserved_def
                   split: if_split_asm)
   by (clarsimp simp: raise'exception_def machine_config_def split:if_split_asm)+
 
 lemma machine_config_mmu_read_size:
-  "\<lbrakk>mmu_read_size v s = (r, t); machine_config s\<rbrakk> \<Longrightarrow> machine_config t \<and> machine_state_rel s t \<and> REG s = REG t"
+  "\<lbrakk>mmu_read_size v s = (r, t); machine_config s\<rbrakk> \<Longrightarrow> machine_config t \<and> machine_config_preserved s t \<and> REG s = REG t"
   apply (clarsimp simp: mmu_read_size_set_tlb_state_ext_def split: prod.splits)
   apply (frule machine_config_mmu_translate, simp)
   apply (clarsimp simp: mem_read1_def split: if_split_asm)
-      apply (clarsimp simp: mem1_def raise'exception_def machine_config_def machine_state_rel_def
+      apply (clarsimp simp: mem1_def raise'exception_def machine_config_def machine_config_preserved_def
                      split: option.splits if_split_asm)
      apply (clarsimp simp: mem1_def raise'exception_def machine_config_def
                      split: option.splits if_split_asm)
-    apply (clarsimp simp: mem1_def raise'exception_def machine_config_def machine_state_rel_def
+    apply (clarsimp simp: mem1_def raise'exception_def machine_config_def machine_config_preserved_def
                     split: option.splits if_split_asm)
   sorry
 
 lemma Fetch_correct:
-  "\<lbrakk>Fetch s = (mc, t); machine_config s\<rbrakk> \<Longrightarrow> machine_config t \<and> machine_state_rel s t \<and> REG s = REG t"
+  "\<lbrakk>Fetch s = (mc, t); machine_config s\<rbrakk> \<Longrightarrow> machine_config t \<and> machine_config_preserved s t \<and> REG s = REG t"
   apply (clarsimp simp: machine_config_def Fetch_def CurrentInstrSet_def
                         ISETSTATE_def word_cat_def)
   apply (clarsimp simp: MemA_def CurrentModeIsNotUser_def BadMode_def)
   apply (erule disjE; clarsimp)
    apply (clarsimp simp: MemA_with_priv_def split: prod.splits)
     apply (frule machine_config_mmu_read_size, clarsimp simp: machine_config_def)
-    apply (clarsimp simp: machine_config_def machine_state_rel_def)
+    apply (clarsimp simp: machine_config_def machine_config_preserved_def)
   apply (clarsimp simp: MemA_with_priv_def split: prod.splits)
   apply (frule machine_config_mmu_read_size, clarsimp simp: machine_config_def)
   by (clarsimp simp: machine_config_def machine_config_preserved_def)
@@ -213,13 +213,13 @@ lemma BranchWritePC_correct:
     BranchWritePC (REG s RName_PC + 8 + (ucast offset)) s = ((), t)\<rbrakk> \<Longrightarrow>
       t = s\<lparr>REG := (REG s)(RName_PC := REG s RName_PC + (ucast offset) + 8)\<rparr> \<and>
         machine_config t \<and>
-        machine_state_rel s t"
+        machine_config_preserved s t"
   apply (frule CurrentInstrSet_correct)
   apply (frule ArchVersion_correct, safe)
     apply (simp add: BranchWritePC_def BranchTo_def)
     defer
     defer
-    apply (simp add: BranchWritePC_def BranchTo_def machine_state_rel_def, safe, simp+)
+    apply (simp add: BranchWritePC_def BranchTo_def machine_config_preserved_def, safe, simp+)
   sorry
 
 lemma ExpandImm_C_correct:
@@ -242,12 +242,12 @@ lemma IncPC_correct:
     IncPC () s = ((),t)\<rbrakk> \<Longrightarrow>
       t = s\<lparr>REG := (REG s)(RName_PC := REG s RName_PC + 4)\<rparr> \<and>
       machine_config t \<and>
-      machine_state_rel s t"
+      machine_config_preserved s t"
   apply (simp add: BranchTo_def
                    IncPC_def
                    ThisInstrLength_def
                    machine_config_def
-                   machine_state_rel_def, safe)
+                   machine_config_preserved_def, safe)
   by (drule Aligned1_correct, simp)+
 
 lemma IsSecure_correct:
@@ -293,7 +293,7 @@ lemma write'R_correct:
     general_purpose_reg reg\<rbrakk> \<Longrightarrow>
       t = s\<lparr>REG := (REG s)(bin_to_reg reg := val)\<rparr> \<and>
       machine_config t \<and>
-      machine_state_rel s t"
+      machine_config_preserved s t"
   apply (frule IsSecure_correct)
   apply (simp add: write'R_def write'Rmode_def split: if_split_asm prod.splits)
      apply (simp add: general_purpose_reg_def)
@@ -304,7 +304,7 @@ lemma write'R_correct:
   apply (simp add: bin_to_reg_def
                    general_purpose_reg_def
                    machine_config_def
-                   machine_state_rel_def
+                   machine_config_preserved_def
               split: if_split_asm)
   done
 
@@ -312,7 +312,7 @@ lemma Run_add_reg_correct:
   "\<lbrakk>machine_config s;
     Run (Data (Register (4, False, 0, 0, 1, SRType_LSL, 0))) s = ((), t)\<rbrakk> \<Longrightarrow>
       machine_config t \<and>
-      machine_state_rel s t \<and>
+      machine_config_preserved s t \<and>
       REG t = (REG s)(RName_0usr := REG s RName_0usr + REG s RName_1usr,
                       RName_PC := REG s RName_PC + 4)"
   apply (simp add: Run_def dfn'Register_def doRegister_def split: prod.splits)
@@ -328,7 +328,7 @@ lemma Run_add_reg_correct:
      apply (simp add: general_purpose_reg_def)
     apply (frule IncPC_correct, simp, safe, simp)
    apply (frule IncPC_correct, simp, safe, simp)
-   apply (simp add: machine_config_def machine_state_rel_def)
+   apply (simp add: machine_config_def machine_config_preserved_def)
   apply (simp add: AddWithCarry_def Let_def bin_to_reg_def wi_hom_syms)
   apply (frule IncPC_correct, simp, simp)
   done
@@ -342,7 +342,7 @@ lemma add_reg_state_rel_correct:
   apply (frule Decode_add_reg_correct, simp, safe)
   apply (frule Run_add_reg_correct, simp, safe)
   apply (frule_tac s = "x2a" in ITAdvance_correct)
-  apply (simp add: machine_state_rel_def snd_def state_rel_def, safe)
+  apply (simp add: machine_config_preserved_def snd_def state_rel_def, safe)
   apply (simp add: heap_rel_def)
   done
 
@@ -388,7 +388,7 @@ lemma Run_b_imm_correct:
   "\<lbrakk>machine_config s;
     Run (Branch (BranchTarget (UCAST(24 \<rightarrow> 32) offset))) s = ((), t) \<rbrakk> \<Longrightarrow>
       machine_config t \<and>
-      machine_state_rel s t \<and>
+      machine_config_preserved s t \<and>
       REG t = (REG s)(RName_PC := REG s RName_PC + (ucast offset) + 8)"
   apply (simp add: Run_def dfn'BranchTarget_def split: prod.splits)
   apply (frule PC_correct, simp, safe)
@@ -410,7 +410,7 @@ lemma b_imm_correct:
     apply (frule Decode_b_imm_correct, safe)
     apply (frule Run_b_imm_correct, simp, simp, safe)
     apply (frule_tac s = "x2a" in ITAdvance_correct)
-    apply (simp add: heap_rel_def machine_config_def machine_state_rel_def state_rel_def)
+    apply (simp add: heap_rel_def machine_config_def machine_config_preserved_def state_rel_def)
    apply (frule Decode_b_imm_correct, safe)
    apply (frule Run_b_imm_correct, simp, simp, safe)
    apply (frule_tac s = "x2a" in ITAdvance_correct, simp)
@@ -424,7 +424,7 @@ lemma Run_cmp_imm_correct:
     Run (Data (ArithLogicImmediate (0xA, True, 0, 0, 0))) s = ((), t);
     REG s RName_0usr = (if val then 1 else 0)\<rbrakk> \<Longrightarrow>
       machine_config t \<and>
-      machine_state_rel s t \<and>
+      machine_config_preserved s t \<and>
       PSR.Z (CPSR t) = (\<not>val) \<and>
       REG t = (REG s)(RName_PC := REG s RName_PC + 4)"
   apply (simp add: dfn'ArithLogicImmediate_def Run_def split: prod.splits)
@@ -452,7 +452,7 @@ lemma Run_cmp_imm_correct:
                                           PSR.Z := REG s RName_0usr = 0,
                                           PSR.C := True,
                                           PSR.V := False\<rparr>\<rparr>" in IncPC_correct, simp, safe)
-      apply (simp add: machine_state_rel_def)
+      apply (simp add: machine_config_preserved_def)
      apply (simp)
     apply (simp)
    apply (simp)
@@ -502,10 +502,10 @@ lemma cmp_imm_state_rel_correct:
   apply (frule Decode_cmp_imm_correct, simp, safe)
   apply (frule Run_cmp_imm_correct, simp, simp, safe)
    apply (frule_tac s = "x2a" in ITAdvance_correct)
-   apply (simp add: machine_config_def machine_state_rel_def snd_def state_rel_def)
+   apply (simp add: machine_config_def machine_config_preserved_def snd_def state_rel_def)
    apply (simp add: heap_rel_def)
   apply (frule_tac s = "x2a" in ITAdvance_correct)
-  apply (simp add: machine_config_def machine_state_rel_def snd_def state_rel_def)
+  apply (simp add: machine_config_def machine_config_preserved_def snd_def state_rel_def)
   apply (simp add: heap_rel_def)
   done
 
@@ -550,7 +550,7 @@ lemma Run_mov_imm_correct:
     general_purpose_reg rd;
     word_extract 11 8 imm12 = (0::4 word)\<rbrakk> \<Longrightarrow>
       machine_config t \<and>
-      machine_state_rel s t \<and>
+      machine_config_preserved s t \<and>
       REG t = (REG s)(bin_to_reg rd := ucast imm12,
                       RName_PC := REG s RName_PC + 4)"
   apply (simp add: Run_def dfn'ArithLogicImmediate_def split: if_split_asm prod.splits)
@@ -560,11 +560,11 @@ lemma Run_mov_imm_correct:
    apply (simp add: DataProcessingALU_def)
   apply (frule write'R_correct, simp, simp, clarify)
   apply (frule IncPC_correct, simp, safe, simp)
-   apply (simp add: machine_state_rel_def, simp, rule)
+   apply (simp add: machine_config_preserved_def, simp, rule)
   apply (simp add: bin_to_reg_def
                    general_purpose_reg_def
                    machine_config_def
-                   machine_state_rel_def
+                   machine_config_preserved_def
               split: if_split_asm)
   done
 
@@ -579,7 +579,7 @@ lemma mov_imm_state_rel_correct:
   apply (frule Decode_mov_imm_correct, simp, safe)
   apply (frule Run_mov_imm_correct, simp, safe)
   apply (frule_tac s = "x2a" in ITAdvance_correct)
-  apply (simp add: machine_state_rel_def snd_def state_rel_def, safe)
+  apply (simp add: machine_config_preserved_def snd_def state_rel_def, safe)
   apply (simp add: heap_rel_def)
   done
 
