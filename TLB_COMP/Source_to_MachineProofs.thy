@@ -796,15 +796,20 @@ lemma comp_aexp_BinOp_Minus_correct:
   done
 
 lemma comp_aexp_BinOp_correct:
-  "\<lbrakk>\<lbrakk>e\<rbrakk> s = Some val; code_installed t (comp_aexp e @ ins); state_rel s t; e = BinOp op val1 val2\<rbrakk> \<Longrightarrow>
-    \<exists>t'. steps t (length (comp_aexp e)) = t' \<and>
-      code_installed t' ins \<and>
+  "\<lbrakk>\<lbrakk>e\<rbrakk> s = Some z;
+    code_installed t c;
+    state_rel s t;
+    c = comp_aexp e;
+    e = BinOp op x y;
+    machine_config t\<rbrakk> \<Longrightarrow>
+    \<exists>k t'. steps t k = t' \<and>
       state_rel s t' \<and>
-      state.REG t' RName_0usr = val \<and>
-      REG t' RName_2usr = REG t RName_2usr"
+      REG t' = (REG t)(RName_0usr := z,
+                       RName_1usr := y,
+                       RName_PC := REG t RName_PC + 4 * (word_of_int (int (length c))))"
   apply (cases op)
-   apply (rule comp_aexp_BinOp_Plus_correct, force+)
-  apply (rule comp_aexp_BinOp_Minus_correct, force+)
+   apply (frule comp_aexp_BinOp_Plus_correct, force+)
+  apply (frule comp_aexp_BinOp_Minus_correct, force+)
   done
 
 lemma comp_aexp_HeapLookup_correct:
