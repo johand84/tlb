@@ -431,9 +431,10 @@ lemma b_imm_correct:
   done
 
 lemma Run_cmp_imm_correct:
-  "\<lbrakk>machine_config s;
-    Run (Data (ArithLogicImmediate (0xA, True, 0, 0, 0))) s = ((), t);
-    REG s RName_0usr = (if val then 1 else 0)\<rbrakk> \<Longrightarrow>
+  "\<lbrakk>Run (Data (ArithLogicImmediate (0xA, True, 0, reg, 0))) s = ((), t);
+    REG s (bin_to_reg reg) = (if val then 1 else 0);
+    general_purpose_reg reg;
+    machine_config s\<rbrakk> \<Longrightarrow>
       machine_config t \<and>
       machine_config_preserved s t \<and>
       PSR.Z (CPSR t) = (\<not>val) \<and>
@@ -448,26 +449,20 @@ lemma Run_cmp_imm_correct:
                    word_extract_def
               split: prod.splits)
   apply (frule R_correct, simp)
-   apply (simp add: general_purpose_reg_def)
   apply (simp add: AddWithCarry_def
                    Let_def
                    DataProcessingALU_def
-                   bin_to_reg_def
                    max_word_def
-                   wi_hom_syms, clarify)
-  apply (subgoal_tac "machine_config (s\<lparr>CPSR := CPSR s\<lparr>PSR.N := REG s RName_0usr !! 31,
-                                                       PSR.Z := REG s RName_0usr = 0,
+                   wi_hom_syms)
+  apply (subgoal_tac "machine_config (s\<lparr>CPSR := CPSR s\<lparr>PSR.N := REG s (bin_to_reg reg) !! 31,
+                                                       PSR.Z := REG s (bin_to_reg reg) = 0,
                                                        PSR.C := True,
                                                        PSR.V := False\<rparr>\<rparr>)")
-   apply (frule_tac s = "s\<lparr>CPSR := CPSR s\<lparr>PSR.N := REG s RName_0usr !! 31,
-                                          PSR.Z := REG s RName_0usr = 0,
+   apply (frule_tac s = "s\<lparr>CPSR := CPSR s\<lparr>PSR.N := REG s (bin_to_reg reg) !! 31,
+                                          PSR.Z := REG s (bin_to_reg reg) = 0,
                                           PSR.C := True,
                                           PSR.V := False\<rparr>\<rparr>" in IncPC_correct, simp, safe)
-      apply (simp add: machine_config_preserved_def)
-     apply (simp)
-    apply (simp)
-   apply (simp)
-  apply (simp add: machine_config_def)
+      apply (simp add:  machine_config_def machine_config_preserved_def)+
   done
 
 lemma cmp_imm_PSR_correct:
