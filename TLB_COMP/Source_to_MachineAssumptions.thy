@@ -32,10 +32,7 @@ lemma Decode_ldr_lit_correct:
   sorry
 
 lemma Decode_mov_imm_correct:
-  "\<lbrakk>Decode (mov_imm rd imm12) s = (i,t);
-    machine_config s\<rbrakk> \<Longrightarrow>
-      s = t \<and>
-      i = Data (ArithLogicImmediate (0xd, False, rd, 0, imm12))"
+  "machine_config s \<Longrightarrow> Decode (mov_imm rd imm12) s = (Data (ArithLogicImmediate (0xd, False, rd, 0, imm12)),s)"
   sorry
 
 lemma Decode_mov_reg_correct:
