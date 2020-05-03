@@ -587,14 +587,12 @@ lemma movne_imm_correct:
   sorry
 
 lemma neg_correct:
-  "\<lbrakk>state_rel s t;
-    code_installed t (neg 0 0 # ins);
-    REG t RName_0usr = val\<rbrakk> \<Longrightarrow>
+  "\<lbrakk>Fetch t = (neg rd rm, ft);
+    machine_config t\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
-        code_installed t' ins \<and>
-        state_rel s t' \<and>
-        REG t' RName_0usr = -val \<and>
-        REG t' RName_2usr = REG t RName_2usr"
+        machine_config t' \<and>
+        machine_config_preserved t t' \<and>
+        REG t' = (REG t)(bin_to_reg rd := -(REG t (bin_to_reg rm)), RName_PC := REG t RName_PC + 4)"
   sorry
 
 lemma or_reg_correct:
