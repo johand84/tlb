@@ -330,27 +330,34 @@ lemma write'R_correct:
 
 lemma Run_add_reg_correct:
   "\<lbrakk>machine_config s;
-    Run (Data (Register (4, False, 0, 0, 1, SRType_LSL, 0))) s = ((), t)\<rbrakk> \<Longrightarrow>
+    Run (Data (Register (4, False, rd, rn, rm, SRType_LSL, 0))) s = ((), t);
+    general_purpose_reg rd;
+    general_purpose_reg rn;
+    general_purpose_reg rm\<rbrakk> \<Longrightarrow>
       machine_config t \<and>
       machine_config_preserved s t \<and>
-      REG t = (REG s)(RName_0usr := REG s RName_0usr + REG s RName_1usr,
+      REG t = (REG s)(bin_to_reg rd := REG s (bin_to_reg rn) + REG s (bin_to_reg rm),
                       RName_PC := REG s RName_PC + 4)"
   apply (simp add: Run_def dfn'Register_def doRegister_def split: prod.splits)
-  apply (frule IsSecure_correct)
-  apply (simp add: R_def Rmode_def split: prod.splits)
-  apply (simp add: LookUpRName_def)
-  apply (simp add: Shift_C_def)
-  apply (simp add: DataProcessing_def mask_def word_bits_def word_extract_def split: prod.splits)
-  apply (simp add: R_def Rmode_def split: prod.splits)
-  apply (simp add: LookUpRName_def)
-  apply (simp add: DataProcessingALU_def)
-  apply (frule write'R_correct, simp, safe)
-     apply (simp add: general_purpose_reg_def)
-    apply (frule IncPC_correct, simp, safe, simp)
-   apply (frule IncPC_correct, simp, safe, simp)
+  apply (frule_tac reg = "rm" in R_correct, simp)
+  apply (simp add: Shift_C_def split: if_split_asm)
+   apply (simp add: general_purpose_reg_def)
+  apply (simp add: DataProcessing_def
+                   mask_def
+                   word_bits_def
+                   word_extract_def
+              split: if_split_asm prod.splits)
+   apply (simp add: general_purpose_reg_def)
+  apply (frule_tac reg = "rn" in R_correct, simp)
+  apply (simp add: DataProcessingALU_def, clarify)
+  apply (frule write'R_correct, simp, simp, simp, safe)
+    apply (frule IncPC_correct, simp, safe)
+   apply (frule IncPC_correct, simp, safe)
    apply (simp add: machine_config_def machine_config_preserved_def)
-  apply (simp add: AddWithCarry_def Let_def bin_to_reg_def wi_hom_syms)
+  apply (simp add: AddWithCarry_def Let_def wi_hom_syms, safe)
   apply (frule IncPC_correct, simp, simp)
+  apply (frule general_purpose_reg_correct, safe)
+  apply (simp add: bin_to_reg_def general_purpose_reg_def split: if_split_asm)+
   done
 
 lemma add_reg_state_rel_correct:
