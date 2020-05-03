@@ -619,15 +619,16 @@ lemma str_imm_correct:
   sorry
 
 lemma sub_reg_correct:
-  "\<lbrakk>state_rel s t;
-    code_installed t (sub_reg 0 0 1 # ins);
-    REG t RName_0usr = val1;
-    REG t RName_1usr = val2\<rbrakk> \<Longrightarrow>
+  "\<lbrakk>Fetch t = (sub_reg rd rn rm, ft);
+    general_purpose_reg rd;
+    general_purpose_reg rn;
+    general_purpose_reg rm;
+    machine_config t\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
-        code_installed t' ins \<and>
-        state_rel s t' \<and>
-        REG t' RName_0usr = val1 - val2 \<and>
-        REG t' RName_2usr = REG t RName_2usr"
+        machine_config t' \<and>
+        machine_config_preserved t t' \<and>
+        REG t' = (REG t)(bin_to_reg rd := REG t (bin_to_reg rn) - REG t (bin_to_reg rm),
+                         RName_PC := REG t RName_PC + 4)"
   sorry
 
 lemma comp_aexp_mov_correct:
