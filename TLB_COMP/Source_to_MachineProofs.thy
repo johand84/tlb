@@ -105,8 +105,7 @@ where
      (p_state.global_set s = set_tlb.global_set (set_tlb t)) \<and>
      (HOL.undefined s = set_tlb.snapshot (set_tlb t)) \<and>
      mode_rel (mode s) (PSR.M (CPSR t)) \<and>
-     heap_rel s t \<and>
-     machine_config t"
+     heap_rel s t"
 
 fun
   steps :: "'a set_tlb_state_scheme \<Rightarrow> nat \<Rightarrow> 'a set_tlb_state_scheme"
