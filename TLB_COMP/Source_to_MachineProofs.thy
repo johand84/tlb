@@ -465,24 +465,6 @@ lemma Run_cmp_imm_correct:
       apply (simp add:  machine_config_def machine_config_preserved_def)+
   done
 
-lemma cmp_imm_state_rel_correct:
-  "\<lbrakk>state_rel s t;
-    machine_config t;
-    Fetch t = (cmp_imm 0 0 , ft);
-    REG t RName_0usr = (if val then 1 else 0)\<rbrakk> \<Longrightarrow>
-      state_rel s (snd (Next t))"
-  apply (simp add: Next_def split: prod.splits, safe)
-  apply (frule Fetch_correct, simp, safe)
-  apply (frule Decode_cmp_imm_correct, simp, safe)
-  apply (frule Run_cmp_imm_correct, simp, simp, safe)
-   apply (frule_tac s = "x2a" in ITAdvance_correct)
-   apply (simp add: machine_config_def machine_config_preserved_def snd_def state_rel_def)
-   apply (simp add: heap_rel_def)
-  apply (frule_tac s = "x2a" in ITAdvance_correct)
-  apply (simp add: machine_config_def machine_config_preserved_def snd_def state_rel_def)
-  apply (simp add: heap_rel_def)
-  done
-
 lemma cmp_imm_correct:
   "\<lbrakk>state_rel s t;
     machine_config t;
