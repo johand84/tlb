@@ -696,15 +696,24 @@ lemma comp_aexp_Const_correct:
   done
 
 lemma comp_aexp_UnOp_Neg_correct:
-  "\<lbrakk>\<lbrakk>e\<rbrakk> s = Some val'; code_installed t (comp_aexp e @ ins); state_rel s t; e = UnOp op val; op = Neg\<rbrakk> \<Longrightarrow> 
-    \<exists>t'. steps t (length (comp_aexp e)) = t' \<and>
-      code_installed t' ins \<and>
-      state_rel s t' \<and>
-      state.REG t' RName_0usr = val' \<and>
-      REG t' RName_2usr = REG t RName_2usr"
-  apply (frule comp_aexp_mov_correct, simp, safe)
-  apply (drule neg_correct, simp, simp, safe)
-  apply (simp add: steps_inc)
+  "\<lbrakk>\<lbrakk>e\<rbrakk> s = Some y;
+    code_installed t c;
+    state_rel s t;
+    c = comp_aexp e;
+    e = UnOp Neg x;
+    machine_config t\<rbrakk> \<Longrightarrow>
+      \<exists>k t'. steps t k = t' \<and>
+        state_rel s t' \<and>
+        REG t' = (REG t)(RName_0usr := y,
+                         RName_PC := REG t RName_PC + 4 * (word_of_int (int (length c))))"
+  apply simp
+  apply (frule code_installed_append)
+  apply (frule comp_aexp_mov_correct)
+   apply (simp add: general_purpose_reg_def, simp, simp, safe)
+  apply (frule_tac k = "k" in code_installed_prepend, simp, simp split: prod.splits)
+  apply (frule_tac rd = "0" and rm = "0" in neg_correct, simp)
+  apply (rule_tac x = "k+1" in exI)
+  apply (simp add: comp_aexp_mov_def bin_to_reg_def state_rel_preserved steps_add steps_inc, force)
   done
 
 lemma comp_aexp_UnOp_correct:
