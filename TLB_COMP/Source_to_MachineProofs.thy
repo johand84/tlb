@@ -295,18 +295,8 @@ lemma RfiqBankSelect_correct:
   by (simp add: BadMode_correct RBankSelect_def RfiqBankSelect_def machine_config_def bin_to_reg_def, safe, simp)
 
 lemma LookUpRName_correct:
-  "\<lbrakk>machine_config s;
-    LookUpRName (reg, x) s = (y, t);
-    general_purpose_reg reg;
-    x = 0x10 \<or> x = 0x13\<rbrakk> \<Longrightarrow> y = bin_to_reg reg \<and> s = t"
-  by (simp add: BadMode_def
-                LookUpRName_def
-                RBankSelect_def
-                RfiqBankSelect_def
-                bin_to_reg_def
-                general_purpose_reg_def
-                machine_state_rel_def
-           split: if_split_asm)
+  "\<lbrakk>machine_config s; general_purpose_reg reg\<rbrakk> \<Longrightarrow> LookUpRName (reg, PSR.M (CPSR s)) s = (bin_to_reg reg, s)"
+  by (simp add: LookUpRName_def RfiqBankSelect_correct bin_to_reg_def general_purpose_reg_def, safe, simp+)
 
 lemma PC_correct:
   "\<lbrakk>machine_config s;
