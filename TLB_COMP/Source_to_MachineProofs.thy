@@ -732,16 +732,35 @@ lemma comp_aexp_UnOp_correct:
   done
 
 lemma comp_aexp_BinOp_Plus_correct:
-  "\<lbrakk>\<lbrakk>e\<rbrakk> s = Some val; code_installed t (comp_aexp e @ ins); state_rel s t; e = BinOp op val1 val2; op = Plus\<rbrakk> \<Longrightarrow>
-    \<exists>t'. steps t (length (comp_aexp e)) = t' \<and>
-      code_installed t' ins \<and>
+  "\<lbrakk>\<lbrakk>e\<rbrakk> s = Some z;
+    code_installed t c;
+    state_rel s t;
+    c = comp_aexp e;
+    e = BinOp op x y;
+    op = Plus;
+    machine_config t\<rbrakk> \<Longrightarrow>
+    \<exists>k t'. steps t k = t' \<and>
       state_rel s t' \<and>
-      state.REG t' RName_0usr = val \<and>
-      REG t' RName_2usr = REG t RName_2usr"
-  apply (drule comp_aexp_mov_correct, simp, safe)
-  apply (drule comp_aexp_mov_correct, simp, safe)
-  apply (drule add_reg_correct, simp, simp, simp, safe)
-  apply (simp add: steps_add steps_inc)
+      REG t' = (REG t)(RName_0usr := z,
+                       RName_1usr := y,
+                       RName_PC := REG t RName_PC + 4 * (word_of_int (int (length c))))"
+  apply simp
+  apply (frule code_installed_append)
+  apply (drule comp_aexp_mov_correct)
+   apply (simp add: general_purpose_reg_def, simp, simp, safe)
+  apply (drule_tac k = "k" in code_installed_prepend, simp, simp split: prod.splits)
+  apply (frule code_installed_append)
+  apply (frule_tac reg = "1" in comp_aexp_mov_correct)
+   apply (simp add: general_purpose_reg_def, simp, simp, safe)
+  apply (drule_tac k = "ka" in code_installed_prepend, simp, simp split: prod.splits)
+  apply (frule_tac t = "steps (steps t k) ka" in add_reg_correct)
+      apply (simp add: general_purpose_reg_def)
+     apply (simp add: general_purpose_reg_def)
+    apply (simp add: general_purpose_reg_def)
+   apply (simp add: machine_config_def)
+  apply (rule_tac x = "k+ka+1" in exI, safe)
+   apply (simp add: state_rel_preserved steps_add steps_inc)
+  apply (simp add: comp_aexp_mov_def bin_to_reg_def steps_add steps_inc, force)
   done
 
 lemma comp_aexp_BinOp_Minus_correct:
