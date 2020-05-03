@@ -361,17 +361,27 @@ lemma Run_add_reg_correct:
   done
 
 lemma add_reg_correct:
-  "\<lbrakk>state_rel s t;
-    Fetch t = (add_reg 0 0 1, ft);
-    machine_config t;
-    REG t RName_0usr = val1;
-    REG t RName_1usr = val2\<rbrakk> \<Longrightarrow>
+  "\<lbrakk>Fetch t = (add_reg rd rn rm, ft);
+    general_purpose_reg rd;
+    general_purpose_reg rn;
+    general_purpose_reg rm;
+    machine_config t\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
-        state_rel s t' \<and>
-        REG t' = (REG t)(RName_0usr := val1 + val2,
-                        RName_PC := REG t RName_PC + 4)"
-   apply (frule add_reg_state_rel_correct, simp+)
-  apply (frule add_reg_REG_correct, simp+)
+        machine_config t' \<and>
+        machine_config_preserved t t' \<and>
+        REG t' = (REG t)(bin_to_reg rd := REG t (bin_to_reg rn) + REG t (bin_to_reg rm),
+                         RName_PC := REG t RName_PC + 4)"
+  apply (frule Fetch_correct, simp)
+  apply (simp add: Decode_add_reg_correct Next_def split: prod.splits, safe)
+    apply (frule Run_add_reg_correct, simp+, safe)
+    apply (frule_tac s = "x2" in ITAdvance_correct)
+    apply (simp add: snd_def)
+   apply (frule Run_add_reg_correct, simp+, safe)
+   apply (frule_tac s = "x2" in ITAdvance_correct)
+   apply (simp add: machine_config_preserved_def snd_def)
+  apply (frule Run_add_reg_correct, simp+, safe)
+  apply (frule_tac s = "x2" in ITAdvance_correct)
+  apply (simp add: snd_def)
   done
 
 lemma and_reg_correct:
