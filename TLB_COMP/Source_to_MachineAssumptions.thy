@@ -5,9 +5,7 @@ imports Source_to_Machine
 begin
 
 lemma Decode_add_reg_correct:
-  "\<lbrakk>machine_config s;
-    Decode (add_reg rd rn rm) s = (i,t)\<rbrakk> \<Longrightarrow>
-      t = s \<and> i = Data (Register (0x4, False, rd, rn, rm, SRType_LSL, 0))"
+  "machine_config s \<Longrightarrow> Decode (add_reg rd rn rm) s = (Data (Register (0x4, False, rd, rn, rm, SRType_LSL, 0)),s)"
   sorry
 
 lemma Decode_and_reg_correct:
