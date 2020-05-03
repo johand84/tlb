@@ -360,19 +360,6 @@ lemma Run_add_reg_correct:
   apply (simp add: bin_to_reg_def general_purpose_reg_def split: if_split_asm)+
   done
 
-lemma add_reg_REG_correct:
-  "\<lbrakk>machine_config t;
-    Fetch t = (add_reg 0 0 1, ft);
-    REG t RName_0usr = val1;
-    REG t RName_1usr = val2\<rbrakk> \<Longrightarrow>
-      REG (steps t 1) = (REG t)(RName_0usr := val1 + val2, RName_PC := REG t RName_PC + 4)"
-  apply (simp add: Next_def split: prod.splits)
-  apply (frule Fetch_correct, safe)
-  apply (frule Decode_add_reg_correct, simp, simp, safe)
-  apply (frule Run_add_reg_correct, simp, safe)
-  apply (frule_tac s = "x2a" in ITAdvance_correct, simp)
-  done
-
 lemma add_reg_correct:
   "\<lbrakk>state_rel s t;
     Fetch t = (add_reg 0 0 1, ft);
