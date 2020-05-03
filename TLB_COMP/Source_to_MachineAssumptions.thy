@@ -63,7 +63,8 @@ lemma Decode_str_imm_correct:
   sorry
 
 lemma Decode_sub_reg_correct:
-  "Decode (sub_reg rd rn rm) t = (i,t') \<Longrightarrow> i = Data (Register (0x2, False, rd, rn, rm, SRType_LSL, 0))"
+  "machine_config s \<Longrightarrow>
+    Decode (sub_reg rd rn rm) s = (Data (Register (0x2, False, rd, rn, rm, SRType_LSL, 0)),s)"
   sorry
 
 end
