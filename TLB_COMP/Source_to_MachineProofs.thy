@@ -304,18 +304,8 @@ lemma PC_correct:
   by (simp add: CurrentInstrSet_correct PC_def R_def, safe)
 
 lemma R_correct:
-  "\<lbrakk>machine_config s;
-    R reg s = (val,t);
-    general_purpose_reg reg\<rbrakk> \<Longrightarrow>
-      t = s \<and> val = REG s (bin_to_reg reg)"
-  apply (simp add: R_def split: if_split_asm prod.splits)
-    apply (simp add: general_purpose_reg_def)
-   apply (simp add: general_purpose_reg_def)
-  apply (frule IsSecure_correct)
-  apply (simp add: Rmode_def split: prod.splits)
-  apply (frule LookUpRName_correct, simp, simp)
-   apply (simp add: machine_config_def, simp, clarify)
-  done
+  "\<lbrakk>general_purpose_reg reg; machine_config s\<rbrakk> \<Longrightarrow> R reg s = (REG s (bin_to_reg reg), s)"
+  by (simp add: IsSecure_correct LookUpRName_correct R_def Rmode_def general_purpose_reg_def, safe, simp+)
 
 lemma write'R_correct:
   "\<lbrakk>machine_config s;
