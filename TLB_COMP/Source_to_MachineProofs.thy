@@ -120,7 +120,9 @@ lemma code_installed_append:
   by (induction ca arbitrary: t, clarsimp+)
 
 lemma code_installed_prepend:
-  "\<lbrakk>code_installed t (ca @ cb)\<rbrakk> \<Longrightarrow> code_installed (steps t (length ca)) cb"
+  "\<lbrakk>code_installed t (ca @ cb);
+    REG (steps t k) RName_PC = REG t RName_PC + 4 * (word_of_int (int (length ca)))\<rbrakk> \<Longrightarrow>
+    code_installed (steps t k) cb"
   sorry
 
 lemma steps_add:
