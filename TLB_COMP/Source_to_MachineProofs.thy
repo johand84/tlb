@@ -290,6 +290,10 @@ lemma IsSecure_correct:
   "machine_config s \<Longrightarrow> IsSecure () s = (True, s)"
   by (simp add: HaveSecurityExt_def IsSecure_def machine_config_def)
 
+lemma RfiqBankSelect_correct:
+  "\<lbrakk>machine_config s; general_purpose_reg reg\<rbrakk> \<Longrightarrow> RfiqBankSelect (PSR.M (CPSR s),usr,fiq) s = (usr,s)"
+  by (simp add: BadMode_correct RBankSelect_def RfiqBankSelect_def machine_config_def bin_to_reg_def, safe, simp)
+
 lemma LookUpRName_correct:
   "\<lbrakk>machine_config s;
     LookUpRName (reg, x) s = (y, t);
