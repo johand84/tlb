@@ -319,7 +319,7 @@ lemma write'R_correct:
      apply (simp add: general_purpose_reg_def)
     apply (simp add: general_purpose_reg_def)
    apply (simp add: general_purpose_reg_def)
-  apply (frule LookUpRName_correct, simp, simp)
+  apply (frule LookUpRName_correct)
    apply (simp add: machine_config_def, simp, clarify)
   apply (simp add: bin_to_reg_def
                    general_purpose_reg_def
