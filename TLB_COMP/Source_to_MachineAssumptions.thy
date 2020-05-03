@@ -17,7 +17,7 @@ lemma Decode_b_imm_correct:
   sorry
 
 lemma Decode_cmp_imm_correct:
-  "Decode (cmp_imm rn imm12) s = (i,t) \<Longrightarrow> t = s \<and> i = Data (ArithLogicImmediate (0xa, True, 0, rn, imm12))"
+  "machine_config s \<Longrightarrow> Decode (cmp_imm rn imm12) s = (Data (ArithLogicImmediate (0xa, True, 0, rn, imm12)),s)"
   sorry
 
 lemma Decode_ldr_imm_correct:
