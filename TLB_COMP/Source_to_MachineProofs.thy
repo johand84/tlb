@@ -513,9 +513,9 @@ lemma ldr_lit_correct:
   sorry
 
 lemma Run_mov_imm_correct:
-  "\<lbrakk>machine_config s;
-    Run (Data (ArithLogicImmediate (0xd, False, rd, 0, imm12))) s = ((), t);
+  "\<lbrakk>Run (Data (ArithLogicImmediate (0xd, False, rd, 0, imm12))) s = ((), t);
     general_purpose_reg rd;
+    machine_config s;
     word_extract 11 8 imm12 = (0::4 word)\<rbrakk> \<Longrightarrow>
       machine_config t \<and>
       machine_config_preserved s t \<and>
