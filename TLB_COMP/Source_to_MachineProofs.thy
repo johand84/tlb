@@ -650,6 +650,17 @@ lemma comp_aexp_mov_small_correct:
   apply (word_bitwise, simp)
   done
 
+lemma comp_aexp_mov_large_correct:
+  "\<lbrakk>state_rel s t;
+    machine_config t;
+    general_purpose_reg reg;
+    code_installed t [b_imm 0, ARM val, ldr_lit 0 reg 0xC]\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t 2 = t' \<and>
+        state_rel s t' \<and>
+        machine_config t' \<and>
+        REG t' = (REG t)(bin_to_reg reg := val, RName_PC := REG t RName_PC + 12)"
+  sorry
+
 lemma comp_aexp_mov_correct:
   "\<lbrakk>state_rel s t;
     code_installed t (comp_aexp_mov reg val @ ins)\<rbrakk> \<Longrightarrow>
