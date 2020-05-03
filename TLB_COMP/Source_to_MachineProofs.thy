@@ -466,17 +466,29 @@ lemma Run_cmp_imm_correct:
   done
 
 lemma cmp_imm_correct:
-  "\<lbrakk>state_rel s t;
-    machine_config t;
-    Fetch t = (cmp_imm 0 0, ft);
-    REG t RName_0usr = (if val then 1 else 0)\<rbrakk> \<Longrightarrow>
+  "\<lbrakk>Fetch t = (cmp_imm reg 0, ft);
+    REG t (bin_to_reg reg) = (if val then 1 else 0);
+    general_purpose_reg reg;
+     machine_config t\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
-        state_rel s t' \<and>
+        machine_config t \<and>
+        machine_config_preserved t t' \<and>
         PSR.Z (CPSR t') = (\<not>val) \<and>
         REG t' = (REG t)(RName_PC := REG t RName_PC + 4)"
-  apply (frule cmp_imm_state_rel_correct, force+)
-  apply (frule cmp_imm_PSR_correct, force+)
-  apply (frule cmp_imm_REG_correct, force+)
+  apply (frule Fetch_correct, simp)
+  apply (simp add: Decode_cmp_imm_correct Next_def split: prod.splits, safe)
+     apply (frule Run_cmp_imm_correct, simp, safe)
+      apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_config_preserved_def)
+     apply (frule Run_cmp_imm_correct, simp, safe)
+     apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_config_preserved_def)
+    apply (frule Run_cmp_imm_correct, simp, safe)
+    apply (frule_tac s = "x2" in ITAdvance_correct, simp)
+   apply (frule Run_cmp_imm_correct, simp, safe)
+   apply (frule_tac s = "x2" in ITAdvance_correct, simp)
+   apply (frule Run_cmp_imm_correct, simp, safe)
+   apply (frule_tac s = "x2" in ITAdvance_correct, simp)
+  apply (frule Run_cmp_imm_correct, simp, safe)
+  apply (frule_tac s = "x2" in ITAdvance_correct, simp)
   done
 
 lemma ldr_imm_correct:
