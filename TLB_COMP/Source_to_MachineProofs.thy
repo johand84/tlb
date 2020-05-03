@@ -125,6 +125,23 @@ lemma code_installed_prepend:
     code_installed (steps t k) cb"
   sorry
 
+lemma general_purpose_reg_correct:
+  "general_purpose_reg reg \<Longrightarrow>
+    bin_to_reg reg = RName_0usr \<or>
+    bin_to_reg reg = RName_1usr \<or>
+    bin_to_reg reg = RName_2usr \<or>
+    bin_to_reg reg = RName_3usr \<or>
+    bin_to_reg reg = RName_4usr \<or>
+    bin_to_reg reg = RName_5usr \<or>
+    bin_to_reg reg = RName_6usr \<or>
+    bin_to_reg reg = RName_7usr \<or>
+    bin_to_reg reg = RName_8usr \<or>
+    bin_to_reg reg = RName_9usr \<or>
+    bin_to_reg reg = RName_10usr \<or>
+    bin_to_reg reg = RName_11usr \<or>
+    bin_to_reg reg = RName_12usr"
+  by (simp add: bin_to_reg_def general_purpose_reg_def, safe, simp+)
+
 lemma steps_add:
   "(steps (steps t l1) l2) = (steps t (l1 + l2))"
   sorry
