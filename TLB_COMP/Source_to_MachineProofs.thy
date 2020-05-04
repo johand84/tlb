@@ -1169,18 +1169,24 @@ lemma comp_aexp_correct:
   done
 
 lemma comp_bexp_mov_correct:
-  "\<lbrakk>state_rel s t;
-    code_installed t (comp_bexp_mov reg val @ ins)\<rbrakk> \<Longrightarrow>
-      \<exists>t'. steps t (length (comp_bexp_mov reg val)) = t' \<and>
-        code_installed t' ins \<and>
+  "\<lbrakk>code_installed t (comp_bexp_mov reg val);
+    general_purpose_reg reg;
+    machine_config t;
+    state_rel s t\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t 1 = t' \<and>
+        machine_config t' \<and>
         state_rel s t' \<and>
-        REG t' RName_0usr = (if reg = 0 then (if val then 1 else 0) else REG t RName_0usr) \<and>
-        REG t' RName_1usr = (if reg = 1 then (if val then 1 else 0) else REG t RName_1usr)"
-  apply (cases val)
-   apply (simp only: comp_bexp_mov_def)
-   apply (drule_tac val = "1" in mov_imm_correct, simp, safe, simp)
-  apply (simp only: comp_bexp_mov_def)
-  apply (drule_tac val = "0" in mov_imm_correct, simp, safe, simp)
+        REG t' = (REG t)(bin_to_reg reg := (if val then 1 else 0),
+                         RName_PC := REG t RName_PC + 4 * (word_of_int (int (length (comp_bexp_mov reg val)))))"
+   apply (simp add: comp_bexp_mov_def split: prod.splits)
+   apply (frule mov_imm_correct, simp, simp)
+   apply (simp add: word_bits_def word_extract_def, safe)
+       apply (simp)
+      apply (simp add: state_rel_preserved)
+     apply (simp add: steps_add steps_inc)
+    apply (simp)
+   apply (simp add: state_rel_preserved)
+  apply (simp add: steps_add steps_inc)
   done
 
 lemma comp_bexp_BConst_correct:
