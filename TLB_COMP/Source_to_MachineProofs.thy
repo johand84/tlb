@@ -1225,16 +1225,34 @@ lemma comp_bexp_BComp_correct:
   done
 
 lemma comp_bexp_BBinOp_And_correct:
-  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some val; code_installed t (comp_bexp b @ ins); state_rel s t; b = BBinOp op b1 b2; op = And\<rbrakk> \<Longrightarrow>
-    \<exists>t'. steps t (length (comp_bexp b)) = t' \<and>
-      code_installed t' ins \<and>
+  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some z;
+    code_installed t c;
+    machine_config t;
+    state_rel s t;
+    b = BBinOp op x y;
+    c = comp_bexp b;
+    op = And\<rbrakk> \<Longrightarrow>
+    \<exists>t'. steps t 3 = t' \<and>
       state_rel s t' \<and>
-      state.REG t' RName_0usr = (if val then 1 else 0)"
-  apply (drule comp_bexp_mov_correct, simp, safe)
-  apply (drule comp_bexp_mov_correct, simp, safe)
-  apply (drule and_reg_correct, simp, simp, simp, safe)
-  apply (simp add: steps_add steps_inc, safe)
-  done
+      REG t' = (REG t)(RName_0usr := (if z then 1 else 0),
+                       RName_1usr := (if y then 1 else 0),
+                       RName_PC := REG t RName_PC + 4 * (word_of_int (int (length c))))"
+  apply simp
+  apply (frule code_installed_append)
+  apply (drule comp_bexp_mov_correct)
+     apply (simp add: general_purpose_reg_def, simp, simp, simp)
+  apply (drule_tac k = "1" in code_installed_prepend, simp)
+  apply (frule code_installed_append)
+  apply (frule_tac s = "s" in comp_bexp_mov_correct)
+     apply (simp add: general_purpose_reg_def, simp)
+   apply (simp add: steps_add steps_inc, simp)
+  apply (drule_tac k = "1" in code_installed_prepend, simp, simp split: prod.splits)
+  apply (frule_tac t = "snd (Next (snd (Next t)))" in and_reg_correct)
+      apply (simp add: general_purpose_reg_def)
+     apply (simp add: general_purpose_reg_def)
+    apply (simp add: general_purpose_reg_def, simp, simp, safe)
+             apply (frule_tac t = "snd (Next (snd (Next t)))" in state_rel_preserved, simp)
+  sorry
 
 lemma comp_bexp_BBinOp_Or_correct:
   "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some val; code_installed t (comp_bexp b @ ins); state_rel s t; b = BBinOp op b1 b2; op = Or\<rbrakk> \<Longrightarrow>
