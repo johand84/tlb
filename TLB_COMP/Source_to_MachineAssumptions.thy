@@ -9,7 +9,7 @@ lemma Decode_add_reg_correct:
   sorry
 
 lemma Decode_and_reg_correct:
-  "Decode (and_reg rd rn rm) t = (i,t') \<Longrightarrow> i = Data (Register (0x0, False, rd, rn, rm, SRType_LSL, 0))"
+  "machine_config s \<Longrightarrow> Decode (and_reg rd rn rm) s = (Data (Register (0x0, False, rd, rn, rm, SRType_LSL, 0)),s)"
   sorry
 
 lemma Decode_b_imm_correct:
