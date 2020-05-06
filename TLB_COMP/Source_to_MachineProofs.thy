@@ -897,15 +897,28 @@ lemma Run_or_reg_correct:
   done
 
 lemma or_reg_correct:
-  "\<lbrakk>state_rel s t;
-    code_installed t (or_reg 0 0 1 # ins);
-    REG t RName_0usr = val1;
-    REG t RName_1usr = val2\<rbrakk> \<Longrightarrow>
+  "\<lbrakk>Fetch t = (or_reg rd rn rm, ft);
+    general_purpose_reg rd;
+    general_purpose_reg rn;
+    general_purpose_reg rm;
+    machine_config t\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
-        code_installed t' ins \<and>
-        state_rel s t' \<and>
-        REG t' RName_0usr = val1 || val2"
-  sorry
+        machine_config t' \<and>
+        machine_config_preserved t t' \<and>
+        REG t' = (REG t)(bin_to_reg rd := REG t (bin_to_reg rn) || REG t (bin_to_reg rm),
+                         RName_PC := REG t RName_PC + 4)"
+  apply (frule Fetch_correct, simp)
+  apply (simp add: Decode_or_reg_correct Next_def split: prod.splits, safe)
+    apply (frule Run_or_reg_correct, simp+, safe)
+    apply (frule_tac s = "x2" in ITAdvance_correct)
+    apply (simp add: snd_def)
+   apply (frule Run_or_reg_correct, simp+, safe)
+   apply (frule_tac s = "x2" in ITAdvance_correct)
+   apply (simp add: machine_config_preserved_def snd_def)
+  apply (frule Run_or_reg_correct, simp+, safe)
+  apply (frule_tac s = "x2" in ITAdvance_correct)
+  apply (simp add: snd_def)
+  done
 
 lemma str_imm_correct:
   "\<lbrakk>state_rel s t;
