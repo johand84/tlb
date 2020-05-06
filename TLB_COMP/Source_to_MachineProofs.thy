@@ -993,15 +993,14 @@ lemma comp_aexp_mov_correct:
 
 lemma comp_aexp_Const_correct:
   "\<lbrakk>\<lbrakk>e\<rbrakk> s = Some val;
-    c = comp_aexp e;
-    code_installed t c;
+    code_installed t (comp_aexp e);
     machine_config t;
     state_rel s t;
-    e = Const x1\<rbrakk> \<Longrightarrow>
+    e = Const val\<rbrakk> \<Longrightarrow>
       \<exists>k t'. steps t k = t' \<and>
         state_rel s t' \<and>
         REG t' = (REG t)(RName_0usr := val,
-                         RName_PC := REG t RName_PC + 4 * (word_of_int (int (length c))))"
+                         RName_PC := REG t RName_PC + 4 * (word_of_int (int (length (comp_aexp e)))))"
   apply (simp)
   apply (frule comp_aexp_mov_correct)
    apply (simp add: general_purpose_reg_def, simp, simp, safe)
