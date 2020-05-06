@@ -768,14 +768,27 @@ lemma Run_mov_reg_correct:
   done
 
 lemma mov_reg_correct:
-  "\<lbrakk>state_rel s t;
-    code_installed t (mov_reg 2 0 # ins);
-    REG t' RName_0usr = val\<rbrakk> \<Longrightarrow>
+  "\<lbrakk>Fetch t = (mov_reg rd rm, ft);
+    general_purpose_reg rd;
+    general_purpose_reg rm;
+    machine_config t\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
-        code_installed t' ins \<and>
-        state_rel s t' \<and>
-        REG t' RName_2usr  = val"
-  sorry
+        machine_config t' \<and>
+        machine_config_preserved t t' \<and>
+        REG t' = (REG t)(bin_to_reg rd := REG t (bin_to_reg rm),
+                         RName_PC := REG t RName_PC + 4)"
+  apply (frule Fetch_correct, simp)
+  apply (simp add: Decode_mov_reg_correct Next_def split: prod.splits, safe)
+    apply (frule Run_mov_reg_correct, simp+, safe)
+    apply (frule_tac s = "x2" in ITAdvance_correct)
+    apply (simp add: snd_def)
+   apply (frule Run_mov_reg_correct, simp+, safe)
+   apply (frule_tac s = "x2" in ITAdvance_correct)
+   apply (simp add: machine_config_preserved_def snd_def)
+  apply (frule Run_mov_reg_correct, simp+, safe)
+  apply (frule_tac s = "x2" in ITAdvance_correct)
+  apply (simp add: snd_def)
+  done
 
 lemma moveq_imm_correct:
   "\<lbrakk>state_rel s t;
