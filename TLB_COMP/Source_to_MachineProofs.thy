@@ -1154,16 +1154,18 @@ lemma comp_aexp_HeapLookup_correct:
 lemma comp_aexp_correct:
   "\<lbrakk>aval e s = Some val;
     code_installed t (comp_aexp e);
+    machine_config t;
     state_rel s t\<rbrakk> \<Longrightarrow>
-      \<exists>t'. steps t (length (comp_aexp e)) = t' \<and>
+      \<exists>k t'. steps t k = t' \<and>
         state_rel s t' \<and>
-        REG t' RName_0usr = val \<and>
-        REG t' RName_2usr = REG t RName_2usr"
+        REG t' = (REG t)(RName_0usr := val,
+                         RName_1usr := (REG t') RName_1usr,
+                         RName_PC := REG t RName_PC + 4 * (word_of_int (int (length (comp_aexp e)))))"
   apply (cases e)
-     apply (rule comp_aexp_Const_correct, force+)
-    apply (rule comp_aexp_UnOp_correct, force+)
-   apply (rule comp_aexp_BinOp_correct, force+)
-  apply (rule comp_aexp_HeapLookup_correct, force+)
+     apply (frule comp_aexp_Const_correct, force+)
+    apply (frule comp_aexp_UnOp_correct, force+)
+   apply (frule comp_aexp_BinOp_correct, force+)
+  apply (frule comp_aexp_HeapLookup_correct, force+)
   done
 
 lemma comp_bexp_mov_correct:
