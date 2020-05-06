@@ -740,6 +740,33 @@ lemma mov_imm_correct:
   apply (frule_tac s = "x2" in ITAdvance_correct, simp)
   done
 
+lemma Run_mov_reg_correct:
+  "\<lbrakk>machine_config s;
+    Run (Data (Register (0xd, False, rd, 0, rm, SRType_LSL, 0))) s = ((), t);
+    general_purpose_reg rd;
+    general_purpose_reg rm\<rbrakk> \<Longrightarrow>
+      machine_config t \<and>
+      machine_config_preserved s t \<and>
+      REG t = (REG s)(bin_to_reg rd := REG s (bin_to_reg rm),
+                      RName_PC := REG s RName_PC + 4)"
+  apply (simp add: Run_def dfn'Register_def doRegister_def split: prod.splits)
+  apply (frule_tac reg = "rm" in R_correct, simp)
+  apply (simp add: Shift_C_def split: if_split_asm)
+   apply (simp add: general_purpose_reg_def)
+  apply (simp add: DataProcessing_def
+                   mask_def
+                   word_bits_def
+                   word_extract_def
+              split: if_split_asm prod.splits)
+  apply (simp add: DataProcessingALU_def)
+  apply (frule write'R_correct, simp, simp, clarify)
+  apply (frule IncPC_correct, simp, simp, safe)
+       apply (frule general_purpose_reg_correct, safe, simp+)
+      apply (frule general_purpose_reg_correct, safe, simp+)
+     apply (frule general_purpose_reg_correct, safe, simp+)
+   apply (simp add: machine_config_preserved_def)
+  done
+
 lemma mov_reg_correct:
   "\<lbrakk>state_rel s t;
     code_installed t (mov_reg 2 0 # ins);
