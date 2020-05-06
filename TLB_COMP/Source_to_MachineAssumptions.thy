@@ -36,7 +36,7 @@ lemma Decode_mov_imm_correct:
   sorry
 
 lemma Decode_mov_reg_correct:
-  "Decode (mov_reg rd rm) t = (i,t') \<Longrightarrow> i = Data (Register (0xd, False, rd, 0, rm, SRType_LSL, 0))"
+  "machine_config s \<Longrightarrow> Decode (mov_reg rd rm) t = (Data (Register (0xd, False, rd, 0, rm, SRType_LSL, 0)),s)"
   sorry
 
 lemma Decode_moveq_imm_correct:
