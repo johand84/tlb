@@ -656,6 +656,7 @@ lemma Run_mov_imm_correct:
     general_purpose_reg rd;
     machine_config s;
     word_extract 11 8 imm12 = (0::4 word)\<rbrakk> \<Longrightarrow>
+      flags_preserved s t \<and>
       machine_config t \<and>
       machine_config_preserved s t \<and>
       REG t = (REG s)(bin_to_reg rd := ucast imm12,
@@ -667,11 +668,11 @@ lemma Run_mov_imm_correct:
    apply (simp add: DataProcessingALU_def)
   apply (frule write'R_correct, simp, simp, clarify)
   apply (frule IncPC_correct, simp, safe, simp)
+    apply (simp add: flags_preserved_def, simp)
    apply (simp add: machine_config_preserved_def, simp, rule)
   apply (simp add: bin_to_reg_def
                    general_purpose_reg_def
                    machine_config_def
-                   machine_config_preserved_def
               split: if_split_asm)
   done
 
