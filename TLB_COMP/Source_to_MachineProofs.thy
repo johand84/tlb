@@ -455,6 +455,17 @@ lemma write'R_correct:
               split: if_split_asm)
   done
 
+lemma Run_nop_correct:
+  "\<lbrakk>Run NoOperation s = ((), t);
+    machine_config s\<rbrakk> \<Longrightarrow>
+      flags_preserved s t \<and>
+      machine_config t \<and>
+      machine_config_preserved s t \<and>
+      REG t = (REG s)(RName_PC := REG s RName_PC + 4)"
+  apply (simp add: Run_def dfn'NoOperation_def)
+  apply (frule IncPC_correct, simp, simp, safe)
+  done
+
 lemma Run_add_reg_correct:
   "\<lbrakk>machine_config s;
     Run (Data (Register (4, False, rd, rn, rm, SRType_LSL, 0))) s = ((), t);
