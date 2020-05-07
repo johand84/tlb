@@ -40,8 +40,8 @@ lemma Decode_mov_reg_correct:
   sorry
 
 lemma Decode_moveq_imm_correct:
-  "Decode (moveq_imm rd imm12) t = (i,t') \<Longrightarrow>
-    i = (if PSR.Z (CPSR t) then Data (ArithLogicImmediate (0xd, False, rd, 0, imm12)) else NoOperation)"
+  "machine_config s \<Longrightarrow>
+    Decode (moveq_imm rd imm12) s = ((if PSR.Z (CPSR s) then Data (ArithLogicImmediate (0xd, False, rd, 0, imm12)) else NoOperation),s)"
   sorry
 
 lemma Decode_movne_imm_correct:
