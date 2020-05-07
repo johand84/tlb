@@ -825,14 +825,38 @@ lemma moveq_imm_correct:
   done
 
 lemma movne_imm_correct:
-  "\<lbrakk>state_rel s t;
-    code_installed t (movne_imm 0 (ucast val) # ins)\<rbrakk> \<Longrightarrow>
+  "\<lbrakk>Fetch t = (movne_imm reg val, ft);
+    general_purpose_reg reg;
+    machine_config t;
+    word_extract 11 8 val = (0::4 word)\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
-        code_installed t' ins \<and>
-        state_rel s t' \<and>
-        PSR.Z (CPSR t') = PSR.Z (CPSR t) \<and>
-        REG t' RName_0usr = (if PSR.Z (CPSR t) then REG t RName_0usr else val)"
-  sorry
+        flags_preserved t t' \<and>
+        machine_config t' \<and>
+        machine_config_preserved t t' \<and>
+        REG t' = (REG t)(bin_to_reg reg := (if PSR.Z (CPSR t) then REG t (bin_to_reg reg) else ucast val),
+                         RName_PC := REG t RName_PC + 4)"
+  apply (cases "PSR.Z (CPSR t)")
+   apply (frule Fetch_correct, simp)
+  apply (simp add: Decode_movne_imm_correct Next_def flags_preserved_def split: prod.splits, safe)
+      apply (frule Run_nop_correct, simp, safe)
+      apply (frule_tac s = "x2" in ITAdvance_correct, simp add: flags_preserved_def)
+     apply (frule Run_nop_correct, simp, safe)
+     apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_config_def)
+    apply (frule Run_nop_correct, simp, safe)
+    apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_config_preserved_def)
+   apply (frule Run_nop_correct, simp, safe)
+   apply (frule_tac s = "x2" in ITAdvance_correct, simp)
+  apply (frule Fetch_correct, simp)
+  apply (simp add: Decode_movne_imm_correct Next_def flags_preserved_def split: prod.splits, safe)
+      apply (frule Run_mov_imm_correct, simp, safe)
+      apply (frule_tac s = "x2" in ITAdvance_correct, simp add: flags_preserved_def)
+     apply (frule Run_mov_imm_correct, simp, safe)
+     apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_config_def)
+    apply (frule Run_mov_imm_correct, simp, safe)
+    apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_config_preserved_def)
+   apply (frule Run_mov_imm_correct, simp, safe)
+   apply (frule_tac s = "x2" in ITAdvance_correct, simp)
+  done
 
 lemma neg_correct:
   "\<lbrakk>Fetch t = (neg rd rm, ft);
