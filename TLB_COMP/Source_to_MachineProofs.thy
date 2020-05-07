@@ -264,8 +264,15 @@ lemma steps_inc:
   sorry
 
 lemma machine_config_mmu_translate:
-  "\<lbrakk>mmu_translate v s = (p, t); machine_config s\<rbrakk> \<Longrightarrow> machine_config t \<and> machine_config_preserved s t \<and> REG s = REG t"
-  apply (clarsimp simp: mmu_translate_set_tlb_state_ext_def Let_def machine_config_preserved_def
+  "\<lbrakk>mmu_translate v s = (p, t); machine_config s\<rbrakk> \<Longrightarrow>
+    flags_preserved s t \<and>
+    machine_config t \<and>
+    machine_config_preserved s t \<and>
+    REG s = REG t"
+  apply (clarsimp simp: Let_def
+                        flags_preserved_def
+                        machine_config_preserved_def
+                        mmu_translate_set_tlb_state_ext_def
                   split: if_split_asm)
   by (clarsimp simp: raise'exception_def machine_config_def split:if_split_asm)+
 
