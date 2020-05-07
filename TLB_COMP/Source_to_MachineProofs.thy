@@ -294,17 +294,22 @@ lemma machine_config_mmu_read_size:
   sorry
 
 lemma Fetch_correct:
-  "\<lbrakk>Fetch s = (mc, t); machine_config s\<rbrakk> \<Longrightarrow> machine_config t \<and> machine_config_preserved s t \<and> REG s = REG t"
+  "\<lbrakk>Fetch s = (mc, t);
+    machine_config s\<rbrakk> \<Longrightarrow>
+      flags_preserved s t \<and>
+      machine_config t \<and>
+      machine_config_preserved s t \<and>
+      REG s = REG t"
   apply (clarsimp simp: machine_config_def Fetch_def CurrentInstrSet_def
                         ISETSTATE_def word_cat_def)
   apply (clarsimp simp: MemA_def CurrentModeIsNotUser_def BadMode_def)
   apply (erule disjE; clarsimp)
    apply (clarsimp simp: MemA_with_priv_def split: prod.splits)
     apply (frule machine_config_mmu_read_size, clarsimp simp: machine_config_def)
-    apply (clarsimp simp: machine_config_def machine_config_preserved_def)
+    apply (clarsimp simp: flags_preserved_def machine_config_def machine_config_preserved_def)
   apply (clarsimp simp: MemA_with_priv_def split: prod.splits)
   apply (frule machine_config_mmu_read_size, clarsimp simp: machine_config_def)
-  by (clarsimp simp: machine_config_def machine_config_preserved_def)
+  by (clarsimp simp: flags_preserved_def machine_config_def machine_config_preserved_def)
 
 lemma Aligned1_correct:
   "Aligned1 (Addr val, 4) \<Longrightarrow> Aligned1 (Addr (val + 4), 4)"
