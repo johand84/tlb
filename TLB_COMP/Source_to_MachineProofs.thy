@@ -5,7 +5,6 @@ imports Source_to_Machine
 
 begin
 
-
 definition
   bin_to_reg :: "4 word \<Rightarrow> RName"
 where
@@ -38,6 +37,11 @@ where
       )
       xs
   )"
+
+definition
+  flags_preserved :: "'a set_tlb_state_scheme \<Rightarrow> 'a set_tlb_state_scheme \<Rightarrow> bool"
+where
+  "flags_preserved s t = (PSR.Z (CPSR s) = PSR.Z (CPSR t))"
 
 definition
   heap_rel :: "p_state \<Rightarrow> 'a set_tlb_state_scheme \<Rightarrow> _"
