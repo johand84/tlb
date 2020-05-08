@@ -23,9 +23,6 @@ datatype bexp = BConst bool
               | BBinOp bbinop bool bool
               | BUnOp bunop bool
 
-
-
-
 datatype com =  SKIP
              |  Assign aexp aexp      ("_ ::= _" [100, 61] 61)
              |  Seq com com           ("_;;/ _"  [60, 61] 60)
@@ -108,6 +105,10 @@ definition
   where 
   "gset_upd' s rt = global_set s \<union> (\<Union>x\<in>global_entries (ran (pt_walk (asid s) (heap s) (Addr rt))). range_of x)"
 
+definition
+  aligned :: "paddr \<Rightarrow> bool"
+where
+  "aligned p \<equiv> ((ucast (addr_val p))::2 word) = 0"
 
 (*  big step semantics *)
 
@@ -118,11 +119,14 @@ where
 |
   AssignFail1:     "\<lbrakk>aval lval s = None \<or> aval rval s = None \<rbrakk>  \<Longrightarrow> (lval ::= rval , s) \<Rightarrow> None"
 |
-  AssignFail2:     "\<lbrakk>aval lval s = Some vp ; aval rval s = Some v ; Addr vp \<in> incon_set s \<or>
-                           addr_trans s (Addr vp) = None \<rbrakk>  \<Longrightarrow> (lval ::= rval , s) \<Rightarrow> None"
+  AssignFail2:     "\<lbrakk>aval lval s = Some vp ; aval rval s = Some v ; 
+                       Addr vp \<in> incon_set s \<or>
+                       addr_trans s (Addr vp) = None \<or> 
+                       (addr_trans s (Addr vp) = Some pp \<and> \<not>aligned pp)\<rbrakk>  \<Longrightarrow> 
+                    (lval ::= rval , s) \<Rightarrow> None"
 |
   Assign:          "\<lbrakk>aval lval s = Some vp ; aval rval s = Some v ; Addr vp \<notin> incon_set s;
-                         addr_trans s (Addr vp) = Some pp \<rbrakk>  \<Longrightarrow>
+                         addr_trans s (Addr vp) = Some pp; aligned pp \<rbrakk>  \<Longrightarrow>
                           (lval ::= rval , s) \<Rightarrow> Some (s \<lparr> heap := heap s (pp \<mapsto> v) ,
                             incon_set := iset_upd s pp v,
                             global_set := gset_upd s pp v \<rparr>)"

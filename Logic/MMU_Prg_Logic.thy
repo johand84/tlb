@@ -389,12 +389,6 @@ datatype flush_type = flushTLB
                     | flushASIDvarange  asid "vaddr"
 
 
-
-
-
-
-
-
 (* ptable_comp function *)
 
 

@@ -898,13 +898,13 @@ lemma asid_va_entry_range_pt_entry:
 
 
 lemma  va_entry_set_pt_palk_same:
-  "\<lbrakk>\<not>is_fault (pt_walk asid m r x) ;
-           va \<in> range_of (the (pt_walk asid m r x))\<rbrakk> \<Longrightarrow>
-              the(pt_walk asid m r x) = the(pt_walk asid m r va)"
-  apply (subgoal_tac "x \<in> range_of (the(pt_walk asid m r x))")
+  "\<lbrakk>\<not>is_fault (pt_walk ad m r x) ;
+           va \<in> range_of (the (pt_walk ad m r x))\<rbrakk> \<Longrightarrow>
+              the(pt_walk ad m r x) = the(pt_walk ad m r va)"
+  apply (subgoal_tac "x \<in> range_of (the(pt_walk ad m r x))")
    prefer 2
    apply (clarsimp simp: asid_va_entry_range_pt_entry is_fault_def) 
-  apply (cases "the (pt_walk asid m r x)")
+  apply (cases "the (pt_walk ad m r x)")
    apply (clarsimp simp:   range_of_tlb_entry_def  is_fault_def image_iff)
    apply (cases "get_pde m r x" ; clarsimp)
     apply (clarsimp simp: pt_walk_def)
@@ -949,13 +949,13 @@ lemma  va_entry_set_pt_palk_same:
 
 
 lemma  va_entry_set_pt_palk_same':
-  "\<lbrakk>\<not>is_fault (pt_walk asid m r x) ;
-           va \<in> range_of (the (pt_walk asid m r x))\<rbrakk> \<Longrightarrow>
-              pt_walk asid m r x = pt_walk asid m r va"
- apply (subgoal_tac "x \<in> range_of (the(pt_walk asid m r x))")
+  "\<lbrakk>\<not>is_fault (pt_walk ad m r x) ;
+           va \<in> range_of (the (pt_walk ad m r x))\<rbrakk> \<Longrightarrow>
+              pt_walk ad m r x = pt_walk ad m r va"
+ apply (subgoal_tac "x \<in> range_of (the(pt_walk ad m r x))")
    prefer 2
    apply (clarsimp simp: asid_va_entry_range_pt_entry is_fault_def)
-  apply (cases "the (pt_walk asid m r x)")
+  apply (cases "the (pt_walk ad m r x)")
      apply (simp only: )
    apply (clarsimp simp:   range_of_tlb_entry_def  is_fault_def)
    apply (cases "get_pde m r x" ; clarsimp simp: pt_walk_def)

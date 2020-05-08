@@ -955,7 +955,7 @@ lemma lookup_pdc_miss_inser_no_fault:
  
 
 lemma pt_walk'_pt_walk:
-  "pt_walk asid heap ttbr0 v = pt_walk' asid heap ttbr0 v"
+  "pt_walk ad hp ttbr0 v = pt_walk' ad hp ttbr0 v"
   apply (clarsimp simp: pt_walk'_def pt_walk_def pdc_walk_def pte_tlb_entry_def  map_opt_def
                         word_extract_def word_bits_def  mask_def split:option.splits pde.splits pte.splits )
   by word_bitwise
@@ -1083,9 +1083,9 @@ lemma lookup_pdc_range_fault_pt_walk:
 
 
 theorem pdc_entry_range_single_elementI':
-  "\<lbrakk>x\<in> the ` {e \<in> range (pdc_walk asid mem ttbr0). \<not> is_fault e} ; \<not> is_fault (Some x) ; (a, v) \<in> asid_range_of_pdc x ; 
-    (\<forall>y\<in>the ` {e \<in> range (pdc_walk asid mem ttbr0). \<not> is_fault e}. y\<noteq>x \<longrightarrow> (a, v) \<notin> asid_range_of_pdc y) \<rbrakk> \<Longrightarrow> 
-           {E \<in> the ` {e \<in> range (pdc_walk asid mem ttbr0). \<not> is_fault e}. (a, v) \<in> asid_range_of_pdc E} = {x}" 
+  "\<lbrakk>x\<in> the ` {e \<in> range (pdc_walk ad mem ttbr0). \<not> is_fault e} ; \<not> is_fault (Some x) ; (a, v) \<in> asid_range_of_pdc x ; 
+    (\<forall>y\<in>the ` {e \<in> range (pdc_walk ad mem ttbr0). \<not> is_fault e}. y\<noteq>x \<longrightarrow> (a, v) \<notin> asid_range_of_pdc y) \<rbrakk> \<Longrightarrow> 
+           {E \<in> the ` {e \<in> range (pdc_walk ad mem ttbr0). \<not> is_fault e}. (a, v) \<in> asid_range_of_pdc E} = {x}" 
   by force
 
 
@@ -1113,13 +1113,13 @@ theorem asid_pdc_range_single_elementI':
 
 
  lemma  va_entry_set_pdc_walk_same':
-  "\<lbrakk>\<not>is_fault (pdc_walk asid m r x) ;
-           va \<in> range_of (the (pdc_walk asid m r x))\<rbrakk> \<Longrightarrow>
-              pdc_walk asid m r x = pdc_walk asid m r va"
-   apply (subgoal_tac "x \<in> range_of (the(pdc_walk asid m r x))")
+  "\<lbrakk>\<not>is_fault (pdc_walk ad m r x) ;
+           va \<in> range_of (the (pdc_walk ad m r x))\<rbrakk> \<Longrightarrow>
+              pdc_walk ad m r x = pdc_walk ad m r va"
+   apply (subgoal_tac "x \<in> range_of (the(pdc_walk ad m r x))")
     prefer 2
     apply (clarsimp simp:  is_fault_def)
-   apply (cases "the (pdc_walk asid m r x)")
+   apply (cases "the (pdc_walk ad m r x)")
     apply (simp only: )
     apply (clarsimp simp:   range_of_pdc_entry_def  is_fault_def)
     apply (cases "get_pde m r x" ; clarsimp simp: pdc_walk_def)
@@ -1148,24 +1148,24 @@ theorem asid_pdc_range_single_elementI':
 
 
 lemma lookup_pdc_range_pt_walk_hit:
-  "\<not> is_fault (pdc_walk asid mem ttbr0  va) \<Longrightarrow> 
-        lookup_pdc (the ` {e \<in> range (pdc_walk asid mem ttbr0). \<not> is_fault e}) asid va = Hit (the (pdc_walk asid mem ttbr0  va))"
+  "\<not> is_fault (pdc_walk ad mem ttbr0  va) \<Longrightarrow> 
+        lookup_pdc (the ` {e \<in> range (pdc_walk ad mem ttbr0). \<not> is_fault e}) ad va = Hit (the (pdc_walk ad mem ttbr0  va))"
  apply (clarsimp simp: lookup_def)
   apply safe
     apply simp apply clarsimp
-   apply (subgoal_tac "x = the (pdc_walk asid mem ttbr0 va)" , force)
+   apply (subgoal_tac "x = the (pdc_walk ad mem ttbr0 va)" , force)
    apply (clarsimp simp: tagged_pdc_entry_set_def entry_set_def)
    apply (drule asid_entry_range_single_element_pdc)
    apply safe
     apply (unfold Ball_def) [1]
-    apply (erule_tac x = "the (pdc_walk asid mem ttbr0  va)" in allE)
+    apply (erule_tac x = "the (pdc_walk ad mem ttbr0  va)" in allE)
     apply (clarsimp simp:  is_fault_def asid_range_of_pdc_def)
     apply (metis  asid_entry_pdc_walk option.distinct(1) option.sel)
    apply (unfold Ball_def) [1]
-   apply (erule_tac x = "the (pdc_walk asid mem ttbr0  va)" in allE)
+   apply (erule_tac x = "the (pdc_walk ad mem ttbr0  va)" in allE)
    apply (clarsimp simp:  is_fault_def asid_range_of_pdc_def)
   apply (metis asid_entry_pdc_walk  handy_if_lemma  option.sel option.simps(3))
-  apply (rule_tac x = "the (pdc_walk asid mem ttbr0 va)" in exI)
+  apply (rule_tac x = "the (pdc_walk ad mem ttbr0 va)" in exI)
   apply (clarsimp simp: tagged_pdc_entry_set_def entry_set_def)
   apply (rule asid_pdc_range_single_elementI')
     apply force
@@ -1176,14 +1176,14 @@ lemma lookup_pdc_range_pt_walk_hit:
   
 
 lemma  lookup_pdc_walk_not_incon:
-  "lookup_pdc (the ` {e \<in> range (pdc_walk asid mem ttbr0). \<not> is_fault e}) asid va \<noteq> Incon"
- apply (case_tac "\<not>is_fault (pdc_walk asid mem ttbr0 va)")
+  "lookup_pdc (the ` {e \<in> range (pdc_walk ad mem ttbr0). \<not> is_fault e}) ad va \<noteq> Incon"
+ apply (case_tac "\<not>is_fault (pdc_walk ad mem ttbr0 va)")
    apply (clarsimp simp: lookup_pdc_range_pt_walk_hit)
   apply clarsimp
-  apply (subgoal_tac " lookup_pdc (the ` {e \<in> pdc_walk asid mem ttbr0 ` top. \<not> is_fault e}) asid va = Miss")
+  apply (subgoal_tac " lookup_pdc (the ` {e \<in> pdc_walk ad mem ttbr0 ` top. \<not> is_fault e}) ad va = Miss")
    apply (clarsimp simp: lookup_def tagged_pdc_entry_set_def entry_set_def asid_of_pdc_def  split: if_split_asm)
-  apply (thin_tac "lookup_pdc (the ` {e \<in> range (pdc_walk asid mem ttbr0). \<not> is_fault e}) asid va = Incon")
-  apply (subgoal_tac "tagged_pdc_entry_set (the ` {e \<in> range (pdc_walk asid mem ttbr0). \<not> is_fault e}) asid va = {}")
+  apply (thin_tac "lookup_pdc (the ` {e \<in> range (pdc_walk ad mem ttbr0). \<not> is_fault e}) ad va = Incon")
+  apply (subgoal_tac "tagged_pdc_entry_set (the ` {e \<in> range (pdc_walk ad mem ttbr0). \<not> is_fault e}) ad va = {}")
    apply (clarsimp simp: lookup_def tagged_pdc_entry_set_def entry_set_def  split: if_split_asm)
   apply (clarsimp simp: entry_pdc_set_va_set tag_vadr_pdc_def)
   by (metis va_pdc_entry_set_pt_palk_same')
@@ -1347,24 +1347,24 @@ lemma pdc_entry_range_asid_entry:
 
 
 definition
-  "consistent0' m asid ttbr0 tlb pdc va \<equiv>
-     ((lookup'' tlb asid va = Hit (the (pt_walk asid m ttbr0 va)) \<and> \<not>is_fault (pt_walk asid m ttbr0 va)) \<or> 
-       lookup'' tlb asid va = Miss) \<and>
-     ((lookup_pdc pdc asid va = Hit (the (pdc_walk asid m ttbr0 va)) \<and> \<not>is_fault (pdc_walk asid m ttbr0 va)) \<or>
-        lookup_pdc pdc asid va = Miss )"
+  "consistent0' m ad ttbr0 tlb pdc va \<equiv>
+     ((lookup'' tlb ad va = Hit (the (pt_walk ad m ttbr0 va)) \<and> \<not>is_fault (pt_walk ad m ttbr0 va)) \<or> 
+       lookup'' tlb ad va = Miss) \<and>
+     ((lookup_pdc pdc ad va = Hit (the (pdc_walk ad m ttbr0 va)) \<and> \<not>is_fault (pdc_walk ad m ttbr0 va)) \<or>
+        lookup_pdc pdc ad va = Miss )"
 
 lemma consistent_not_Incon_imp':
-  "consistent0' m asid ttbr0 tlb pde_set va \<Longrightarrow>
-  (lookup'' tlb asid va \<noteq> Incon \<and> (\<forall>e. lookup'' tlb asid va = Hit e \<longrightarrow> e = the (pt_walk asid m ttbr0 va) \<and> pt_walk asid m ttbr0 va \<noteq> None) \<and>
-  lookup_pdc pde_set asid va \<noteq> Incon \<and> (\<forall>e. lookup_pdc pde_set asid va = Hit e \<longrightarrow> e = the (pdc_walk asid m ttbr0 va) \<and> pdc_walk asid m ttbr0 va \<noteq> None))"
+  "consistent0' m ad ttbr0 tlb pde_set va \<Longrightarrow>
+  (lookup'' tlb ad va \<noteq> Incon \<and> (\<forall>e. lookup'' tlb ad va = Hit e \<longrightarrow> e = the (pt_walk ad m ttbr0 va) \<and> pt_walk ad m ttbr0 va \<noteq> None) \<and>
+  lookup_pdc pde_set ad va \<noteq> Incon \<and> (\<forall>e. lookup_pdc pde_set ad va = Hit e \<longrightarrow> e = the (pdc_walk ad m ttbr0 va) \<and> pdc_walk ad m ttbr0 va \<noteq> None))"
   apply (clarsimp simp: consistent0'_def is_fault_def) 
   by force
 
 lemma consistent_not_Incon'':
-  "consistent0' m asid ttbr0 tlb pde_set va =
-  (lookup'' tlb asid va \<noteq> Incon \<and> (\<forall>e. lookup'' tlb asid va = Hit e \<longrightarrow> e = the (pt_walk asid m ttbr0 va) \<and> pt_walk asid m ttbr0 va \<noteq> None) \<and>
-  lookup_pdc pde_set asid va \<noteq> Incon \<and> (\<forall>e. lookup_pdc pde_set asid va = Hit e \<longrightarrow> e = the (pdc_walk asid m ttbr0 va) \<and> pdc_walk asid m ttbr0 va \<noteq> None))"
-  apply ((cases "lookup'' tlb asid va", cases "lookup_pdc pde_set asid va"); simp add: consistent0'_def is_fault_def)
+  "consistent0' m ad ttbr0 tlb pde_set va =
+  (lookup'' tlb ad va \<noteq> Incon \<and> (\<forall>e. lookup'' tlb ad va = Hit e \<longrightarrow> e = the (pt_walk ad m ttbr0 va) \<and> pt_walk ad m ttbr0 va \<noteq> None) \<and>
+  lookup_pdc pde_set ad va \<noteq> Incon \<and> (\<forall>e. lookup_pdc pde_set ad va = Hit e \<longrightarrow> e = the (pdc_walk ad m ttbr0 va) \<and> pdc_walk ad m ttbr0 va \<noteq> None))"
+  apply ((cases "lookup'' tlb ad va", cases "lookup_pdc pde_set ad va"); simp add: consistent0'_def is_fault_def)
   by (metis lookup_type.distinct(1) lookup_type.distinct(3) lookup_type.distinct(5) lookup_type.exhaust lookup_type.inject option.distinct(1) option.expand option.sel)
 
 
@@ -1538,12 +1538,12 @@ lemma lookup_global_miss_non_fault_pdc:
 
 
 lemma non_global_lookup_range_pdc_walk_not_incon:
-  "lookup_pdc (non_global_entries_pdc (the ` {e \<in> range (pdc_walk (asid :: 8 word) mem ttbr0). \<not> is_fault e})) asid va \<noteq> Incon"
-  apply (subgoal_tac "lookup_pdc  (the ` {e \<in> range (pdc_walk asid mem ttbr0). \<not> is_fault e}) asid va \<noteq> Incon")
+  "lookup_pdc (non_global_entries_pdc (the ` {e \<in> range (pdc_walk (ad :: 8 word) mem ttbr0). \<not> is_fault e})) ad va \<noteq> Incon"
+  apply (subgoal_tac "lookup_pdc  (the ` {e \<in> range (pdc_walk ad mem ttbr0). \<not> is_fault e}) ad va \<noteq> Incon")
    prefer 2
    apply (rule lookup_pdc_walk_not_incon)
-  apply (subgoal_tac "non_global_entries_pdc (the ` {e \<in> range (pdc_walk asid mem ttbr0). \<not> is_fault e}) \<subseteq> 
-                          the ` {e \<in> range (pdc_walk asid mem ttbr0). \<not> is_fault e}")
+  apply (subgoal_tac "non_global_entries_pdc (the ` {e \<in> range (pdc_walk ad mem ttbr0). \<not> is_fault e}) \<subseteq> 
+                          the ` {e \<in> range (pdc_walk ad mem ttbr0). \<not> is_fault e}")
   using lookup_asid_pdc_incon_subset apply blast
   by (rule non_glb_pdc_subset)
 

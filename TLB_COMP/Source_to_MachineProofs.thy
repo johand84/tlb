@@ -5,6 +5,7 @@ imports Source_to_Machine
 
 begin
 
+
 definition
   bin_to_reg :: "4 word \<Rightarrow> RName"
 where
@@ -37,12 +38,6 @@ where
       )
       xs
   )"
-
-definition
-  aligned :: "paddr \<Rightarrow> bool"
-where
-  "aligned v \<equiv> ((ucast (addr_val v))::2 word) = 0"
-
 
 definition
   heap_rel :: "p_state \<Rightarrow> 'a set_tlb_state_scheme \<Rightarrow> _"
@@ -81,9 +76,9 @@ where
   "machine_config_preserved s t \<equiv>
     ASID s = ASID t \<and>
     TTBR0 s = TTBR0 t \<and>
-    set_tlb.iset (set_tlb s) = set_tlb.iset (set_tlb t) \<and>
-    set_tlb.global_set (set_tlb s) = set_tlb.global_set (set_tlb t) \<and>
-    set_tlb.snapshot (set_tlb s) = set_tlb.snapshot (set_tlb t) \<and>
+    iset (set_tlb s) = iset (set_tlb t) \<and>
+    global_set (set_tlb s) = global_set (set_tlb t) \<and>
+    snapshot (set_tlb s) = snapshot (set_tlb t) \<and>
     PSR.M (CPSR s) = PSR.M (CPSR t) \<and>
     MEM s = MEM t"
 
@@ -101,11 +96,120 @@ where
   "state_rel s t \<equiv>
      (asid s = ASID t) \<and>
      (root s = TTBR0 t) \<and>
-     (p_state.incon_set s = set_tlb.iset (set_tlb t)) \<and>
-     (p_state.global_set s = set_tlb.global_set (set_tlb t)) \<and>
-     (HOL.undefined s = set_tlb.snapshot (set_tlb t)) \<and>
+     aligned (root s) \<and>
+     (incon_set s = iset (set_tlb t)) \<and>
+     (p_state.global_set s = global_set (set_tlb t)) \<and>
+     (ptable_snapshot s = snapshot (set_tlb t)) \<and>
      mode_rel (mode s) (PSR.M (CPSR t)) \<and>
      heap_rel s t"
+
+
+lemma load_machine_word_eq:
+  "\<lbrakk>state_rel s t; heap s p = Some z; aligned p\<rbrakk> \<Longrightarrow> 
+    load_machine_word (MEM t) p = Some z"
+  apply (clarsimp simp: load_machine_word_def load_value_def 
+                        state_rel_def heap_rel_def)
+  apply (clarsimp simp: load_list_def deoption_list_def load_list_basic_def)
+  apply word_bitwise 
+  sorry
+  
+
+lemma get_pde_eq:
+  "\<lbrakk>state_rel s t; get_pde' (heap s) (root s) va = Some e\<rbrakk> \<Longrightarrow> 
+     get_pde (MEM t) (TTBR0 t) va = Some e"
+  apply (clarsimp simp: get_pde'_def decode_heap_pde'_def get_pde_def decode_heap_pde_def)
+  apply (frule_tac p = "root s r+ (vaddr_pd_index (addr_val va) << 2)" in load_machine_word_eq, simp)
+   apply (clarsimp simp: state_rel_def)
+   apply (clarsimp simp: aligned_def vaddr_pd_index_def addr_add_def mask_def)
+   apply word_bitwise
+  apply (clarsimp simp: state_rel_def)
+  done
+
+lemma get_pde_aligned:
+  "\<lbrakk>get_pde' (heap s) (root s) va = Some (PageTablePDE pa)\<rbrakk> \<Longrightarrow> 
+     aligned pa"
+  apply (clarsimp simp: get_pde'_def decode_heap_pde'_def get_pde_def
+                        decode_heap_pde_def aligned_def decode_pde_def Let_def 
+                        decode_pde_section_def decode_pde_pt_def pt_base_mask_def mask_def
+                  split:if_split_asm)
+  by word_bitwise
+
+lemma get_pte_eq:
+  "\<lbrakk>state_rel s t; get_pte' (heap s) pa va = Some (SmallPagePTE a b) ;
+    aligned pa\<rbrakk> \<Longrightarrow> 
+   get_pte (MEM t) pa va = Some (SmallPagePTE a b)"
+  apply (clarsimp simp: get_pte'_def decode_heap_pte'_def)
+  apply (clarsimp simp: get_pte_def decode_heap_pte_def)
+  apply (frule_tac p = "pa r+ (vaddr_pt_index (addr_val va) << 2)" and z = "z" in load_machine_word_eq; simp?)
+  apply (clarsimp simp: aligned_def vaddr_pt_index_def mask_def addr_add_def)
+ by word_bitwise
+
+
+lemma addr_trans_mmu_translate_eq:
+  "\<lbrakk>addr_trans s va = Some pa ;  va \<notin> incon_set s; 
+    state_rel s t\<rbrakk> \<Longrightarrow> mmu_translate va t = (pa, t)"
+  apply (subgoal_tac "va \<notin> iset (set_tlb t)") 
+   prefer 2 
+   apply (clarsimp simp: state_rel_def)
+  apply (clarsimp simp: addr_trans_def ptable_lift_m_def 
+      lookup_pde_perm_def)
+  apply (clarsimp simp: filter_pde_def split: option.splits if_split_asm)
+  apply (erule disjE)
+   apply (clarsimp simp: lookup_pde'_def split: option.splits pde.splits)
+    apply (clarsimp simp: lookup_pte'_def split: pte.splits option.splits)
+    apply (clarsimp simp: mmu_translate_set_tlb_state_ext_def Let_def pt_walk_def)
+    apply (frule_tac va = "va" in get_pde_eq; simp?)
+    apply clarsimp
+    apply (subgoal_tac "get_pte (MEM t) x3 va = Some (SmallPagePTE a b)")
+     prefer 2
+     apply (rule_tac s = "s" in get_pte_eq, simp,simp, drule get_pde_aligned, simp)
+    apply clarsimp
+    apply (clarsimp simp: is_fault_def)
+    apply (clarsimp simp: word_extract_def word_bits_def vaddr_offset_def mask_def)
+    defer 
+    apply (clarsimp simp: mmu_translate_set_tlb_state_ext_def Let_def pt_walk_def)
+    apply (frule_tac va = "va" in get_pde_eq; simp?)
+    apply (clarsimp simp: is_fault_def) 
+    apply (clarsimp simp: word_extract_def word_bits_def vaddr_offset_def mask_def)
+    defer 
+     apply (clarsimp simp: lookup_pde'_def split: option.splits pde.splits)
+    apply (clarsimp simp: lookup_pte'_def split: pte.splits option.splits)
+    apply (clarsimp simp: mmu_translate_set_tlb_state_ext_def Let_def pt_walk_def)
+    apply (frule_tac va = "va" in get_pde_eq; simp?)
+    apply clarsimp
+    apply (subgoal_tac "get_pte (MEM t) x3 va = Some (SmallPagePTE a b)")
+     prefer 2
+     apply (rule_tac s = "s" in get_pte_eq, simp,simp, drule get_pde_aligned, simp)
+    apply clarsimp
+    apply (clarsimp simp: is_fault_def)
+    apply (clarsimp simp: word_extract_def word_bits_def vaddr_offset_def mask_def)
+    defer 
+    apply (clarsimp simp: mmu_translate_set_tlb_state_ext_def Let_def pt_walk_def)
+    apply (frule_tac va = "va" in get_pde_eq; simp?)
+    apply (clarsimp simp: is_fault_def) 
+    apply (clarsimp simp: word_extract_def word_bits_def vaddr_offset_def mask_def)
+  sorry
+
+
+lemma mem_read_mmu_translate_eq:
+  "\<lbrakk>state_rel s t ;  ptable_lift_m (heap s) (TTBR0 t) (mode s) va = Some pa;
+    aligned pa;  
+   mem_read_hp' (incon_set s) (heap s) (root s) (mode s) va = Some val\<rbrakk> \<Longrightarrow>
+    mmu_read_size (va, 4) t = (to_bl val, t)"
+  apply (clarsimp simp: mem_read_hp'_def split: if_split_asm)
+  apply (clarsimp simp: fun_rcomp_option_def split: option.splits)
+  apply (clarsimp simp: mmu_read_size_set_tlb_state_ext_def)
+  apply (subgoal_tac " mmu_translate va t = (pa, t)")
+   prefer 2
+   apply (rule_tac s = "s" in addr_trans_mmu_translate_eq; 
+          simp add: addr_trans_def)
+  apply (clarsimp simp: load_value_word_hp_def load_list_word_hp_def
+                        load_list_def deoption_list_def split: if_split_asm)
+   apply (clarsimp simp: mem_read1_def mem1_def state_rel_def heap_rel_def)
+  apply clarsimp
+  sorry
+ 
+
 
 fun
   steps :: "'a set_tlb_state_scheme \<Rightarrow> nat \<Rightarrow> 'a set_tlb_state_scheme"
@@ -144,7 +248,8 @@ lemma general_purpose_reg_correct:
 
 lemma state_rel_preserved:
   "\<lbrakk>state_rel s t; machine_config_preserved t t'\<rbrakk> \<Longrightarrow> state_rel s t'"
-  by (simp add: heap_rel_def machine_config_preserved_def state_rel_def)
+  apply (simp add: heap_rel_def machine_config_preserved_def state_rel_def)
+  by force
 
 lemma steps_add:
   "(steps (steps t l1) l2) = (steps t (l1 + l2))"
@@ -422,6 +527,7 @@ lemma b_imm_correct:
     apply (frule Run_b_imm_correct, simp, simp, safe)
     apply (frule_tac s = "x2a" in ITAdvance_correct)
     apply (simp add: heap_rel_def machine_config_def machine_config_preserved_def state_rel_def)
+    apply force
    apply (frule Decode_b_imm_correct, safe)
    apply (frule Run_b_imm_correct, simp, simp, safe)
    apply (frule_tac s = "x2a" in ITAdvance_correct, simp)

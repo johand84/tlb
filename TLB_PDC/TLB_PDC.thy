@@ -5,11 +5,6 @@ imports
 
 begin
 
-(* every ptable pointer is asid-specific, and it does not have flags *)
-
-datatype pdc_entry =  PDE_Section "asid option" "12 word" (bpa_pdc_entry :"32 word") tlb_flags
-                   |  PDE_Table   asid          "12 word" (bpa_pdc_entry : "32 word")
-
 type_synonym pdc = "pdc_entry set"
 
 definition
@@ -48,14 +43,9 @@ definition "tag_vadr_pdc p \<equiv>
 
 section "encoding page table walk to entries"
 
-datatype pt_walk_typ = Fault 
-                     | Partial_Walk pdc_entry
-                     | Full_Walk tlb_entry pdc_entry
-
-
 
 definition 
- pdc_walk :: "asid \<Rightarrow> heap \<Rightarrow> ttbr0 \<Rightarrow> vaddr \<Rightarrow> pdc_entry option"
+ pdc_walk :: "asid \<Rightarrow> (paddr \<rightharpoonup> 8 word) \<Rightarrow> ttbr0 \<Rightarrow> vaddr \<Rightarrow> pdc_entry option"
 where
   "pdc_walk a hp rt v \<equiv>
       case get_pde hp rt v
@@ -69,9 +59,9 @@ where
 
 
 definition
-  pte_tlb_entry :: "asid \<Rightarrow> heap \<Rightarrow> paddr \<Rightarrow> vaddr \<Rightarrow> tlb_entry option"
+  pte_tlb_entry :: "asid \<Rightarrow> (paddr \<rightharpoonup> 8 word) \<Rightarrow> paddr \<Rightarrow> vaddr \<Rightarrow> tlb_entry option"
 where
-  "pte_tlb_entry a heap p v \<equiv> case get_pte heap p v 
+  "pte_tlb_entry a hp p v \<equiv> case get_pte hp p v 
                  of Some (SmallPagePTE p' perms) \<Rightarrow> Some (EntrySmall (tag_conv a (to_tlb_flags perms))
                                                                      (ucast (addr_val v >> 12) :: 20 word)
                                                                      ((word_extract 31 12 (addr_val p')):: 20 word)
@@ -80,10 +70,11 @@ where
 
 
 fun
-  pde_tlb_entry :: "pdc_entry \<Rightarrow> heap  \<Rightarrow> vaddr \<Rightarrow> tlb_entry option"
+  pde_tlb_entry :: "pdc_entry \<Rightarrow> (paddr \<rightharpoonup> 8 word) \<Rightarrow> vaddr \<Rightarrow> tlb_entry option"
 where
-  "pde_tlb_entry (PDE_Section asid vba pba flags) mem va = Some (EntrySection asid (ucast (addr_val va >> 20) :: 12 word) ((ucast (pba >> 20)) :: 12 word)  flags)"
-| "pde_tlb_entry (PDE_Table   asid vba pba)       mem va = pte_tlb_entry asid mem (Addr pba) va"
+  "pde_tlb_entry (PDE_Section a vba pba flags) mem va = Some (EntrySection a (ucast (addr_val va >> 20) :: 12 word) 
+                                                             ((ucast (pba >> 20)) :: 12 word)  flags)"
+| "pde_tlb_entry (PDE_Table   a vba pba)       mem va = pte_tlb_entry a mem (Addr pba) va"
 
 
 definition
@@ -92,47 +83,30 @@ where
   "map_opt f x  \<equiv> case x of None  \<Rightarrow> None | Some y  \<Rightarrow> f y"
 
 definition
- pt_walk' :: "asid \<Rightarrow> heap \<Rightarrow> ttbr0 \<Rightarrow> vaddr \<Rightarrow> tlb_entry option"
+ pt_walk' :: "asid \<Rightarrow> (paddr \<rightharpoonup> 8 word) \<Rightarrow> ttbr0 \<Rightarrow> vaddr \<Rightarrow> tlb_entry option"
 where
-  "pt_walk' asid heap ttbr0 v \<equiv> map_opt (\<lambda>pde. pde_tlb_entry pde heap v) (pdc_walk asid heap ttbr0 v)"
+  "pt_walk' a hp ttbr0 v \<equiv> map_opt (\<lambda>pde. pde_tlb_entry pde hp v) (pdc_walk a hp ttbr0 v)"
      
 
 definition
- pt_walk_pair :: "asid \<Rightarrow> heap \<Rightarrow> ttbr0 \<Rightarrow> vaddr \<Rightarrow> pt_walk_typ"
+ pt_walk_pair :: "asid \<Rightarrow> (paddr \<rightharpoonup> 8 word) \<Rightarrow> ttbr0 \<Rightarrow> vaddr \<Rightarrow> pt_walk_typ"
 where
-  "pt_walk_pair asid heap ttbr0 v \<equiv>
-      case pdc_walk asid heap ttbr0 v
+  "pt_walk_pair a hp ttbr0 v \<equiv>
+      case pdc_walk a hp ttbr0 v
        of None      \<Rightarrow> Fault           
-       | Some pde   \<Rightarrow> (case pde_tlb_entry pde heap v 
+       | Some pde   \<Rightarrow> (case pde_tlb_entry pde hp v 
                         of  None \<Rightarrow> Partial_Walk pde
                         |   Some tlbentry \<Rightarrow> Full_Walk tlbentry pde)"
 
 
 definition
-  tlb_pdc_walk :: "asid \<Rightarrow> pdc \<Rightarrow> heap \<Rightarrow> ttbr0 \<Rightarrow> vaddr \<Rightarrow>  tlb_entry option set"
+  tlb_pdc_walk :: "asid \<Rightarrow> pdc \<Rightarrow> (paddr \<rightharpoonup> 8 word) \<Rightarrow> ttbr0 \<Rightarrow> vaddr \<Rightarrow>  tlb_entry option set"
 where
-  "tlb_pdc_walk asid pde_set mem ttbr0 v \<equiv>
-      case lookup (tagged_pdc_entry_set pde_set asid) v
+  "tlb_pdc_walk a pde_set mem ttbr0 v \<equiv>
+      case lookup (tagged_pdc_entry_set pde_set a) v
           of Hit pde  \<Rightarrow> {pde_tlb_entry pde mem v}
-          |  Miss  \<Rightarrow> {pt_walk asid mem ttbr0 v}
-          |  Incon \<Rightarrow> (\<lambda>x. pde_tlb_entry x mem v) ` tagged_pdc_entry_set pde_set asid v"
-
-
-definition
- entry_leq :: " pt_walk_typ \<Rightarrow> pt_walk_typ \<Rightarrow> bool" ("(_/ \<preceq> _)" [51, 51] 50)
- where
- "a \<preceq> b \<equiv> a = Fault \<or> a = b \<or> (\<exists>y. a = Partial_Walk y \<and> (\<exists>x. b = Full_Walk x y))"
-
-
-definition
- entry_less :: "pt_walk_typ \<Rightarrow> pt_walk_typ \<Rightarrow> bool" ("(_/ \<prec> _)" [51, 51] 50)
- where
- "a \<prec> b = (a \<preceq> b \<and> a \<noteq> b)"
-
-
-interpretation entry: order entry_leq entry_less
-  apply unfold_locales
-  by (auto simp: entry_leq_def entry_less_def)
+          |  Miss  \<Rightarrow> {pt_walk a mem ttbr0 v}
+          |  Incon \<Rightarrow> (\<lambda>x. pde_tlb_entry x mem v) ` tagged_pdc_entry_set pde_set a v"
 
 (*  faults  *)
 

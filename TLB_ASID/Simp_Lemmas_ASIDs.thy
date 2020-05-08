@@ -730,24 +730,24 @@ lemma  asid_va_entry_set_pt_palk_same':
 
  
 lemma asid_tlb_lookup_range_pt_walk_hit:
-  "\<not> is_fault (pt_walk (asid :: 8 word ) mem ttbr0  va) \<Longrightarrow> 
-        lookup'' (the ` {e \<in> range (pt_walk asid mem ttbr0). \<not> is_fault e}) asid va = Hit (the (pt_walk asid mem ttbr0  va)) "
+  "\<not> is_fault (pt_walk (ad :: 8 word ) mem ttbr0  va) \<Longrightarrow> 
+        lookup'' (the ` {e \<in> range (pt_walk ad mem ttbr0). \<not> is_fault e}) ad va = Hit (the (pt_walk ad mem ttbr0  va)) "
   apply (clarsimp simp: lookup_def)
   apply safe
     apply simp apply clarsimp
-   apply (subgoal_tac "x = the (pt_walk asid mem ttbr0 va)" , force)
+   apply (subgoal_tac "x = the (pt_walk ad mem ttbr0 va)" , force)
    apply (clarsimp simp: tagged_entry_set_def entry_set_def)
    apply (drule asid_entry_range_single_element_n)
    apply safe
     apply (unfold Ball_def) [1]
-    apply (erule_tac x = "the (pt_walk asid mem ttbr0  va)" in allE)
+    apply (erule_tac x = "the (pt_walk ad mem ttbr0  va)" in allE)
     apply (clarsimp simp: asid_va_entry_range_pt_entry is_fault_def asid_range_of_def)
     apply (metis asid_entry_pt_walk_no_fault bot.extremum handy_if_lemma is_fault_def option.discI option.distinct(1) option.sel)
    apply (unfold Ball_def) [1]
-   apply (erule_tac x = "the (pt_walk asid mem ttbr0  va)" in allE)
+   apply (erule_tac x = "the (pt_walk ad mem ttbr0  va)" in allE)
    apply (clarsimp simp: asid_va_entry_range_pt_entry is_fault_def asid_range_of_def)
    apply (metis asid_entry_pt_walk_no_fault bot.extremum handy_if_lemma is_fault_def option.discI option.distinct(1) option.sel)
-  apply (rule_tac x = "the (pt_walk asid mem ttbr0 va)" in exI)
+  apply (rule_tac x = "the (pt_walk ad mem ttbr0 va)" in exI)
   apply (clarsimp simp: tagged_entry_set_def entry_set_def)
   apply (rule asid_entry_range_single_elementI')
     apply force
@@ -805,11 +805,11 @@ lemma  asid_tlb_lookup_miss_is_fault_intro:
 
 
 lemma asid_tlb_lookup_range_pt_walk_not_incon:
-  "lookup'' (the ` {e \<in> range (pt_walk (asid :: 8 word) mem ttbr0). \<not> is_fault e}) asid va \<noteq> Incon"
-  apply (case_tac "\<not>is_fault (pt_walk asid mem ttbr0 va)")
+  "lookup'' (the ` {e \<in> range (pt_walk (ad :: 8 word) mem ttbr0). \<not> is_fault e}) ad va \<noteq> Incon"
+  apply (case_tac "\<not>is_fault (pt_walk ad mem ttbr0 va)")
    apply (clarsimp simp: asid_tlb_lookup_range_pt_walk_hit ) 
   apply clarsimp
-  apply (subgoal_tac " lookup'' (the ` {e \<in> pt_walk asid mem ttbr0 ` top. \<not> is_fault e}) asid va = Miss")
+  apply (subgoal_tac " lookup'' (the ` {e \<in> pt_walk ad mem ttbr0 ` top. \<not> is_fault e}) ad va = Miss")
    apply (clarsimp simp: lookup_def tagged_entry_set_def entry_set_def split: if_split_asm)
   by (clarsimp simp: asid_tlb_lookup_miss_is_fault_intro)
 
@@ -854,24 +854,24 @@ lemma asid_unequal_lookup_pt_walk_miss:
 
 
 lemma global_lookup_range_pt_walk_not_incon:
-  "lookup'' (global_entries (the ` {e \<in> range (pt_walk (asid :: 8 word) mem ttbr0). \<not> is_fault e})) asid va \<noteq> Incon"
-  apply (subgoal_tac "lookup''  (the ` {e \<in> range (pt_walk asid mem ttbr0). \<not> is_fault e}) asid va \<noteq> Incon")
+  "lookup'' (global_entries (the ` {e \<in> range (pt_walk (ad :: 8 word) mem ttbr0). \<not> is_fault e})) ad va \<noteq> Incon"
+  apply (subgoal_tac "lookup''  (the ` {e \<in> range (pt_walk ad mem ttbr0). \<not> is_fault e}) ad va \<noteq> Incon")
    prefer 2
    apply (rule asid_tlb_lookup_range_pt_walk_not_incon)
-  apply (subgoal_tac "global_entries (the ` {e \<in> range (pt_walk asid mem ttbr0). \<not> is_fault e}) \<subseteq> 
-                          the ` {e \<in> range (pt_walk asid mem ttbr0). \<not> is_fault e}")
+  apply (subgoal_tac "global_entries (the ` {e \<in> range (pt_walk ad mem ttbr0). \<not> is_fault e}) \<subseteq> 
+                          the ` {e \<in> range (pt_walk ad mem ttbr0). \<not> is_fault e}")
   using lookup_asid_tlb_incon_subset apply blast
   by (rule glb_tlb_subset)
   
 
 
 lemma non_global_lookup_range_pt_walk_not_incon:
-  "lookup'' (non_global_entries (the ` {e \<in> range (pt_walk (asid :: 8 word) mem ttbr0). \<not> is_fault e})) asid va \<noteq> Incon"
-  apply (subgoal_tac "lookup''  (the ` {e \<in> range (pt_walk asid mem ttbr0). \<not> is_fault e}) asid va \<noteq> Incon")
+  "lookup'' (non_global_entries (the ` {e \<in> range (pt_walk (ad :: 8 word) mem ttbr0). \<not> is_fault e})) ad va \<noteq> Incon"
+  apply (subgoal_tac "lookup''  (the ` {e \<in> range (pt_walk ad mem ttbr0). \<not> is_fault e}) ad va \<noteq> Incon")
    prefer 2
    apply (rule asid_tlb_lookup_range_pt_walk_not_incon)
-  apply (subgoal_tac "non_global_entries (the ` {e \<in> range (pt_walk asid mem ttbr0). \<not> is_fault e}) \<subseteq> 
-                          the ` {e \<in> range (pt_walk asid mem ttbr0). \<not> is_fault e}")
+  apply (subgoal_tac "non_global_entries (the ` {e \<in> range (pt_walk ad mem ttbr0). \<not> is_fault e}) \<subseteq> 
+                          the ` {e \<in> range (pt_walk ad mem ttbr0). \<not> is_fault e}")
   using lookup_asid_tlb_incon_subset apply blast
   by (rule non_glb_tlb_subset)
 

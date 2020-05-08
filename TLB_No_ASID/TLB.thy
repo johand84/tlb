@@ -1,25 +1,9 @@
 theory TLB
 imports
   "HOL-Word.Word"
-  PTABLE_TLBJ.PageTable_seL4
+  TLB_COMP.MMU_Prg_Logic
   L3_LIBJ.L3_Lib
 begin
-
-
-
-record tlb_flags =
-  nG       :: "1 word"  (* nG = 0 means global *) 
-  perm_APX :: "1 word"  (* Access permission bit 2 *)
-  perm_AP  :: "2 word"  (* Access permission bits 1 and 0 *)
-  perm_XN  :: "1 word"  (* Execute-never bit *)
-
-
-type_synonym asid = "8 word"
-
-
-datatype tlb_entry  = EntrySmall   (asid_of :"asid option") "20 word" "20 word"  tlb_flags 
-                    | EntrySection (asid_of :"asid option") "12 word" "12 word"  tlb_flags 
-
 
 type_synonym tlb = "tlb_entry set"
 
@@ -94,16 +78,7 @@ end
 
 
 definition
-  to_tlb_flags :: "arm_perm_bits \<Rightarrow> tlb_flags"
-where
-  "to_tlb_flags perms \<equiv> \<lparr>nG = arm_p_nG perms, perm_APX = arm_p_APX perms,  perm_AP = arm_p_AP perms, perm_XN = arm_p_XN perms \<rparr>"
-
-
-definition "tag_conv (a::8 word) fl \<equiv> (if  nG fl = 0 then None else Some a)"
-
-
-definition
-  pt_walk :: "asid \<Rightarrow> heap \<Rightarrow> paddr \<Rightarrow> vaddr \<Rightarrow>  tlb_entry option"
+  pt_walk :: "asid \<Rightarrow> (paddr \<rightharpoonup> 8 word) \<Rightarrow> paddr \<Rightarrow> vaddr \<Rightarrow>  tlb_entry option"
 where
   "pt_walk a hp rt v \<equiv>
       case get_pde hp rt v
@@ -120,11 +95,6 @@ where
                  |  Some (SmallPagePTE bpa perms) \<Rightarrow> Some(EntrySmall (tag_conv a (to_tlb_flags perms)) (ucast (addr_val v >> 12) :: 20 word)
                                                      ((word_extract 31 12 (addr_val bpa)):: 20 word) 
                                                      (to_tlb_flags perms)))"
-
-
-definition
-  "is_fault e \<equiv> (e = None)"
-
 
 (* Flush operations *)
 

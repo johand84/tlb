@@ -610,27 +610,23 @@ definition
   instance ..
 end
 
-definition
-  ptable_comp :: "(vaddr \<Rightarrow> pt_walk_typ) \<Rightarrow> (vaddr \<Rightarrow> pt_walk_typ) \<Rightarrow> vaddr set"
-where
-  "ptable_comp walk walk'  \<equiv> {va. \<not>(walk va \<preceq> walk' va)}"
 
 definition
-  incon_comp :: "asid \<Rightarrow> asid \<Rightarrow> heap \<Rightarrow> heap \<Rightarrow> paddr \<Rightarrow> paddr \<Rightarrow> vaddr set"
+  incon_comp :: "asid \<Rightarrow> asid \<Rightarrow> (paddr \<rightharpoonup> 8 word) \<Rightarrow> (paddr \<rightharpoonup> 8 word) \<Rightarrow> paddr \<Rightarrow> paddr \<Rightarrow> vaddr set"
 where
   "incon_comp a a' hp hp' rt rt' \<equiv> ptable_comp (pt_walk_pair a hp rt) (pt_walk_pair a' hp' rt')"
 
 
 
 definition 
-  snp_upd_cur :: "vaddr set \<Rightarrow> heap \<Rightarrow> ttbr0  \<Rightarrow> asid \<Rightarrow> (vaddr set \<times> (vaddr \<Rightarrow> pt_walk_typ))"
+  snp_upd_cur :: "vaddr set \<Rightarrow> (paddr \<rightharpoonup> 8 word) \<Rightarrow> ttbr0  \<Rightarrow> asid \<Rightarrow> (vaddr set \<times> (vaddr \<Rightarrow> pt_walk_typ))"
 where
   "snp_upd_cur ist m r  \<equiv> \<lambda>a. (ist, \<lambda>v. pt_walk_pair a m r v)"
 
 
 definition 
   snp_upd_cur' :: "(asid \<Rightarrow> (vaddr set \<times> (vaddr \<Rightarrow> pt_walk_typ))) \<Rightarrow> vaddr set \<Rightarrow> 
-                                 heap \<Rightarrow> ttbr0 \<Rightarrow> asid \<Rightarrow> (asid \<Rightarrow> (vaddr set \<times> (vaddr \<Rightarrow> pt_walk_typ)))"
+                   (paddr \<rightharpoonup> 8 word) \<Rightarrow> ttbr0 \<Rightarrow> asid \<Rightarrow> (asid \<Rightarrow> (vaddr set \<times> (vaddr \<Rightarrow> pt_walk_typ)))"
 where
   "snp_upd_cur' snp ist mem ttbr0 a \<equiv> snp (a := snp_upd_cur ist mem ttbr0 a)"
 
