@@ -1126,16 +1126,30 @@ lemma comp_aexp_BinOp_correct:
   done
 
 lemma comp_aexp_HeapLookup_correct:
-  "\<lbrakk>\<lbrakk>e\<rbrakk> s = Some val; code_installed t (comp_aexp e @ ins); state_rel s t; e = HeapLookup x4\<rbrakk> \<Longrightarrow>
-    \<exists>t'. steps t (length (comp_aexp e)) = t' \<and>
-      code_installed t' ins \<and>
+  "\<lbrakk>\<lbrakk>e\<rbrakk> s = Some val;
+    code_installed t c;
+    machine_config t;
+    state_rel s t;
+    c = comp_aexp e;
+    e = HeapLookup x4\<rbrakk> \<Longrightarrow>
+    \<exists>k t'. steps t k = t' \<and>
       state_rel s t' \<and>
-      state.REG t' RName_0usr = val \<and>
-      REG t' RName_2usr = REG t RName_2usr"
-  apply (drule comp_aexp_mov_correct, simp, safe)
-  apply (drule ldr_imm_correct, simp, simp, safe)
-  apply (simp add: steps_add steps_inc)
-  done
+      REG t' = (REG t)(RName_0usr := val,
+                       RName_PC := REG t RName_PC + 4 * (word_of_int (int (length c))))"
+  apply simp
+  apply (frule code_installed_append)
+  apply (frule comp_aexp_mov_correct)
+     apply (simp add: general_purpose_reg_def, simp, simp, safe)
+  apply (frule_tac k = "k" in code_installed_prepend, simp, simp split: prod.splits, clarify)
+   apply (frule_tac t = "steps t k" and val = "val" in ldr_imm_correct, simp)
+       apply (simp add: general_purpose_reg_def)
+      apply (simp add: general_purpose_reg_def, simp, simp split: if_split_asm, safe)
+    apply (simp add: bin_to_reg_def)
+  defer
+   apply (rule_tac x = "k+1" in exI, safe)
+    apply (simp add: state_rel_preserved steps_add steps_inc)
+   apply (simp add: add.commute bin_to_reg_def comp_aexp_mov_def steps_add steps_inc)
+  sorry
 
 lemma comp_aexp_correct:
   "\<lbrakk>aval e s = Some val;
