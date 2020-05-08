@@ -673,14 +673,16 @@ lemma cmp_imm_correct:
   done
 
 lemma ldr_imm_correct:
-  "\<lbrakk>state_rel s t;
-    code_installed t (ldr_imm 0 0 0 # ins);
-    mem_read_hp' (incon_set s) (heap s) (root s) (mode s) (Addr (REG t RName_0usr)) = Some val\<rbrakk> \<Longrightarrow>
+  "\<lbrakk>Fetch t = (ldr_imm rt rn 0, ft);
+    general_purpose_reg rn;
+    general_purpose_reg rt;
+    machine_config t;
+    mmu_read_size (Addr (REG t (bin_to_reg rn)), 4) t = (to_bl val, t)\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
-        code_installed t' ins \<and>
-        state_rel s t' \<and>
-        REG t' RName_0usr = val \<and>
-        REG t' RName_2usr = REG t RName_2usr"
+        machine_config t' \<and>
+        machine_config_preserved t t' \<and>
+        REG t' = (REG t)(bin_to_reg rt := val,
+                         RName_PC := REG t RName_PC + 4)"
   sorry
 
 lemma ldr_lit_correct:
