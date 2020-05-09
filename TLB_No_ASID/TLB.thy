@@ -1,7 +1,7 @@
 theory TLB
 imports
   "HOL-Word.Word"
-  TLB_COMP.MMU_Prg_Logic
+  PTABLE_TLBJ.MMU_Prg_Logic
   L3_LIBJ.L3_Lib
 begin
 

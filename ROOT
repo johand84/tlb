@@ -20,6 +20,7 @@ session L3_LIBJ = Word_Lib +
 session PTABLE_TLBJ = L3_LIBJ +
   theories
     "Page_Tables/PageTable_seL4"
+	"Logic/MMU_Prg_Logic"
 
 
 

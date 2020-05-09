@@ -1,6 +1,6 @@
 theory Logic
 
-imports MMU_Prg_Logic
+imports PTABLE_TLBJ.MMU_Prg_Logic
 
 
 begin

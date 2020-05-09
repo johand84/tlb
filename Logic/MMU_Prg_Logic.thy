@@ -2,7 +2,7 @@ theory MMU_Prg_Logic
 
 imports
      "HOL-Word.Word" 
-     PTABLE_TLBJ.PageTable_seL4
+     "./../Page_Tables/PageTable_seL4"
      "./../Eisbach/Rule_By_Method"
 
 begin
