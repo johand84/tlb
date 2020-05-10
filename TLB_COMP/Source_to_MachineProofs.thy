@@ -1361,14 +1361,21 @@ lemma comp_bexp_BBinOp_Or_correct:
   done
 
 lemma comp_bexp_BBinOp_correct:
-  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some val; code_installed t (comp_bexp b @ ins); state_rel s t; b = BBinOp op b1 b2\<rbrakk> \<Longrightarrow>
-    \<exists>t'. steps t (length (comp_bexp b)) = t' \<and>
-      code_installed t' ins \<and>
+  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some z;
+    code_installed t c;
+    machine_config t;
+    state_rel s t;
+    b = BBinOp op x y;
+    c = comp_bexp b\<rbrakk> \<Longrightarrow>
+    \<exists>k t'. steps t k = t' \<and>
+      machine_config t' \<and>
       state_rel s t' \<and>
-      state.REG t' RName_0usr = (if val then 1 else 0)"
+      REG t' = (REG t)(RName_0usr := (if z then 1 else 0),
+                       RName_1usr := REG t' RName_1usr,
+                       RName_PC := REG t RName_PC + 4 * (word_of_int (int (length c))))"
   apply (cases op)
-   apply (rule comp_bexp_BBinOp_And_correct, force+)
-  apply (rule comp_bexp_BBinOp_Or_correct, force+)
+   apply (frule comp_bexp_BBinOp_And_correct, force+)
+  apply (frule comp_bexp_BBinOp_Or_correct, force+)
   done
 
 lemma comp_bexp_BUnOp_Not_correct:
