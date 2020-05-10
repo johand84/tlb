@@ -267,6 +267,10 @@ lemma steps_inc:
   "snd (Next (steps t l)) = steps t (l+1)"
   by (metis steps.simps(1) steps_add steps_inc1)
 
+lemma steps_one:
+  "snd (Next t) = steps t 1"
+  by simp
+
 lemma machine_config_mmu_translate:
   "\<lbrakk>mmu_translate v s = (p, t); machine_config s\<rbrakk> \<Longrightarrow>
     flags_preserved s t \<and>
