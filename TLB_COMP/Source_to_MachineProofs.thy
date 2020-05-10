@@ -1210,15 +1210,10 @@ lemma comp_bexp_mov_correct:
         state_rel s t' \<and>
         REG t' = (REG t)(bin_to_reg reg := (if val then 1 else 0),
                          RName_PC := REG t RName_PC + 4 * (word_of_int (int (length (comp_bexp_mov reg val)))))"
-   apply (simp add: comp_bexp_mov_def split: prod.splits)
-   apply (frule mov_imm_correct, simp, simp)
+  apply (simp add: comp_bexp_mov_def split: prod.splits)
+  apply (frule mov_imm_correct, simp, simp)
    apply (simp add: word_bits_def word_extract_def, safe)
-       apply (simp)
-      apply (simp add: state_rel_preserved)
-     apply (simp add: steps_add steps_inc)
-    apply (simp)
-   apply (simp add: state_rel_preserved)
-  apply (simp add: steps_add steps_inc)
+       apply (simp add: state_rel_preserved)+
   done
 
 lemma comp_bexp_BConst_correct:
