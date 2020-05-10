@@ -1218,19 +1218,24 @@ lemma comp_bexp_mov_correct:
 
 lemma comp_bexp_BConst_correct:
   "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some val;
-    code_installed t (comp_bexp b);
+    code_installed t c;
     machine_config t;
     state_rel s t;
-    b = BConst x\<rbrakk> \<Longrightarrow>
-    \<exists>t'. steps t 1 = t' \<and>
+    b = BConst x;
+    c = comp_bexp b\<rbrakk> \<Longrightarrow>
+    \<exists>k t'. steps t k = t' \<and>
       machine_config t' \<and>
       state_rel s t' \<and>
       REG t' = (REG t)(RName_0usr := (if val then 1 else 0),
-                       RName_PC := REG t RName_PC + 4 * (word_of_int (int (length (comp_bexp_mov 0 val)))))"
-  apply (simp)
+                       RName_PC := REG t RName_PC + 4 * (word_of_int (int (length c))))"
+  apply simp
   apply (frule comp_bexp_mov_correct)
-     apply (simp add: general_purpose_reg_def, simp, simp, safe)
-       apply (simp add: bin_to_reg_def steps_add steps_inc)+
+     apply (simp add: general_purpose_reg_def, simp, simp)
+  apply (cases val, simp)
+   apply (rule_tac x = "1" in exI, simp)
+   apply (simp add: bin_to_reg_def, simp)
+  apply (rule_tac x = "1" in exI, simp)
+  apply (simp add: bin_to_reg_def)
   done
 
 lemma comp_bexp_BComp_Less_correct:
