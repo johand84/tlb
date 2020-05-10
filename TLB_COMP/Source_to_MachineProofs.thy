@@ -259,6 +259,10 @@ lemma steps_add:
   "(steps (steps t l1) l2) = (steps t (l1 + l2))"
   by (induction l1 arbitrary: t, simp, simp)
 
+lemma steps_inc1:
+  "steps (snd (Next t)) l = steps t (l+1)"
+  by simp
+
 lemma steps_inc:
   "(snd (Next (steps t l))) = (steps (snd (Next t)) l)"
   sorry
