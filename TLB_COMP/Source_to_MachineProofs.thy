@@ -1309,15 +1309,55 @@ lemma comp_bexp_BBinOp_And_correct:
   done
 
 lemma comp_bexp_BBinOp_Or_correct:
-  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some val; code_installed t (comp_bexp b @ ins); state_rel s t; b = BBinOp op b1 b2; op = Or\<rbrakk> \<Longrightarrow>
-    \<exists>t'. steps t (length (comp_bexp b)) = t' \<and>
-      code_installed t' ins \<and>
+  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some z;
+    code_installed t c;
+    machine_config t;
+    state_rel s t;
+    b = BBinOp op x y;
+    c = comp_bexp b;
+    op = Or\<rbrakk> \<Longrightarrow>
+    \<exists>k t'. steps t k = t' \<and>
+      machine_config t' \<and>
       state_rel s t' \<and>
-      state.REG t' RName_0usr = (if val then 1 else 0)"
-  apply (drule comp_bexp_mov_correct, simp, safe)
-  apply (drule comp_bexp_mov_correct, simp, safe)
-  apply (drule or_reg_correct, simp, simp, simp, safe)
-  apply (simp add: steps_add steps_inc, safe)
+      REG t' = (REG t)(RName_0usr := (if z then 1 else 0),
+                       RName_1usr := REG t' RName_1usr,
+                       RName_PC := REG t RName_PC + 4 * (word_of_int (int (length c))))"
+  apply simp
+  apply (frule code_installed_append)
+  apply (frule comp_bexp_mov_correct)
+     apply (simp add: general_purpose_reg_def, simp, simp)
+  apply (thin_tac "code_installed t (comp_bexp_mov 0 x)")
+  apply (frule_tac k = "1" in code_installed_prepend, simp)
+  apply (thin_tac "code_installed t (comp_bexp_mov 0 x @ comp_bexp_mov 1 y @ [or_reg 0 0 1])")
+  apply (frule code_installed_append)
+  apply (frule_tac s = "s" in comp_bexp_mov_correct)
+     apply (simp add: general_purpose_reg_def, simp)
+   apply (simp add: steps_add steps_inc)
+  apply (frule_tac k = "1" in code_installed_prepend)
+  apply (simp add: steps_add steps_inc, simp split: prod.splits)
+  apply (frule or_reg_correct)
+      apply (simp add: general_purpose_reg_def)
+     apply (simp add: general_purpose_reg_def)
+    apply (simp add: general_purpose_reg_def, simp)
+  apply (cases z)
+   apply (simp add: bin_to_reg_def)
+   apply (rule_tac x = "3" in exI)
+   apply (simp add: add.commute
+                    comp_bexp_mov_def
+                    eval_nat_numeral
+                    state_rel_preserved
+                    steps_add
+                    steps_one
+               del: steps.simps, force)
+  apply (simp add: bin_to_reg_def)
+  apply (rule_tac x = "3" in exI)
+  apply (simp add: add.commute
+                   comp_bexp_mov_def
+                   eval_nat_numeral
+                   state_rel_preserved
+                   steps_add
+                   steps_one
+              del: steps.simps, force)
   done
 
 lemma comp_bexp_BBinOp_correct:
