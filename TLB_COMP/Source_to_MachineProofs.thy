@@ -257,7 +257,7 @@ lemma state_rel_preserved:
 
 lemma steps_add:
   "(steps (steps t l1) l2) = (steps t (l1 + l2))"
-  sorry
+  by (induction l1 arbitrary: t, simp, simp)
 
 lemma steps_inc:
   "(snd (Next (steps t l))) = (steps (snd (Next t)) l)"
