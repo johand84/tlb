@@ -1027,6 +1027,7 @@ lemma comp_aexp_UnOp_Neg_correct:
     e = UnOp Neg x;
     machine_config t\<rbrakk> \<Longrightarrow>
       \<exists>k t'. steps t k = t' \<and>
+        machine_config t' \<and>
         state_rel s t' \<and>
         REG t' = (REG t)(RName_0usr := y,
                          RName_PC := REG t RName_PC + 4 * (word_of_int (int (length c))))"
@@ -1037,7 +1038,7 @@ lemma comp_aexp_UnOp_Neg_correct:
   apply (frule_tac k = "k" in code_installed_prepend, simp, simp split: prod.splits)
   apply (frule_tac rd = "0" and rm = "0" in neg_correct, simp)
   apply (rule_tac x = "k+1" in exI)
-  apply (simp add: comp_aexp_mov_def bin_to_reg_def state_rel_preserved steps_add steps_inc, force)
+  apply (simp add: comp_aexp_mov_def bin_to_reg_def state_rel_preserved steps_inc, force)
   done
 
 lemma comp_aexp_UnOp_correct:
