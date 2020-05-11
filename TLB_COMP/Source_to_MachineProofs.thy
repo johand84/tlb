@@ -1424,18 +1424,22 @@ lemma comp_bexp_BUnOp_correct:
   done
 
 lemma comp_bexp_correct:
-  "\<lbrakk>bval e s = Some value;
-    code_installed t (comp_bexp e @ ins);
-    state_rel s t\<rbrakk> \<Longrightarrow>
-      \<exists>t'. steps t (length (comp_bexp e)) = t' \<and>
-      code_installed t' ins \<and>
-      state_rel s t' \<and>
-      REG t' RName_0usr = (if value then 1 else 0)"
+  "\<lbrakk>bval e s = Some val;
+    code_installed t c;
+    machine_config t;
+    state_rel s t;
+    c = comp_bexp e\<rbrakk> \<Longrightarrow>
+      \<exists>k t'. steps t k = t' \<and>
+        machine_config t' \<and>
+        state_rel s t' \<and>
+        REG t' = (REG t)(RName_0usr := (if val then 1 else 0),
+                         RName_1usr := REG t' RName_1usr,
+                         RName_PC := REG t RName_PC + 4 * (word_of_int (int (length c))))"
   apply (cases e)
-     apply (rule comp_bexp_BConst_correct, force+)
-    apply (rule comp_bexp_BComp_correct, force+)
-   apply (rule comp_bexp_BBinOp_correct, force+)
-  apply (rule comp_bexp_BUnOp_correct, force+)
+     apply (frule comp_bexp_BConst_correct, force+)
+    apply (frule comp_bexp_BComp_correct, force+)
+   apply (frule comp_bexp_BBinOp_correct, force+)
+  apply (frule comp_bexp_BUnOp_correct, force+)
   done
 
 lemma comp_Assign_correct:
