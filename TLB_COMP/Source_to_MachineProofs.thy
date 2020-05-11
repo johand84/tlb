@@ -1502,7 +1502,46 @@ lemma comp_bexp_BUnOp_Not_correct:
       state_rel s t' \<and>
       REG t' = (REG t)(RName_0usr := (if val then 1 else 0),
                        RName_PC := REG t RName_PC + 4 * (word_of_int (int (length c))))"
-  sorry
+  apply simp
+  apply (frule code_installed_append)
+  apply (frule comp_bexp_mov_correct)
+     apply (simp add: general_purpose_reg_def, simp, simp, simp del: steps.simps)
+  apply (drule_tac k = "1" in code_installed_prepend, simp)
+  apply (frule hello)
+  apply (frule_tac val = "a" in cmp_imm_correct)
+     apply (simp add: bin_to_reg_def)
+    apply (simp add: general_purpose_reg_def)
+   apply (simp add: eval_nat_numeral, simp del: steps.simps)
+  apply (drule_tac k = "1" in code_installed_prepend1, simp)
+  apply (subgoal_tac "state_rel s (steps t (Suc 0))")
+   apply (subgoal_tac "machine_state_preserved (steps t (Suc 0)) (steps (steps t (Suc 0)) (Suc 0))")
+    apply (frule_tac t = "steps t (Suc 0)" and
+                     t' = "steps (steps t (Suc 0)) (Suc 0)" in state_rel_preserved, simp)
+    apply (frule hello)
+    apply (frule moveq_imm_correct)
+       apply (simp add: general_purpose_reg_def, simp)
+     apply (simp add: word_bits_def word_extract_def)
+    apply (drule_tac k = "1" in code_installed_prepend1, simp)
+    apply (subgoal_tac "state_rel s (steps (steps t (Suc 0)) (Suc 0))")
+     apply (subgoal_tac "machine_state_preserved (steps (steps t (Suc 0)) (Suc 0)) (steps (steps (steps t (Suc 0)) (Suc 0)) (Suc 0))")
+      apply (frule_tac t = "steps (steps t (Suc 0)) (Suc 0)" and
+                       t' = "steps (steps (steps t (Suc 0)) (Suc 0)) (Suc 0)" in state_rel_preserved, simp)
+      apply (frule hello)
+      apply (frule movne_imm_correct)
+         apply (simp add: general_purpose_reg_def, simp)
+       apply (simp add: word_bits_def word_extract_def, simp del: steps.simps, safe)
+     apply (rule_tac x = "4" in exI, safe)
+       apply (simp add: eval_nat_numeral)
+      apply (frule_tac t = "steps (steps (steps t (Suc 0)) (Suc 0)) (Suc 0)" and
+                       t' = "steps (steps (steps (steps t (Suc 0)) (Suc 0)) (Suc 0)) (Suc 0)" in state_rel_preserved, simp)
+      apply (simp add: eval_nat_numeral)
+     apply (simp add: bin_to_reg_def comp_bexp_mov_def eval_nat_numeral flags_preserved_def, force)
+    apply (rule_tac x = "4" in allE, simp)
+    apply (frule_tac t = "steps (steps (steps t (Suc 0)) (Suc 0)) (Suc 0)" and
+                     t' = "steps (steps (steps (steps t (Suc 0)) (Suc 0)) (Suc 0)) (Suc 0)" in state_rel_preserved, simp)
+    apply (simp add: bin_to_reg_def comp_bexp_mov_def eval_nat_numeral flags_preserved_def, force)
+   apply (simp add: eval_nat_numeral, simp)
+  done
 
 lemma comp_bexp_BUnOp_correct:
   "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some val;
