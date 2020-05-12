@@ -1714,17 +1714,43 @@ lemma comp_Assign_correct:
     \<lbrakk>rval\<rbrakk> s = Some v;
     Addr vp \<notin> incon_set s;
     addr_trans s (Addr vp) = Some pp;
-    code_installed t (comp_aexp lval @ mov_reg 2 0 # comp_aexp rval @ str_imm 0 2 0 # ins);
+    aligned pp; c = comp_com (lval ::= rval);
+    code_installed t c;
+    machine_config t;
+    Some (s\<lparr>heap := heap s(pp \<mapsto> v), incon_set := iset_upd s pp v, p_state.global_set := gset_upd s pp v\<rparr>) \<noteq> None;
     state_rel s t\<rbrakk> \<Longrightarrow>
-      \<exists>t'. steps (snd (Next (snd (Next t)))) (length (comp_aexp lval) + length (comp_aexp rval)) = t' \<and>
-        code_installed t' ins \<and>
-        state_rel (s\<lparr>heap := heap s(pp \<mapsto> v), incon_set := iset_upd s pp v, p_state.global_set := gset_upd s pp v\<rparr>) t'"
-  apply (drule_tac ins = "mov_reg 2 0 # comp_aexp rval @ str_imm 0 2 0 # ins" in comp_aexp_correct, simp, simp, safe)
-  apply (drule_tac ins = "comp_aexp rval @ str_imm 0 2 0 # ins" and val = "vp" in mov_reg_correct, simp, simp, safe)
-  apply (drule_tac ins = "str_imm 0 2 0 # ins" in comp_aexp_correct, simp, simp, safe)
-  apply (drule_tac ins = "ins" and pp = "pp" in str_imm_correct, simp, simp, simp, safe)
-  apply (simp add: steps_add steps_inc)
-  done
+      \<exists>k t'. steps t k = t' \<and>
+        machine_config t' \<and>
+        state_rel (the (Some (s\<lparr>heap := heap s(pp \<mapsto> v), incon_set := iset_upd s pp v, p_state.global_set := gset_upd s pp v\<rparr>))) t' \<and>
+        REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                         RName_1usr := REG t' RName_1usr,
+                         RName_2usr := REG t' RName_2usr,
+                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length c)))"
+  apply simp
+  apply (frule code_installed_append)
+  apply (frule comp_aexp_correct, simp, simp, simp, safe)
+  apply (frule_tac k = "k" in code_installed_prepend)
+   apply (metis fun_upd_apply)
+  apply (thin_tac "\<lbrakk>lval\<rbrakk> s = Some vp")
+  apply (thin_tac "code_installed t (comp_aexp lval)")
+  apply (thin_tac "code_installed t (comp_aexp lval @ mov_reg 2 0 # comp_aexp rval @ [str_imm 0 2 0])")
+  apply (frule code_installed_append1, simp split: prod.splits)
+  apply (frule code_installed_implies_Fetch)
+  apply (frule mov_reg_correct)
+     apply (simp add: general_purpose_reg_def)
+    apply (simp add: general_purpose_reg_def)
+   apply (simp add: general_purpose_reg_def, safe)
+  apply (frule_tac t = "steps t k" in state_rel_preserved, simp del: steps.simps)
+  apply (frule_tac k = "1" in code_installed_prepend1, simp)
+  apply (thin_tac "code_installed (steps t k) [mov_reg 2 0]")
+  apply (thin_tac "code_installed (steps t k) (mov_reg 2 0 # comp_aexp rval @ [str_imm 0 2 0])")
+  apply (frule code_installed_append)
+  apply (frule_tac t = "steps (steps t k) 1" in comp_aexp_correct, simp, simp, simp, safe)
+  apply (frule_tac k = "ka" in code_installed_prepend)
+   apply (metis fun_upd_apply)
+  apply (thin_tac "code_installed (steps (steps t k) 1) (comp_aexp rval)")
+  apply (thin_tac "code_installed (steps (steps t k) 1) (comp_aexp rval @ [str_imm 0 2 0])")
+  sorry
 
 lemma comp_Seq_correct:
   "\<lbrakk>\<forall>t::'a set_tlb_state_scheme. code_installed t (comp_com c1) \<and> state_rel s1 t \<longrightarrow> state_rel s2 (steps t (length (comp_com c1)));
