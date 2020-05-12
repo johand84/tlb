@@ -1049,6 +1049,7 @@ lemma comp_aexp_UnOp_correct:
     e = UnOp op x;
     machine_config t\<rbrakk> \<Longrightarrow>
     \<exists>k t'. steps t k = t' \<and>
+      machine_config t' \<and>
       state_rel s t' \<and>
       REG t' = (REG t)(RName_0usr := y,
                        RName_PC := REG t RName_PC + 4 * (word_of_int (int (length c))))"
