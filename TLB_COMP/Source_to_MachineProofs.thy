@@ -1008,6 +1008,7 @@ lemma comp_aexp_Const_correct:
     state_rel s t;
     e = Const val\<rbrakk> \<Longrightarrow>
       \<exists>k t'. steps t k = t' \<and>
+        machine_config t' \<and>
         state_rel s t' \<and>
         REG t' = (REG t)(RName_0usr := val,
                          RName_PC := REG t RName_PC + 4 * (word_of_int (int (length (comp_aexp e)))))"
