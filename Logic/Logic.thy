@@ -105,11 +105,6 @@ definition
   where 
   "gset_upd' s rt = global_set s \<union> (\<Union>x\<in>global_entries (ran (pt_walk (asid s) (heap s) (Addr rt))). range_of x)"
 
-definition
-  aligned :: "paddr \<Rightarrow> bool"
-where
-  "aligned p \<equiv> ((ucast (addr_val p))::2 word) = 0"
-
 (*  big step semantics *)
 
 inductive

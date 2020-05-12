@@ -341,11 +341,22 @@ where
 
 
 definition
+  aligned :: "paddr \<Rightarrow> bool"
+where
+  "aligned p \<equiv> ((ucast (addr_val p))::2 word) = 0"
+
+
+
+definition
   mem_read_hp' :: "vaddr set \<Rightarrow> heap \<Rightarrow> paddr \<Rightarrow> mode_t \<Rightarrow> vaddr \<rightharpoonup> val"
 where
-  "mem_read_hp'  iset hp rt m vp \<equiv>  if vp \<notin> iset then
-        (ptable_lift_m hp rt m \<rhd>o load_value_word_hp hp) vp else None"
-
+  "mem_read_hp' iset hp rt m vp \<equiv>  
+         if vp \<notin> iset then
+           case ptable_lift_m hp rt m vp of 
+              None \<Rightarrow> None
+            | Some pa \<Rightarrow> if aligned pa then load_value_word_hp hp pa 
+                         else None
+         else None"
 
 
 definition "pagetable_lookup \<equiv> ptable_lift_m"
