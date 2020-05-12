@@ -1066,6 +1066,7 @@ lemma comp_aexp_BinOp_Plus_correct:
     op = Plus;
     machine_config t\<rbrakk> \<Longrightarrow>
     \<exists>k t'. steps t k = t' \<and>
+      machine_config t' \<and>
       state_rel s t' \<and>
       REG t' = (REG t)(RName_0usr := z,
                        RName_1usr := y,
@@ -1074,7 +1075,7 @@ lemma comp_aexp_BinOp_Plus_correct:
   apply (frule code_installed_append)
   apply (drule comp_aexp_mov_correct)
    apply (simp add: general_purpose_reg_def, simp, simp, safe)
-  apply (drule_tac k = "k" in code_installed_prepend, simp, simp split: prod.splits)
+  apply (drule_tac k = "k" in code_installed_prepend, simp)
   apply (frule code_installed_append)
   apply (frule_tac reg = "1" in comp_aexp_mov_correct)
    apply (simp add: general_purpose_reg_def, simp, simp, safe)
@@ -1085,8 +1086,15 @@ lemma comp_aexp_BinOp_Plus_correct:
     apply (simp add: general_purpose_reg_def)
    apply (simp add: machine_config_def)
   apply (rule_tac x = "k+ka+1" in exI, safe)
-   apply (simp add: state_rel_preserved steps_add steps_inc)
-  apply (simp add: comp_aexp_mov_def bin_to_reg_def steps_add steps_inc, force)
+    apply (simp add: steps_inc steps_add)
+   apply (simp add: state_rel_preserved steps_inc steps_add)
+  apply (simp add: bin_to_reg_def
+                   comp_aexp_mov_def
+                   mask_def
+                   steps_add
+                   steps_inc
+                   word_bits_def
+                   word_extract_def, force)
   done
 
 lemma comp_aexp_BinOp_Minus_correct:
