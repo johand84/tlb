@@ -1145,6 +1145,7 @@ lemma comp_aexp_BinOp_correct:
     e = BinOp op x y;
     machine_config t\<rbrakk> \<Longrightarrow>
     \<exists>k t'. steps t k = t' \<and>
+      machine_config t' \<and>
       state_rel s t' \<and>
       REG t' = (REG t)(RName_0usr := z,
                        RName_1usr := y,
