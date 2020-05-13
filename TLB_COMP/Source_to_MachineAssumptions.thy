@@ -50,7 +50,7 @@ lemma Decode_movne_imm_correct:
   sorry
 
 lemma Decode_neg_correct:
-  "machine_config s \<Longrightarrow> Decode (neg rd rm) s = (Data (ArithLogicImmediate (0x3, False, rd, rm, imm12)),s)"
+  "machine_config s \<Longrightarrow> Decode (neg rd rm) s = (Data (ArithLogicImmediate (0x3, False, rd, rm, 0)),s)"
   sorry
 
 lemma Decode_or_reg_correct:
