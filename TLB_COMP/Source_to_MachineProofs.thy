@@ -1037,7 +1037,18 @@ lemma sub_reg_correct:
         machine_config_preserved t t' \<and>
         REG t' = (REG t)(bin_to_reg rd := REG t (bin_to_reg rn) - REG t (bin_to_reg rm),
                          RName_PC := REG t RName_PC + 4)"
-  sorry
+  apply (frule Fetch_correct, simp)
+  apply (simp add: Decode_sub_reg_correct Next_def split: prod.splits, safe)
+    apply (frule Run_sub_reg_correct, simp+, safe)
+    apply (frule_tac s = "x2" in ITAdvance_correct)
+    apply (simp add: snd_def)
+   apply (frule Run_sub_reg_correct, simp+, safe)
+   apply (frule_tac s = "x2" in ITAdvance_correct)
+   apply (simp add: machine_config_preserved_def snd_def)
+  apply (frule Run_sub_reg_correct, simp+, safe)
+  apply (frule_tac s = "x2" in ITAdvance_correct)
+  apply (simp add: snd_def)
+  done
 
 lemma comp_aexp_mov_small_correct:
   "\<lbrakk>Fetch t = (mov_imm reg (ucast val), ft);
