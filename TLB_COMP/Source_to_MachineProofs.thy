@@ -240,19 +240,9 @@ lemma code_installed_prepend:
 
 lemma general_purpose_reg_correct:
   "general_purpose_reg reg \<Longrightarrow>
-    bin_to_reg reg = RName_0usr \<or>
-    bin_to_reg reg = RName_1usr \<or>
-    bin_to_reg reg = RName_2usr \<or>
-    bin_to_reg reg = RName_3usr \<or>
-    bin_to_reg reg = RName_4usr \<or>
-    bin_to_reg reg = RName_5usr \<or>
-    bin_to_reg reg = RName_6usr \<or>
-    bin_to_reg reg = RName_7usr \<or>
-    bin_to_reg reg = RName_8usr \<or>
-    bin_to_reg reg = RName_9usr \<or>
-    bin_to_reg reg = RName_10usr \<or>
-    bin_to_reg reg = RName_11usr \<or>
-    bin_to_reg reg = RName_12usr"
+    bin_to_reg reg \<noteq> RName_SPusr \<and>
+    bin_to_reg reg \<noteq> RName_LRusr \<and>
+    bin_to_reg reg \<noteq> RName_PC"
   by (simp add: bin_to_reg_def general_purpose_reg_def, safe, simp+)
 
 lemma state_rel_preserved:
