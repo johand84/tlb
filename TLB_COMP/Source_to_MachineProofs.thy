@@ -27,17 +27,6 @@ where
     else RName_PC
   )"
 
-fun
-  code_installed :: "'a set_tlb_state_scheme \<Rightarrow> MachineCode list \<Rightarrow>  bool"
-where
-  "code_installed s [] = True" |
-  "code_installed s (x#xs) = (
-    case Fetch s of (m,t) \<Rightarrow> m = x \<and> code_installed (
-        t\<lparr>REG := (REG s)(RName_PC := REG s RName_PC + 4)\<rparr>
-      )
-      xs
-  )"
-
 definition
   flags_preserved :: "'a set_tlb_state_scheme \<Rightarrow> 'a set_tlb_state_scheme \<Rightarrow> bool"
 where
@@ -220,6 +209,19 @@ fun
 where
   "steps s 0 = s" |
   "steps s (Suc i) = steps (snd (Next s)) i"
+
+definition
+  code_installed :: "'a set_tlb_state_scheme \<Rightarrow> MachineCode list \<Rightarrow>  bool"
+where
+  "code_installed t mc \<equiv>
+        unat (REG t RName_PC) + 4 * length mc < 2^32 \<and> (
+         \<forall>i. let pci = REG t RName_PC;
+                 pcf = REG (steps t i) RName_PC in
+             pci \<le> pcf \<and>
+             unat (pcf - pci) div 4 < length mc \<longrightarrow>
+               (let (m, ft) = Fetch (steps t i) in
+                exception ft = NoException \<and>
+                m =  mc ! (unat (pcf - pci) div 4)))"
 
 (* Proofs *)
 
