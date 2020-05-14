@@ -226,8 +226,10 @@ where
 (* Proofs *)
 
 lemma code_installed_append:
-  "\<lbrakk>code_installed t (ca @ cb)\<rbrakk> \<Longrightarrow> code_installed t ca"
-  by (induction ca arbitrary: t, clarsimp+)
+  "code_installed t (a @ b) \<Longrightarrow> code_installed t a"
+  apply (clarsimp simp: code_installed_def Let_def split: prod.splits)
+  apply (drule_tac x = "i" in spec, simp)
+  by (simp add: nth_append)
 
 lemma code_installed_prepend:
   "\<lbrakk>code_installed t (ca @ cb);
