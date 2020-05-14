@@ -60,7 +60,8 @@ where
     Extensions s = {} \<and>
     Aligned1 (Addr (REG s RName_PC), 4) \<and>
     \<not>J (CPSR s) \<and> \<not>T (CPSR s) \<and> \<not>E (CPSR s) \<and>
-    (PSR.M (CPSR s) = 0x10 \<or> PSR.M (CPSR s) = 0x13)
+    (PSR.M (CPSR s) = 0x10 \<or> PSR.M (CPSR s) = 0x13) \<and>
+    exception s = NoException
   )"
 
 definition
