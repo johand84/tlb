@@ -1396,30 +1396,40 @@ lemma comp_bexp_BBinOp_And_correct:
      apply (simp add: general_purpose_reg_def, simp)
    apply (simp add: steps_add steps_inc)
   apply (frule_tac k = "1" in code_installed_prepend)
-  apply (simp add: steps_add steps_inc, simp split: prod.splits)
+   apply (simp add: steps_add steps_inc, simp del: steps.simps split: prod.splits)
+  apply (frule code_installed_implies_Fetch)
   apply (frule and_reg_correct)
       apply (simp add: general_purpose_reg_def)
      apply (simp add: general_purpose_reg_def)
     apply (simp add: general_purpose_reg_def, simp)
-  apply (cases z)
-   apply (simp add: bin_to_reg_def)
-   apply (rule_tac x = "3" in exI)
-   apply (simp add: add.commute
-                    comp_bexp_mov_def
-                    eval_nat_numeral
-                    state_rel_preserved
-                    steps_add
-                    steps_one
-               del: steps.simps, force)
-  apply (simp add: bin_to_reg_def)
-  apply (rule_tac x = "3" in exI)
-  apply (simp add: add.commute
-                   comp_bexp_mov_def
-                   eval_nat_numeral
-                   state_rel_preserved
-                   steps_add
-                   steps_one
-              del: steps.simps, force)
+  apply (cases x)
+   apply (cases y)
+    apply (simp add: bin_to_reg_def del: steps.simps)
+    apply (rule_tac x = "3" in exI, safe)
+        apply (simp add: eval_nat_numeral)
+        apply (frule_tac t = "steps (steps t (Suc 0)) (Suc 0)" in state_rel_preserved, simp)
+        apply (simp add: eval_nat_numeral)
+       apply (simp add: comp_bexp_mov_def eval_nat_numeral, force)
+      apply (simp add: bin_to_reg_def del: steps.simps)
+      apply (rule_tac x = "3" in allE, simp)
+      apply (frule_tac t = "steps (steps t (Suc 0)) (Suc 0)" in state_rel_preserved, simp)
+      apply (simp add: comp_bexp_mov_def eval_nat_numeral, force)
+     apply (simp add: bin_to_reg_def del: steps.simps)
+     apply (rule_tac x = "3" in allE, simp)
+     apply (frule_tac t = "steps (steps t (Suc 0)) (Suc 0)" in state_rel_preserved, simp)
+     apply (simp add: comp_bexp_mov_def eval_nat_numeral, force)
+    apply (simp add: bin_to_reg_def del: steps.simps)
+    apply (rule_tac x = "3" in allE, simp)
+    apply (frule_tac t = "steps (steps t (Suc 0)) (Suc 0)" in state_rel_preserved, simp)
+    apply (simp add: comp_bexp_mov_def eval_nat_numeral, force)
+   apply (simp add: bin_to_reg_def del: steps.simps)
+   apply (rule_tac x = "3" in allE, simp)
+   apply (frule_tac t = "steps (steps t (Suc 0)) (Suc 0)" in state_rel_preserved, simp)
+   apply (simp add: comp_bexp_mov_def eval_nat_numeral, force)
+  apply (simp add: bin_to_reg_def del: steps.simps)
+  apply (rule_tac x = "3" in allE, simp)
+  apply (frule_tac t = "steps (steps t (Suc 0)) (Suc 0)" in state_rel_preserved, simp)
+  apply (simp add: comp_bexp_mov_def eval_nat_numeral, force)
   done
 
 lemma comp_bexp_BBinOp_Or_correct:
