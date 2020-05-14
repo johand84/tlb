@@ -1087,7 +1087,8 @@ lemma comp_aexp_mov_correct:
         state_rel s t' \<and>
         REG t' = (REG t)(bin_to_reg reg := val,
                          RName_PC := REG t RName_PC + 4 * (word_of_int (int (length (comp_aexp_mov reg val)))))"
-  apply (simp add: comp_aexp_mov_def split: if_split_asm prod.splits, safe)
+  apply (simp add: comp_aexp_mov_def split: if_split_asm prod.splits)
+   apply (frule code_installed_implies_Fetch)
    apply (frule comp_aexp_mov_small_correct, simp+)
    apply (rule_tac x = "1" in exI, simp)
   apply (frule comp_aexp_mov_large_correct, force+)
