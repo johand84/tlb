@@ -634,7 +634,7 @@ lemma Run_cmp_imm_correct:
     general_purpose_reg reg;
     machine_config s\<rbrakk> \<Longrightarrow>
       machine_config t \<and>
-      machine_config_preserved s t \<and>
+      machine_state_preserved s t \<and>
       PSR.Z (CPSR t) = (\<not>val) \<and>
       REG t = (REG s)(RName_PC := REG s RName_PC + 4)"
   apply (simp add: dfn'ArithLogicImmediate_def Run_def split: prod.splits)
@@ -660,7 +660,7 @@ lemma Run_cmp_imm_correct:
                                           PSR.Z := REG s (bin_to_reg reg) = 0,
                                           PSR.C := True,
                                           PSR.V := False\<rparr>\<rparr>" in IncPC_correct, simp, safe)
-      apply (simp add:  machine_config_def machine_config_preserved_def)+
+      apply (simp add:  machine_config_def machine_state_preserved_def)+
   done
 
 lemma cmp_imm_correct:
