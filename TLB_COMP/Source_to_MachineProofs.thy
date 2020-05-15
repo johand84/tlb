@@ -226,6 +226,11 @@ where
 
 (* Proofs *)
 
+lemma code_installed_append1:
+  "\<lbrakk>code_installed t (ca # cb)\<rbrakk> \<Longrightarrow> code_installed t [ca]"
+  apply (clarsimp simp: code_installed_def Let_def split: prod.splits)
+  by (drule_tac x = "i" in spec, simp)
+
 lemma code_installed_append:
   "code_installed t (a @ b) \<Longrightarrow> code_installed t a"
   apply (clarsimp simp: code_installed_def Let_def split: prod.splits)
