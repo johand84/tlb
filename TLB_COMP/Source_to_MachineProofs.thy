@@ -817,7 +817,7 @@ lemma moveq_imm_correct:
       \<exists>t'. steps t 1 = t' \<and>
         flags_preserved t t' \<and>
         machine_config t' \<and>
-        machine_config_preserved t t' \<and>
+        machine_state_preserved t t' \<and>
         REG t' = (REG t)(bin_to_reg reg := (if PSR.Z (CPSR t) then ucast val else REG t (bin_to_reg reg)),
                          RName_PC := REG t RName_PC + 4)"
   apply (cases "PSR.Z (CPSR t)")
@@ -828,7 +828,7 @@ lemma moveq_imm_correct:
      apply (frule Run_mov_imm_correct, simp, safe)
      apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_config_def)
     apply (frule Run_mov_imm_correct, simp, safe)
-    apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_config_preserved_def)
+    apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_state_preserved_def)
    apply (frule Run_mov_imm_correct, simp, safe)
    apply (frule_tac s = "x2" in ITAdvance_correct, simp)
   apply (frule Fetch_correct, simp)
@@ -838,7 +838,7 @@ lemma moveq_imm_correct:
      apply (frule Run_nop_correct, simp, safe)
      apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_config_def)
     apply (frule Run_nop_correct, simp, safe)
-    apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_config_preserved_def)
+    apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_state_preserved_def)
    apply (frule Run_nop_correct, simp, safe)
    apply (frule_tac s = "x2" in ITAdvance_correct, simp)
   done
