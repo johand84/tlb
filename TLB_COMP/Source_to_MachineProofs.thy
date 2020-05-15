@@ -238,6 +238,12 @@ lemma code_installed_prepend:
     code_installed (steps t k) cb"
   sorry
 
+lemma code_installed_implies_Fetch:
+  "code_installed t (x#xs) \<Longrightarrow> Fetch t = (x, snd (Fetch t))"
+  apply (clarsimp simp: code_installed_def Let_def)
+  apply (erule_tac x = "0" in allE, clarsimp)
+  done
+
 lemma general_purpose_reg_correct:
   "general_purpose_reg reg \<Longrightarrow>
     bin_to_reg reg \<noteq> RName_SPusr \<and>
