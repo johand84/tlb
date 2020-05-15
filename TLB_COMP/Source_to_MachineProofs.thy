@@ -670,7 +670,7 @@ lemma cmp_imm_correct:
      machine_config t\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
         machine_config t' \<and>
-        machine_config_preserved t t' \<and>
+        machine_state_preserved t t' \<and>
         PSR.Z (CPSR t') = (\<not>val) \<and>
         REG t' = (REG t)(RName_PC := REG t RName_PC + 4)"
   apply (frule Fetch_correct, simp)
@@ -679,8 +679,8 @@ lemma cmp_imm_correct:
        apply (frule_tac s = "x2" in ITAdvance_correct, simp)
       apply (frule_tac s = "x2" in ITAdvance_correct, simp)
      apply (frule Run_cmp_imm_correct, simp, safe)
-      apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_config_preserved_def)
-     apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_config_preserved_def)
+      apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_state_preserved_def)
+     apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_state_preserved_def)
     apply (frule Run_cmp_imm_correct, simp, safe)
     apply (frule_tac s = "x2" in ITAdvance_correct, simp)
    apply (frule Run_cmp_imm_correct, simp, safe)
