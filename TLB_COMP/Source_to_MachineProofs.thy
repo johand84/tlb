@@ -915,14 +915,14 @@ lemma neg_correct:
     machine_config t\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
         machine_config t' \<and>
-        machine_config_preserved t t' \<and>
+        machine_state_preserved t t' \<and>
         REG t' = (REG t)(bin_to_reg rd := -(REG t (bin_to_reg rm)), RName_PC := REG t RName_PC + 4)"
   apply (frule Fetch_correct, simp)
   apply (simp add: Decode_neg_correct Next_def split: prod.splits, safe)
     apply (frule Run_neg_correct, simp, safe)
     apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_config_def)
    apply (frule Run_neg_correct, simp, safe)
-   apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_config_preserved_def)
+   apply (frule_tac s = "x2" in ITAdvance_correct, simp add: machine_state_preserved_def)
   apply (frule Run_neg_correct, simp, safe)
   apply (frule_tac s = "x2" in ITAdvance_correct, simp)
   done
