@@ -458,7 +458,7 @@ lemma write'R_correct:
     general_purpose_reg reg\<rbrakk> \<Longrightarrow>
       t = s\<lparr>REG := (REG s)(bin_to_reg reg := val)\<rparr> \<and>
       machine_config t \<and>
-      machine_config_preserved s t"
+      machine_state_preserved s t"
   apply (frule IsSecure_correct)
   apply (simp add: write'R_def write'Rmode_def split: if_split_asm prod.splits)
      apply (simp add: general_purpose_reg_def)
@@ -469,7 +469,7 @@ lemma write'R_correct:
   apply (simp add: bin_to_reg_def
                    general_purpose_reg_def
                    machine_config_def
-                   machine_config_preserved_def
+                   machine_state_preserved_def
               split: if_split_asm)
   done
 
