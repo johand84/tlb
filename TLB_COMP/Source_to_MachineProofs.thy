@@ -721,7 +721,7 @@ lemma Run_mov_imm_correct:
     word_extract 11 8 imm12 = (0::4 word)\<rbrakk> \<Longrightarrow>
       flags_preserved s t \<and>
       machine_config t \<and>
-      machine_config_preserved s t \<and>
+      machine_state_preserved s t \<and>
       REG t = (REG s)(bin_to_reg rd := ucast imm12,
                       RName_PC := REG s RName_PC + 4)"
   apply (simp add: Run_def dfn'ArithLogicImmediate_def split: if_split_asm prod.splits)
@@ -732,7 +732,7 @@ lemma Run_mov_imm_correct:
   apply (frule write'R_correct, simp, simp, clarify)
   apply (frule IncPC_correct, simp, safe, simp)
     apply (simp add: flags_preserved_def, simp)
-   apply (simp add: machine_config_preserved_def, simp, rule)
+   apply (simp add: machine_state_preserved_def, simp, rule)
   apply (simp add: bin_to_reg_def
                    general_purpose_reg_def
                    machine_config_def
