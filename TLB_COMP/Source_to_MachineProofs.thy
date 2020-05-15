@@ -1216,6 +1216,7 @@ lemma comp_aexp_BinOp_Minus_correct:
   apply (frule_tac reg = "1" in comp_aexp_mov_correct)
    apply (simp add: general_purpose_reg_def, simp, simp, safe)
   apply (drule_tac k = "ka" in code_installed_prepend, simp, simp split: prod.splits)
+  apply (frule code_installed_implies_Fetch)
   apply (frule_tac t = "steps (steps t k) ka" in sub_reg_correct)
       apply (simp add: general_purpose_reg_def)
      apply (simp add: general_purpose_reg_def)
