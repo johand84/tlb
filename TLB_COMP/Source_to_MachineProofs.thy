@@ -883,7 +883,7 @@ lemma Run_neg_correct:
     general_purpose_reg rm;
     machine_config s\<rbrakk> \<Longrightarrow>
       machine_config t \<and>
-      machine_config_preserved s t \<and>
+      machine_state_preserved s t \<and>
       REG t = (REG s)(bin_to_reg rd := -(REG s (bin_to_reg rm)), RName_PC := REG s RName_PC + 4)"
   apply (simp add: Run_def dfn'ArithLogicImmediate_def split: if_split_asm prod.splits)
    apply (simp add: general_purpose_reg_def)
@@ -902,7 +902,7 @@ lemma Run_neg_correct:
     apply (simp add: machine_config_def)
    apply (frule IncPC_correct, simp, simp, safe)
     apply (frule general_purpose_reg_correct, simp+)
-   apply (simp add: machine_config_preserved_def)
+   apply (simp add: machine_state_preserved_def)
   apply (frule IncPC_correct, simp, simp, safe)
    apply (frule general_purpose_reg_correct, simp+)
   apply (simp add: AddWithCarry_def Let_def wi_hom_syms, clarify)
