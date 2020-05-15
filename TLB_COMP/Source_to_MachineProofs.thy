@@ -611,19 +611,18 @@ lemma b_imm_correct:
     machine_config t;
     Fetch t = (b_imm offset, ft)\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
-        state_rel s t' \<and>
         machine_config t' \<and>
+        machine_state_preserved t t' \<and>
         REG t' = (REG t)(RName_PC := REG t RName_PC + (ucast offset) + 8)"
   apply (simp add: Next_def split: prod.splits)
   apply (frule Fetch_correct, simp, safe)
     apply (frule Decode_b_imm_correct, safe)
     apply (frule Run_b_imm_correct, simp, simp, safe)
-    apply (frule_tac s = "x2a" in ITAdvance_correct)
-    apply (simp add: heap_rel_def machine_config_def machine_config_preserved_def state_rel_def)
-    apply force
+    apply (frule_tac s = "x2a" in ITAdvance_correct, simp)
    apply (frule Decode_b_imm_correct, safe)
    apply (frule Run_b_imm_correct, simp, simp, safe)
    apply (frule_tac s = "x2a" in ITAdvance_correct, simp)
+   apply (simp add: machine_state_preserved_def)
   apply (frule Decode_b_imm_correct, safe)
   apply (frule Run_b_imm_correct, simp, simp, safe)
   apply (frule_tac s = "x2a" in ITAdvance_correct, simp)
