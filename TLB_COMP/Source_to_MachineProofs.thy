@@ -65,9 +65,9 @@ where
   )"
 
 definition
-  machine_config_preserved :: "'a set_tlb_state_scheme \<Rightarrow> 'a set_tlb_state_scheme \<Rightarrow> bool"
+  machine_state_preserved :: "'a set_tlb_state_scheme \<Rightarrow> 'a set_tlb_state_scheme \<Rightarrow> bool"
 where
-  "machine_config_preserved s t \<equiv>
+  "machine_state_preserved s t \<equiv>
     ASID s = ASID t \<and>
     TTBR0 s = TTBR0 t \<and>
     iset (set_tlb s) = iset (set_tlb t) \<and>
