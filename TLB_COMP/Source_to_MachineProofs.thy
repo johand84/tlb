@@ -272,6 +272,12 @@ lemma steps_one:
   "snd (Next t) = steps t 1"
   by simp
 
+lemma code_installed_prepend1:
+  "\<lbrakk>code_installed t (ca # cb);
+    REG (steps t k) RName_PC = REG t RName_PC + 4\<rbrakk> \<Longrightarrow>
+    code_installed (steps t k) cb"
+  sorry
+
 lemma machine_config_mmu_translate:
   "\<lbrakk>mmu_translate v s = (p, t); machine_config s\<rbrakk> \<Longrightarrow>
     flags_preserved s t \<and>
