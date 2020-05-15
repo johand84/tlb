@@ -302,17 +302,13 @@ lemma machine_config_mmu_read_size:
   "\<lbrakk>mmu_read_size v s = (r, t); machine_config s\<rbrakk> \<Longrightarrow>
     flags_preserved s t \<and>
     machine_config t \<and>
-    machine_config_preserved s t \<and>
+    machine_state_preserved s t \<and>
     REG s = REG t"
   apply (clarsimp simp: mmu_read_size_set_tlb_state_ext_def split: prod.splits)
   apply (frule machine_config_mmu_translate, simp)
   apply (clarsimp simp: mem_read1_def split: if_split_asm)
-      apply (clarsimp simp: mem1_def raise'exception_def flags_preserved_def machine_config_def machine_config_preserved_def
+      apply (clarsimp simp: mem1_def raise'exception_def flags_preserved_def machine_config_def machine_state_preserved_def
                      split: option.splits if_split_asm)
-     apply (clarsimp simp: mem1_def raise'exception_def machine_config_def
-                     split: option.splits if_split_asm)
-    apply (clarsimp simp: mem1_def raise'exception_def machine_config_def machine_config_preserved_def
-                    split: option.splits if_split_asm)
   sorry
 
 lemma Fetch_correct:
