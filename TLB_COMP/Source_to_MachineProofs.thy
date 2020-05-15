@@ -524,7 +524,7 @@ lemma add_reg_correct:
     machine_config t\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
         machine_config t' \<and>
-        machine_config_preserved t t' \<and>
+        machine_state_preserved t t' \<and>
         REG t' = (REG t)(bin_to_reg rd := REG t (bin_to_reg rn) + REG t (bin_to_reg rm),
                          RName_PC := REG t RName_PC + 4)"
   apply (frule Fetch_correct, simp)
@@ -534,7 +534,7 @@ lemma add_reg_correct:
     apply (simp add: snd_def)
    apply (frule Run_add_reg_correct, simp+, safe)
    apply (frule_tac s = "x2" in ITAdvance_correct)
-   apply (simp add: machine_config_preserved_def snd_def)
+   apply (simp add: machine_state_preserved_def snd_def)
   apply (frule Run_add_reg_correct, simp+, safe)
   apply (frule_tac s = "x2" in ITAdvance_correct)
   apply (simp add: snd_def)
