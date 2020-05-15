@@ -257,8 +257,8 @@ lemma general_purpose_reg_correct:
   by (simp add: bin_to_reg_def general_purpose_reg_def, safe, simp+)
 
 lemma state_rel_preserved:
-  "\<lbrakk>state_rel s t; machine_config_preserved t t'\<rbrakk> \<Longrightarrow> state_rel s t'"
-  apply (simp add: heap_rel_def machine_config_preserved_def state_rel_def)
+  "\<lbrakk>state_rel s t; machine_state_preserved t t'\<rbrakk> \<Longrightarrow> state_rel s t'"
+  apply (simp add: heap_rel_def machine_state_preserved_def state_rel_def)
   by force
 
 lemma steps_add:
