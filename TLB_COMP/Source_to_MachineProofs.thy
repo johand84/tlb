@@ -1128,6 +1128,7 @@ lemma comp_aexp_UnOp_Neg_correct:
   apply (frule comp_aexp_mov_correct)
    apply (simp add: general_purpose_reg_def, simp, simp, safe)
   apply (frule_tac k = "k" in code_installed_prepend, simp, simp split: prod.splits)
+  apply (frule code_installed_implies_Fetch)
   apply (frule_tac rd = "0" and rm = "0" in neg_correct)
      apply (simp add: general_purpose_reg_def)
     apply (simp add: general_purpose_reg_def, simp)
