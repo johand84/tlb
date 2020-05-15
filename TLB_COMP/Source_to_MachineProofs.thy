@@ -699,7 +699,7 @@ lemma ldr_imm_correct:
     mmu_read_size (Addr (REG t (bin_to_reg rn)), 4) t = (to_bl val, t)\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
         machine_config t' \<and>
-        machine_config_preserved t t' \<and>
+        machine_state_preserved t t' \<and>
         REG t' = (REG t)(bin_to_reg rt := val,
                          RName_PC := REG t RName_PC + 4)"
   sorry
