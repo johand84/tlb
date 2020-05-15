@@ -478,7 +478,7 @@ lemma Run_nop_correct:
     machine_config s\<rbrakk> \<Longrightarrow>
       flags_preserved s t \<and>
       machine_config t \<and>
-      machine_config_preserved s t \<and>
+      machine_state_preserved s t \<and>
       REG t = (REG s)(RName_PC := REG s RName_PC + 4)"
   apply (simp add: Run_def dfn'NoOperation_def)
   apply (frule IncPC_correct, simp, simp, safe)
