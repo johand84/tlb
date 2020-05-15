@@ -422,13 +422,13 @@ lemma IncPC_correct:
       t = s\<lparr>REG := (REG s)(RName_PC := REG s RName_PC + 4)\<rparr> \<and>
       flags_preserved s t\<and>
       machine_config t \<and>
-      machine_config_preserved s t"
+      machine_state_preserved s t"
   apply (simp add: BranchTo_def
                    IncPC_def
                    ThisInstrLength_def
                    flags_preserved_def
                    machine_config_def
-                   machine_config_preserved_def, safe)
+                   machine_state_preserved_def, safe)
   by (drule Aligned1_correct, simp)+
 
 lemma IsSecure_correct:
