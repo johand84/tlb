@@ -1519,7 +1519,7 @@ lemma comp_bexp_BUnOp_Not_correct:
   apply (frule comp_bexp_mov_correct)
      apply (simp add: general_purpose_reg_def, simp, simp, simp del: steps.simps)
   apply (drule_tac k = "1" in code_installed_prepend, simp)
-  apply (frule hello)
+  apply (frule code_installed_implies_Fetch)
   apply (frule_tac val = "a" in cmp_imm_correct)
      apply (simp add: bin_to_reg_def)
     apply (simp add: general_purpose_reg_def)
@@ -1529,7 +1529,7 @@ lemma comp_bexp_BUnOp_Not_correct:
    apply (subgoal_tac "machine_state_preserved (steps t (Suc 0)) (steps (steps t (Suc 0)) (Suc 0))")
     apply (frule_tac t = "steps t (Suc 0)" and
                      t' = "steps (steps t (Suc 0)) (Suc 0)" in state_rel_preserved, simp)
-    apply (frule hello)
+    apply (frule code_installed_implies_Fetch)
     apply (frule moveq_imm_correct)
        apply (simp add: general_purpose_reg_def, simp)
      apply (simp add: word_bits_def word_extract_def)
@@ -1538,7 +1538,7 @@ lemma comp_bexp_BUnOp_Not_correct:
      apply (subgoal_tac "machine_state_preserved (steps (steps t (Suc 0)) (Suc 0)) (steps (steps (steps t (Suc 0)) (Suc 0)) (Suc 0))")
       apply (frule_tac t = "steps (steps t (Suc 0)) (Suc 0)" and
                        t' = "steps (steps (steps t (Suc 0)) (Suc 0)) (Suc 0)" in state_rel_preserved, simp)
-      apply (frule hello)
+      apply (frule code_installed_implies_Fetch)
       apply (frule movne_imm_correct)
          apply (simp add: general_purpose_reg_def, simp)
        apply (simp add: word_bits_def word_extract_def, simp del: steps.simps, safe)
