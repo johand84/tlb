@@ -547,7 +547,7 @@ lemma Run_and_reg_correct:
     general_purpose_reg rn;
     general_purpose_reg rm\<rbrakk> \<Longrightarrow>
       machine_config t \<and>
-      machine_config_preserved s t \<and>
+      machine_state_preserved s t \<and>
       REG t = (REG s)(bin_to_reg rd := REG s (bin_to_reg rn) && REG s (bin_to_reg rm),
                       RName_PC := REG s RName_PC + 4)"
   apply (simp add: Run_def dfn'Register_def doRegister_def split: prod.splits)
@@ -566,7 +566,7 @@ lemma Run_and_reg_correct:
        apply (frule general_purpose_reg_correct, safe, simp+)
       apply (frule general_purpose_reg_correct, safe, simp+)
      apply (frule general_purpose_reg_correct, safe, simp+)
-   apply (simp add: machine_config_preserved_def)
+   apply (simp add: machine_state_preserved_def)
   done
 
 lemma and_reg_correct:
