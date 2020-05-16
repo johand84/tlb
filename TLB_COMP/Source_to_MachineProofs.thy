@@ -1753,17 +1753,61 @@ lemma comp_Assign_correct:
   sorry
 
 lemma comp_Seq_correct:
-  "\<lbrakk>\<forall>t::'a set_tlb_state_scheme. code_installed t (comp_com c1) \<and> state_rel s1 t \<longrightarrow> state_rel s2 (steps t (length (comp_com c1)));
-    \<forall>t::'a set_tlb_state_scheme. code_installed t (comp_com c2) \<and> state_rel s2 t \<longrightarrow> state_rel y (steps t (length (comp_com c2)));
-    code_installed (t::'a set_tlb_state_scheme) (comp_com c1 @ comp_com c2);
-    state_rel s1 t\<rbrakk>
-       \<Longrightarrow> state_rel y (steps t (length (comp_com c1) + length (comp_com c2)))"
+  "\<lbrakk>(c1, s1) \<Rightarrow> Some s2;
+    \<And>t. \<lbrakk>comp_com (c1;; c2) = comp_com c1;
+         code_installed t (comp_com (c1;; c2));
+         machine_config t;
+         Some s2 \<noteq> None;
+         state_rel s1 t\<rbrakk> \<Longrightarrow>
+          \<exists>k t'. steps t k = t' \<and>
+            machine_config t' \<and>
+            state_rel (the (Some s2)) t' \<and>
+            REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                             RName_1usr := REG t' RName_1usr,
+                             RName_2usr := REG t' RName_2usr,
+                             RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com (c1;; c2)))));
+    (c2, s2) \<Rightarrow> Some y;
+    \<And>t. \<lbrakk>comp_com (c1;; c2) = comp_com c2;
+         code_installed t (comp_com (c1;; c2));
+         machine_config t;
+         Some y \<noteq> None;
+         state_rel s2 t\<rbrakk> \<Longrightarrow>
+          \<exists>k t'. steps t k = t' \<and>
+            machine_config t' \<and>
+            state_rel (the (Some y)) t' \<and>
+            REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                             RName_1usr := REG t' RName_1usr,
+                             RName_2usr := REG t' RName_2usr,
+                             RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com (c1;; c2)))));
+    code_installed t (comp_com (c1;; c2)); machine_config t; state_rel s1 t; c = comp_com (c1;; c2)\<rbrakk> \<Longrightarrow>
+      \<exists>k t'. steps t k = t' \<and>
+        machine_config t' \<and>
+        state_rel (the (Some y)) t' \<and>
+        REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                         RName_1usr := REG t' RName_1usr,
+                         RName_2usr := REG t' RName_2usr,
+                         RName_PC := state.REG t RName_PC + 4 * word_of_int (int (length (comp_com (c1;; c2)))))"
+  apply simp
   apply (frule code_installed_append)
-  apply (subgoal_tac "state_rel s2 (steps t (length (comp_com c1)))")
-   apply (drule code_installed_prepend)
-   apply (subgoal_tac "state_rel y (steps (steps t (length (comp_com c1))) (length (comp_com c2)))")
-    apply (clarsimp simp: steps_add)
-  by (force+)
+  apply (subgoal_tac "\<exists>ka t'. steps t ka = t' \<and>
+            machine_config t' \<and>
+            state_rel s2 t' \<and>
+            REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                             RName_1usr := REG t' RName_1usr,
+                             RName_2usr := REG t' RName_2usr,
+                             RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com c1))))", safe)
+   apply (frule_tac k = "ka" in code_installed_prepend)
+    apply (metis fun_upd_apply)
+   apply (subgoal_tac "\<exists>kb t'. steps (steps t ka) kb = t' \<and>
+        machine_config t' \<and>
+        state_rel (the s3) t' \<and>
+        REG t' = (REG (steps t ka))(RName_0usr := REG t' RName_0usr,
+                         RName_1usr := REG t' RName_1usr,
+                         RName_2usr := REG t' RName_2usr,
+                         RName_PC := state.REG (steps t ka) RName_PC + 4 * word_of_int (int (length (comp_com c2))))", safe)
+    apply (simp add: steps_add wi_hom_syms)
+    apply (rule_tac x = "ka+kb" in exI, safe)
+  sorry
 
 lemma comp_IfTrue_correct:
   "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some True; (c1, s) \<Rightarrow> Some y;
