@@ -1694,6 +1694,24 @@ lemma comp_bexp_correct:
   apply (frule comp_bexp_BUnOp_correct, force+)
   done
 
+lemma comp_flush_flushTLB_correct:
+  "\<lbrakk>mode s = Kernel;
+    c = [tlbiall];
+    code_installed t [tlbiall];
+    machine_config t;
+    state_rel s t;
+    f = flushTLB\<rbrakk> \<Longrightarrow>
+      \<exists>k t'. (steps t k) = t' \<and>
+        machine_config (steps t k) \<and>
+        state_rel (s\<lparr>incon_set := {},
+                     p_state.global_set := \<Union> (MMU_Prg_Logic.range_of ` MMU_Prg_Logic.global_entries (ran (MMU_Prg_Logic.pt_walk (asid s) (heap s) (root s)))),
+                     ptable_snapshot := \<lambda>a. ({}, \<lambda>v. Fault)\<rparr>) t' \<and>
+        REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                         RName_1usr := REG t' RName_1usr,
+                         RName_2usr := REG t' RName_2usr,
+                         RName_PC := REG t RName_PC + 4)"
+  sorry
+
 lemma comp_SKIP_correct:
   "\<lbrakk>c = comp_com SKIP;
     code_installed t c;
