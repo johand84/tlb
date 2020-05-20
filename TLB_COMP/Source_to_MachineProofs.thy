@@ -1737,6 +1737,24 @@ lemma comp_flush_flushASID_correct:
                            RName_PC := REG t RName_PC + 8)))"
   sorry
 
+lemma comp_flush_flushvarange_correct:
+  "\<lbrakk>mode s = Kernel;
+    c = [b_imm 0, ARM (addr_val x3), ldr_lit 0 0 0xC, tlbimvaa 0];
+    code_installed t [b_imm 0, ARM (addr_val x3), ldr_lit 0 0 0xC, tlbimvaa 0];
+    machine_config t;
+    state_rel s t;
+    f = flushvarange x3\<rbrakk> \<Longrightarrow>
+      \<exists>k t'. steps t k = t' \<and>
+        machine_config t' \<and>
+        state_rel (s\<lparr>incon_set := incon_set s - {x3},
+                     p_state.global_set := p_state.global_set s - {x3} \<union> \<Union> (MMU_Prg_Logic.range_of ` MMU_Prg_Logic.global_entries (ran (MMU_Prg_Logic.pt_walk (asid s) (heap s) (root s)))),
+                     ptable_snapshot := \<lambda>a. (fst (ptable_snapshot s a) - {x3}, \<lambda>v. if v = x3 then Fault else snd (ptable_snapshot s a) v)\<rparr>) t' \<and>
+        REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                         RName_1usr := REG t' RName_1usr,
+                         RName_2usr := REG t' RName_2usr,
+                         RName_PC := REG t RName_PC + 0x10)"
+  sorry
+
 lemma comp_SKIP_correct:
   "\<lbrakk>c = comp_com SKIP;
     code_installed t c;
