@@ -1755,6 +1755,31 @@ lemma comp_flush_flushvarange_correct:
                          RName_PC := REG t RName_PC + 0x10)"
   sorry
 
+lemma comp_flush_flushASIDvarange_correct:
+  "\<lbrakk>mode s = Kernel;
+    c = [b_imm 0, ARM (word_cat x41 (word_extract 23 0 (addr_val x42))), ldr_lit 0 0 0xC, tlbimva 0];
+    code_installed t [b_imm 0, ARM (word_cat x41 (word_extract 23 0 (addr_val x42))), ldr_lit 0 0 0xC, tlbimva 0];
+    machine_config t;
+    state_rel s t;
+    f = flushASIDvarange x41 x42\<rbrakk> \<Longrightarrow>
+      (x41 = asid s \<longrightarrow>
+        (\<exists>k t'. steps t k = t' \<and>
+          machine_config t' \<and>
+          state_rel (s\<lparr>incon_set := incon_set s - ({x42} - p_state.global_set s)\<rparr>) t' \<and>
+          REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                           RName_1usr := REG t' RName_1usr,
+                           RName_2usr := REG t' RName_2usr,
+                           RName_PC := REG t RName_PC + 0x10))) \<and>
+      (x41 \<noteq> asid s \<longrightarrow>
+        (\<exists>k t'. steps t k = t' \<and>
+          machine_config t' \<and>
+          state_rel (s\<lparr>ptable_snapshot := \<lambda>x. if x = x41 then (fst (ptable_snapshot s x) - {x42}, \<lambda>v. if v \<in> {x42} then Fault else snd (ptable_snapshot s x) v) else ptable_snapshot s x\<rparr>) t' \<and>
+          REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                           RName_1usr := REG t' RName_1usr,
+                           RName_2usr := REG t' RName_2usr,
+                           RName_PC := REG t RName_PC + 0x10)))"
+  sorry
+
 lemma comp_SKIP_correct:
   "\<lbrakk>c = comp_com SKIP;
     code_installed t c;
