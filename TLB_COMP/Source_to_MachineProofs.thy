@@ -1712,6 +1712,31 @@ lemma comp_flush_flushTLB_correct:
                          RName_PC := REG t RName_PC + 4)"
   sorry
 
+lemma comp_flush_flushASID_correct:
+  "\<lbrakk>mode s = Kernel;
+    c = [mov_imm 0 (UCAST(8 \<rightarrow> 12) x2), tlbiasid 0];
+    code_installed t [mov_imm 0 (UCAST(8 \<rightarrow> 12) x2), tlbiasid 0];
+    machine_config t;
+    state_rel s t;
+    f = flushASID x2\<rbrakk> \<Longrightarrow>
+      (x2 = asid s \<longrightarrow>
+        (\<exists>k t'. steps t k = t' \<and>
+             machine_config t' \<and>
+             state_rel (s\<lparr>incon_set := incon_set s \<inter> p_state.global_set s\<rparr>) t' \<and>
+             REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                              RName_1usr := REG t' RName_1usr,
+                              RName_2usr := REG t' RName_2usr,
+                              RName_PC := REG t RName_PC + 8))) \<and>
+      (x2 \<noteq> asid s \<longrightarrow>
+        (\<exists>k t'. steps t k = t' \<and>
+          machine_config t' \<and>
+          state_rel (s\<lparr>ptable_snapshot := (ptable_snapshot s)(x2 := ({}, \<lambda>v. Fault))\<rparr>) t' \<and>
+          REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                           RName_1usr := REG t' RName_1usr,
+                           RName_2usr := REG t' RName_2usr,
+                           RName_PC := REG t RName_PC + 8)))"
+  sorry
+
 lemma comp_SKIP_correct:
   "\<lbrakk>c = comp_com SKIP;
     code_installed t c;
