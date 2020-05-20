@@ -2007,14 +2007,26 @@ lemma comp_WhileTrue_correct:
   sorry
 
 lemma comp_Flush_correct:
-  "\<And>s f flush_effect_snp flush_effect_glb flush_effect_iset t.
-       \<lbrakk>mode s = Kernel; code_installed t (comp_flush f); state_rel s t\<rbrakk>
-       \<Longrightarrow> state_rel
-            (s\<lparr>incon_set := flush_effect_iset f (incon_set s) (p_state.global_set s) (asid s),
-                 p_state.global_set := flush_effect_glb f (p_state.global_set s) (asid s) (heap s) (root s),
-                 ptable_snapshot := flush_effect_snp f (ptable_snapshot s) (asid s)\<rparr>)
-            (steps t (length (comp_flush f)))"
-  sorry
+  "\<lbrakk>mode s = Kernel;
+    code_installed t (comp_com (Flush f));
+    machine_config t;
+    state_rel s t;
+    c = comp_com (Flush f)\<rbrakk> \<Longrightarrow>
+      \<exists>k t'. steps t k = t' \<and>
+        machine_config t' \<and>
+        state_rel (the (Some (s\<lparr>incon_set := flush_effect_iset f (incon_set s) (p_state.global_set s) (asid s),
+                                p_state.global_set := flush_effect_glb f (p_state.global_set s) (asid s) (heap s) (root s),
+                                ptable_snapshot := flush_effect_snp f (ptable_snapshot s) (asid s)\<rparr>))) t' \<and>
+        REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                         RName_1usr := REG t' RName_1usr,
+                         RName_2usr := REG t' RName_2usr,
+                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com (Flush f)))))"
+  apply (cases f; simp)
+     apply (frule comp_flush_flushTLB_correct, force+)
+    apply (frule comp_flush_flushASID_correct, force+)
+   apply (frule comp_flush_flushvarange_correct, force+)
+  apply (frule comp_flush_flushASIDvarange_correct, force+)
+  done
 
 lemma comp_UpdateTTBR0_correct:
   "\<And>s rte rt t.
