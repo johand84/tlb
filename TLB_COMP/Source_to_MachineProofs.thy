@@ -2081,22 +2081,30 @@ lemma comp_SetMode_correct:
 
 theorem comp_com_correct:
   "\<lbrakk>(p,s) \<Rightarrow> st;
-    code_installed t (comp_com p);
+    c = comp_com p;
+    code_installed t c;
+    machine_config t;
     st \<noteq> None;
-    state_rel s t
-    \<rbrakk> \<Longrightarrow>
-      \<exists>t'. steps t (length (comp_com p)) = t' \<and> state_rel (the st) t'"
-  apply (induction arbitrary: t rule: big_step_induct; clarsimp)
-           apply(drule comp_Assign_correct, force+)
-          apply(rule comp_Seq_correct,force+)
-         apply(rule comp_IfTrue_correct,force+)
-        apply(rule comp_IfFalse_correct,force+)
-       apply(rule comp_WhileFalse_correct,simp+)
-      apply(rule comp_WhileTrue_correct,force+)
-     apply(rule comp_Flush_correct,simp+)
-    apply(rule comp_UpdateTTBR0_correct,simp+)
-   apply(rule comp_UpdateASID_correct,simp+)
-  apply(rule comp_SetMode_correct,simp+)
+    state_rel s t\<rbrakk> \<Longrightarrow>
+      \<exists>k t'. steps t k = t' \<and>
+        machine_config t' \<and>
+        state_rel (the st) t' \<and>
+        REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                 RName_1usr := REG t' RName_1usr,
+                 RName_2usr := REG t' RName_2usr,
+                 RName_PC := REG t RName_PC + 4 * (word_of_int (int (length c))))"
+  apply (induction arbitrary: t rule: big_step_induct; safe)
+            apply (frule comp_SKIP_correct, force+)
+           apply(frule comp_Assign_correct, force, force, force, force, force, force, force, force, force, force)
+          apply(frule comp_Seq_correct, force, force, force, force, force, force, force, force)
+         apply(frule comp_IfTrue_correct, force, force, force, force, force, force, force)
+        apply(frule comp_IfFalse_correct, force, force, force, force, force, force, force)
+       apply (frule comp_WhileFalse_correct, force, force, force, force, force)
+      apply (frule comp_WhileTrue_correct, force, force, force, force, force, force, force, force, force)
+     apply (frule comp_Flush_correct, force, force, force, force, force)
+    apply (frule comp_UpdateTTBR0_correct, force, force, force, force, force, force)
+   apply (frule comp_UpdateASID_correct, force, force, force, force, force)
+  apply (frule comp_SetMode_correct, force, force, force, force, force)
   done
 
 end
