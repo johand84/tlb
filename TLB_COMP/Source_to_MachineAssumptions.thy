@@ -72,4 +72,8 @@ lemma Decode_sub_reg_correct:
     Decode (sub_reg rd rn rm) s = (Data (Register (0x2, False, rd, rn, rm, SRType_LSL, 0)),s)"
   sorry
 
+lemma Decode_tlbiall_correct:
+  "machine_config s \<Longrightarrow> Decode tlbiall s = (CoprocessorInstruction (MoveToCoprocessorFromRegister (0,8,0,15,0,7)), s)"
+  sorry
+
 end
