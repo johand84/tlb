@@ -1099,6 +1099,24 @@ lemma sub_reg_correct:
   apply (simp add: snd_def)
   done
 
+lemma Run_tlbiall_correct:
+  "\<lbrakk>PSR.M (CPSR s) = 0x13;
+    Run (CoprocessorInstruction (MoveToCoprocessorFromRegister (0, 8, 0, 0xF, 0, 7))) s = ((), t);
+    machine_config s\<rbrakk> \<Longrightarrow>
+      machine_config t \<and>
+      ASID s = ASID t \<and>
+      TTBR0 s = TTBR0 t \<and>
+      PSR.M (CPSR s) = PSR.M (CPSR t) \<and>
+      MEM s = MEM t \<and>
+      global_set (set_tlb t) = \<Union> (entry_op_class.range_of ` TLB_ASIDs.global_entries (the ` {e \<in> range (TLB.pt_walk (ASID s) (MEM s) (TTBR0 s)). \<not> is_fault e})) \<and>
+      iset (set_tlb t) = {} \<and>
+      snapshot (set_tlb t) = (\<lambda>a. ({}, \<lambda>v. Fault))"
+  apply (simp add: Run_def dfn'MoveToCoprocessorFromRegister_def split: if_split_asm)
+   apply (frule CurrentModeIsNotUser_correct)
+   apply (simp add: flush_set_tlb_state_ext_def, clarify)
+  apply (simp add: machine_config_def)
+  done
+
 lemma comp_aexp_mov_small_correct:
   "\<lbrakk>Fetch t = (mov_imm reg (ucast val), ft);
     general_purpose_reg reg;
