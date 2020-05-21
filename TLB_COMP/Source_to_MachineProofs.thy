@@ -1117,6 +1117,40 @@ lemma Run_tlbiall_correct:
   apply (simp add: machine_config_def)
   done
 
+lemma tlbiall_correct:
+  "\<lbrakk>Fetch t = (tlbiall, ft);
+    PSR.M (CPSR t) = 0x13;
+    machine_config t\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t 1 = t' \<and>
+        machine_config t' \<and>
+        ASID t = ASID t' \<and>
+        TTBR0 t = TTBR0 t' \<and>
+        PSR.M (CPSR t) = PSR.M (CPSR t') \<and>
+        MEM t = MEM t' \<and>
+        global_set (set_tlb t') = \<Union> (entry_op_class.range_of ` TLB_ASIDs.global_entries (the ` {e \<in> range (TLB.pt_walk (ASID t) (MEM t) (TTBR0 t)). \<not> is_fault e})) \<and>
+        iset (set_tlb t') = {} \<and>
+        snapshot (set_tlb t') = (\<lambda>a. ({}, \<lambda>v. Fault))"
+  apply (frule Fetch_correct, simp)
+  apply (simp add: Decode_tlbiall_correct Next_def machine_state_preserved_def split: prod.splits, safe)
+          apply (frule Run_tlbiall_correct, simp, simp, safe)
+          apply (frule_tac s = "x2" in ITAdvance_correct, simp)
+         apply (frule Run_tlbiall_correct, simp, simp, safe)
+         apply (frule_tac s = "x2" in ITAdvance_correct, simp)
+        apply (frule Run_tlbiall_correct, simp, simp, safe)
+        apply (frule_tac s = "x2" in ITAdvance_correct, simp)
+       apply (frule Run_tlbiall_correct, simp, simp, safe)
+       apply (frule_tac s = "x2" in ITAdvance_correct, simp)
+      apply (frule Run_tlbiall_correct, simp, simp, safe)
+      apply (frule_tac s = "x2" in ITAdvance_correct, simp)
+     apply (frule Run_tlbiall_correct, simp, simp, safe)
+     apply (frule_tac s = "x2" in ITAdvance_correct, simp)
+    defer
+    apply (frule Run_tlbiall_correct, simp, simp, safe)
+    apply (frule_tac s = "x2" in ITAdvance_correct, simp)
+   apply (frule Run_tlbiall_correct, simp, simp, safe)
+   apply (frule_tac s = "x2" in ITAdvance_correct, simp)
+  sorry
+
 lemma comp_aexp_mov_small_correct:
   "\<lbrakk>Fetch t = (mov_imm reg (ucast val), ft);
     general_purpose_reg reg;
