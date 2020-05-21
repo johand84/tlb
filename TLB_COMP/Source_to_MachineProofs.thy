@@ -256,6 +256,14 @@ lemma general_purpose_reg_correct:
     bin_to_reg reg \<noteq> RName_PC"
   by (simp add: bin_to_reg_def general_purpose_reg_def, safe, simp+)
 
+lemma mode_correct:
+  "state_rel s t \<Longrightarrow>
+    (mode s = Kernel \<longrightarrow> PSR.M (CPSR t) = 0x13) \<and>
+    (mode s = User \<longrightarrow> PSR.M (CPSR t) = 0x10)"
+  apply (cases "mode s")
+   apply (simp add: mode_rel_def state_rel_def)+
+  done
+
 lemma state_rel_preserved:
   "\<lbrakk>state_rel s t; machine_state_preserved t t'\<rbrakk> \<Longrightarrow> state_rel s t'"
   apply (simp add: heap_rel_def machine_state_preserved_def state_rel_def)
