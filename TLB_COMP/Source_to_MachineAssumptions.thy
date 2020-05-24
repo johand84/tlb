@@ -49,6 +49,11 @@ lemma Decode_movne_imm_correct:
     Decode (movne_imm rd imm12) s = ((if PSR.Z (CPSR s) then NoOperation else Data (ArithLogicImmediate (0xd, False, rd, 0, imm12))),s)"
   sorry
 
+lemma Decode_msr_reg_correct:
+  "machine_config s \<Longrightarrow>
+    Decode (msr_reg 0 m rn) s = (System (MoveToSpecialFromRegister (False, rn, m)),s)"
+  sorry
+
 lemma Decode_neg_correct:
   "machine_config s \<Longrightarrow> Decode (neg rd rm) s = (Data (ArithLogicImmediate (0x3, False, rd, rm, 0)),s)"
   sorry
