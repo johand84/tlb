@@ -917,6 +917,21 @@ lemma Run_msr_reg_correct:
       MEM s = MEM t"
   sorry
 
+lemma msr_reg_correct:
+  "\<lbrakk>Fetch t = (msr_reg 0 0x1 0, ft);
+    machine_config t\<rbrakk> \<Longrightarrow>
+      \<exists>t'. steps t 1 = t' \<and>
+        machine_config t' \<and>
+        ASID t = ASID t' \<and>
+        TTBR0 t = TTBR0 t' \<and>
+        iset (set_tlb t) = iset (set_tlb t') \<and>
+        global_set (set_tlb t) = global_set (set_tlb t') \<and>
+        snapshot (set_tlb t) = snapshot (set_tlb t') \<and>
+        PSR.M (CPSR t') = 0x10 \<and>
+        MEM t = MEM t' \<and>
+        REG t' = (REG t)(RName_PC := REG t RName_PC + 4)"
+  sorry
+
 lemma Run_neg_correct:
   "\<lbrakk>Run (Data (ArithLogicImmediate (3, False, rd, rm, 0))) s = ((), t);
     general_purpose_reg rd;
