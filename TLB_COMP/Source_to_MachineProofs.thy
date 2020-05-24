@@ -2062,8 +2062,21 @@ lemma comp_UpdateASID_correct:
   sorry
 
 lemma comp_SetMode_correct:
-  "\<And>s m t.
-       \<lbrakk>mode s = Kernel; code_installed t (comp_set_mode m); state_rel s t\<rbrakk> \<Longrightarrow> state_rel (s\<lparr>mode := m\<rparr>) (steps t (length (comp_set_mode m)))"
+  "\<lbrakk>mode s = Kernel;
+    code_installed t (comp_com (SetMode m));
+    machine_config t;
+    state_rel s t;
+    c = comp_com (SetMode m)\<rbrakk> \<Longrightarrow>
+      \<exists>k t'. steps t k = t' \<and>
+        machine_config t' \<and>
+        state_rel (the (Some (s\<lparr>mode := m\<rparr>))) t' \<and>
+        REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                         RName_1usr := REG t' RName_1usr,
+                         RName_2usr := REG t' RName_2usr,
+                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com (SetMode m)))))"
+  apply (cases m; simp)
+   apply (rule_tac x = "0" in exI, simp)
+   apply (simp add: state_rel_def)
   sorry
 
 theorem comp_com_correct:
