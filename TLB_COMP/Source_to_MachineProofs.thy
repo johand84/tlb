@@ -903,6 +903,20 @@ lemma movne_imm_correct:
    apply (frule_tac s = "x2" in ITAdvance_correct, simp)
   done
 
+lemma Run_msr_reg_correct:
+  "\<lbrakk>PSR.M (CPSR s) = 0x13;
+    Run (System (MoveToSpecialFromRegister (False, 0, 1))) s = ((), t);
+    machine_config s\<rbrakk> \<Longrightarrow>
+      machine_config t \<and>
+      ASID s = ASID t \<and>
+      TTBR0 s = TTBR0 t \<and>
+      iset (set_tlb s) = iset (set_tlb t) \<and>
+      global_set (set_tlb s) = global_set (set_tlb t) \<and>
+      snapshot (set_tlb s) = snapshot (set_tlb t) \<and>
+      PSR.M (CPSR t) = 0x10 \<and>
+      MEM s = MEM t"
+  sorry
+
 lemma Run_neg_correct:
   "\<lbrakk>Run (Data (ArithLogicImmediate (3, False, rd, rm, 0))) s = ((), t);
     general_purpose_reg rd;
