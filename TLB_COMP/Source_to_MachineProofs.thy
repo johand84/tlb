@@ -2029,10 +2029,19 @@ lemma comp_Flush_correct:
   done
 
 lemma comp_UpdateTTBR0_correct:
-  "\<And>s rte rt t.
-       \<lbrakk>mode s = Kernel; \<lbrakk>rte\<rbrakk> s = Some rt; code_installed t (comp_aexp rte @ [mcr_reg 0 2 0 0xF 0 0]); state_rel s t\<rbrakk>
-       \<Longrightarrow> state_rel (s\<lparr>root := Addr rt, incon_set := iset_upd' s rt, p_state.global_set := gset_upd' s rt\<rparr>)
-            (steps (snd (Next t)) (length (comp_aexp rte)))"
+  "\<lbrakk>mode s = Kernel;
+    \<lbrakk>rte\<rbrakk> s = Some rt;
+    code_installed t (comp_com (UpdateTTBR0 rte));
+    machine_config t;
+    state_rel s t;
+    c = comp_com (UpdateTTBR0 rte)\<rbrakk> \<Longrightarrow>
+      \<exists>k t'. steps t k = t' \<and>
+        machine_config t' \<and>
+        state_rel (the (Some (s\<lparr>root := Addr rt, incon_set := iset_upd' s rt, p_state.global_set := gset_upd' s rt\<rparr>))) t' \<and>
+        REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                         RName_1usr := REG t' RName_1usr,
+                         RName_2usr := REG t' RName_2usr,
+                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com (UpdateTTBR0 rte)))))"
   sorry
 
 lemma comp_UpdateASID_correct:
