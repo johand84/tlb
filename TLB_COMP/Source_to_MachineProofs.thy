@@ -1696,7 +1696,6 @@ lemma comp_bexp_correct:
 
 lemma comp_flush_flushTLB_correct:
   "\<lbrakk>mode s = Kernel;
-    c = [tlbiall];
     code_installed t [tlbiall];
     machine_config t;
     state_rel s t;
