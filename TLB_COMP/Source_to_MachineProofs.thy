@@ -408,17 +408,18 @@ lemma word_cat_assumption:
 
 lemma BranchWritePC_correct:
   "\<lbrakk>machine_config s;
-    BranchWritePC (REG s RName_PC + 8 + (ucast offset)) s = ((), t)\<rbrakk> \<Longrightarrow>
-      t = s\<lparr>REG := (REG s)(RName_PC := REG s RName_PC + (ucast offset) + 8)\<rparr> \<and>
+    BranchWritePC (REG s RName_PC + 8 + (UCAST(24 \<rightarrow> 32) offset)) s = ((), t);
+    word_extract 1 0 offset = (0::2 word)\<rbrakk> \<Longrightarrow>
+      t = s\<lparr>REG := (REG s)(RName_PC := REG s RName_PC + (UCAST(24 \<rightarrow> 32) offset) + 8)\<rparr> \<and>
         machine_config t \<and>
         machine_state_preserved s t"
   apply (frule CurrentInstrSet_correct)
-  apply (frule ArchVersion_correct, safe)
-    apply (simp add: BranchWritePC_def BranchTo_def)
-    defer
-    defer
-    apply (simp add: BranchWritePC_def BranchTo_def machine_state_preserved_def, safe, simp+)
-  sorry
+  apply (frule ArchVersion_correct)
+  apply (simp add: BranchWritePC_def BranchTo_def, safe)
+    apply (simp add: word_cat_assumption)
+   apply (simp add: Aligned1_assumption machine_config_def)
+  apply (simp add: machine_state_preserved_def)
+  done
 
 lemma CurrentModeIsNotUser_correct:
   "machine_config s \<Longrightarrow> CurrentModeIsNotUser () s = (PSR.M (CPSR s) = 0x13, s)"
