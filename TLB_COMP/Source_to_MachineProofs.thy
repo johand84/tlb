@@ -633,9 +633,9 @@ lemma Run_b_imm_correct:
   done
 
 lemma b_imm_correct:
-  "\<lbrakk>state_rel s t;
+  "\<lbrakk>Fetch t = (b_imm offset, ft);
     machine_config t;
-    Fetch t = (b_imm offset, ft)\<rbrakk> \<Longrightarrow>
+    word_extract 1 0 offset = (0::2 word)\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
         machine_config t' \<and>
         machine_state_preserved t t' \<and>
