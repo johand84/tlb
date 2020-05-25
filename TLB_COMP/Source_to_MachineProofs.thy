@@ -2045,16 +2045,20 @@ lemma comp_UpdateTTBR0_correct:
   sorry
 
 lemma comp_UpdateASID_correct:
-  "\<And>s a t y ya.
-       \<lbrakk>mode s = Kernel; state_rel s t; Fetch t = (mov_imm 0 (UCAST(8 \<rightarrow> 12) a), y);
-        Fetch (y\<lparr>state.REG := (state.REG t)(RName_PC := state.REG t RName_PC + 4)\<rparr>) = (mcr_reg 0 0xD 0 0xF 0 0, ya)\<rbrakk>
-       \<Longrightarrow> state_rel
-            (s\<lparr>asid := a,
-                 incon_set :=
-                   incon_load (cur_pt_snp' (ptable_snapshot s) (incon_set s) (heap s) (root s) (asid s)) (incon_set s) (p_state.global_set s)
-                    a (heap s) (root s),
-                 ptable_snapshot := cur_pt_snp' (ptable_snapshot s) (incon_set s) (heap s) (root s) (asid s)\<rparr>)
-            (snd (Next (snd (Next t))))"
+  "\<lbrakk>mode s = Kernel;
+    c = comp_com (UpdateASID a);
+    code_installed t (comp_com (UpdateASID a));
+    machine_config t;
+    state_rel s t\<rbrakk> \<Longrightarrow>
+      \<exists>k t'. steps t k = t' \<and>
+        machine_config t' \<and>
+        state_rel (the (Some (s\<lparr>asid := a,
+                                incon_set := incon_load (cur_pt_snp' (ptable_snapshot s) (incon_set s) (heap s) (root s) (asid s)) (incon_set s) (p_state.global_set s) a (heap s) (root s),
+                                ptable_snapshot := cur_pt_snp' (ptable_snapshot s) (incon_set s) (heap s) (root s) (asid s)\<rparr>))) t' \<and>
+        REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                         RName_1usr := REG t' RName_1usr,
+                         RName_2usr := REG t' RName_2usr,
+                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com (UpdateASID a)))))"
   sorry
 
 lemma comp_SetMode_correct:
