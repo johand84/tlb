@@ -1695,16 +1695,18 @@ lemma comp_bexp_correct:
   done
 
 lemma comp_SKIP_correct:
-  "\<lbrakk>code_installed t [];
+  "\<lbrakk>c = comp_com SKIP;
+    code_installed t c;
     machine_config t;
+    Some s \<noteq> None;
     state_rel s t\<rbrakk> \<Longrightarrow>
       \<exists>k t'. steps t k = t' \<and>
         machine_config t' \<and>
-        state_rel s t' \<and>
-        REG t' = (state.REG t)(RName_0usr := REG t' RName_0usr,
-                               RName_1usr := REG t' RName_1usr,
-                               RName_2usr := REG t' RName_2usr,
-                               RName_PC := state.REG t RName_PC)"
+        state_rel (the (Some s)) t' \<and>
+        REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                         RName_1usr := REG t' RName_1usr,
+                         RName_2usr := REG t' RName_2usr,
+                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length c)))"
   using steps.simps(1) by fastforce
 
 lemma comp_Assign_correct:
