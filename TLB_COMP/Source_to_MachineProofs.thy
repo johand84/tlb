@@ -1838,18 +1838,31 @@ lemma comp_IfTrue_correct:
   sorry
 
 lemma comp_IfFalse_correct:
-  "\<And>b s c2 c1 ta y.
-       \<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some False; (c2, s) \<Rightarrow> Some y;
-        \<And>t. \<lbrakk>code_installed t (comp_com c2); state_rel s t\<rbrakk> \<Longrightarrow> state_rel y (steps t (length (comp_com c2)));
-        code_installed ta
-         (let i1 = comp_com c1; i2 = comp_com c2
-          in comp_bexp b @ cmp_imm 0 0 # beq_imm (code_size i1 - 1) # i1 @ b_imm (code_size i2 - 1) # i2);
-        state_rel s ta\<rbrakk>
-       \<Longrightarrow> state_rel y
-            (steps ta
-              (length
-                (let i1 = comp_com c1; i2 = comp_com c2
-                 in comp_bexp b @ cmp_imm 0 0 # beq_imm (code_size i1 - 1) # i1 @ b_imm (code_size i2 - 1) # i2)))"
+  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some False;
+    (c2, s) \<Rightarrow> Some y;
+    \<And>t. \<lbrakk>comp_com (IF b THEN c1 ELSE c2) = comp_com c2;
+          code_installed t (comp_com (IF b THEN c1 ELSE c2));
+          machine_config t;
+          Some y \<noteq> None;
+          state_rel s t\<rbrakk> \<Longrightarrow>
+            \<exists>k t'. steps t k = t' \<and>
+              machine_config t' \<and>
+              state_rel (the (Some y)) t' \<and>
+              REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                               RName_1usr := REG t' RName_1usr,
+                               RName_2usr := REG t' RName_2usr,
+                               RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com (IF b THEN c1 ELSE c2)))));
+    code_installed ta (comp_com (IF b THEN c1 ELSE c2));
+    machine_config ta;
+    state_rel s ta;
+    c = comp_com (IF b THEN c1 ELSE c2)\<rbrakk> \<Longrightarrow>
+      \<exists>k t'. steps ta k = t' \<and>
+        machine_config t' \<and>
+        state_rel (the (Some y)) t' \<and>
+        REG t' = (REG ta)(RName_0usr := REG t' RName_0usr,
+                          RName_1usr := REG t' RName_1usr,
+                          RName_2usr := REG t' RName_2usr,
+                          RName_PC := REG ta RName_PC + 4 * word_of_int (int (length (comp_com (IF b THEN c1 ELSE c2)))))"
   sorry
 
 lemma comp_WhileFalse_correct:
