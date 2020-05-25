@@ -400,6 +400,12 @@ lemma Aligned1_assumption:
      Aligned1 (Addr (word_cat (word_extract 31 2 (REG s RName_PC + 8 + UCAST(24 \<rightarrow> 32) offset)) 0), 4)"
   sorry
 
+lemma word_cat_assumption:
+  "word_extract 1 0 offset = (0::2 word) \<Longrightarrow>
+     word_cat (word_extract 31 2 (REG s RName_PC + 8 + UCAST(24 \<rightarrow> 32) offset)) 0 =
+     REG s RName_PC + UCAST(24 \<rightarrow> 32) offset + 8"
+  sorry
+
 lemma BranchWritePC_correct:
   "\<lbrakk>machine_config s;
     BranchWritePC (REG s RName_PC + 8 + (ucast offset)) s = ((), t)\<rbrakk> \<Longrightarrow>
