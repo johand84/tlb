@@ -1866,17 +1866,18 @@ lemma comp_IfFalse_correct:
   sorry
 
 lemma comp_WhileFalse_correct:
-  "\<And>b s c t.
-       \<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some False;
-        code_installed t
-         (let i1 = comp_bexp b; i2 = comp_com c
-          in i1 @ cmp_imm 0 0 # beq_imm (code_size i2 - 1) # i2 @ [b_imm (- code_size i1 - code_size i2 + 0xFFFFFC)]);
-        state_rel s t\<rbrakk>
-       \<Longrightarrow> state_rel s
-            (steps t
-              (length
-                (let i1 = comp_bexp b; i2 = comp_com c
-                 in i1 @ cmp_imm 0 0 # beq_imm (code_size i2 - 1) # i2 @ [b_imm (- code_size i1 - code_size i2 + 0xFFFFFC)])))"
+  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b y = Some False;
+    code_installed t (comp_com (WHILE b DO ca));
+    machine_config t;
+    state_rel y t;
+    c = comp_com (WHILE b DO ca)\<rbrakk> \<Longrightarrow>
+      \<exists>k t'. steps t k = t' \<and>
+        machine_config t' \<and>
+        state_rel (the (Some y)) t' \<and>
+        REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                         RName_1usr := REG t' RName_1usr,
+                         RName_2usr := REG t' RName_2usr,
+                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com (WHILE b DO ca)))))"
   sorry
 
 lemma comp_WhileTrue_correct:
