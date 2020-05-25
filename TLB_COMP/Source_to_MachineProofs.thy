@@ -395,6 +395,11 @@ lemma CurrentInstrSet_correct:
   "machine_config s \<Longrightarrow> CurrentInstrSet () s = (InstrSet_ARM, s)"
   by (simp add: CurrentInstrSet_def ISETSTATE_def machine_config_def word_cat_def split: if_split_asm)
 
+lemma Aligned1_assumption:
+  "word_extract 1 0 offset = (0::2 word) \<Longrightarrow>
+     Aligned1 (Addr (word_cat (word_extract 31 2 (REG s RName_PC + 8 + UCAST(24 \<rightarrow> 32) offset)) 0), 4)"
+  sorry
+
 lemma BranchWritePC_correct:
   "\<lbrakk>machine_config s;
     BranchWritePC (REG s RName_PC + 8 + (ucast offset)) s = ((), t)\<rbrakk> \<Longrightarrow>
