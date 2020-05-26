@@ -1739,7 +1739,7 @@ lemma comp_flush_flushASID_correct:
 lemma comp_flush_flushvarange_correct:
   "\<lbrakk>mode s = Kernel;
     c = [b_imm 0, ARM (addr_val x3), ldr_lit 0 0 0xC, tlbimvaa 0];
-    code_installed t [b_imm 0, ARM (addr_val x3), ldr_lit 0 0 0xC, tlbimvaa 0];
+    code_installed t c;
     machine_config t;
     state_rel s t;
     f = flushvarange x3\<rbrakk> \<Longrightarrow>
