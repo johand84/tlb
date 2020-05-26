@@ -2070,7 +2070,7 @@ lemma comp_UpdateASID_correct:
 
 lemma comp_SetMode_correct:
   "\<lbrakk>mode s = Kernel;
-    code_installed t (comp_com (SetMode m));
+    code_installed t c;
     machine_config t;
     state_rel s t;
     c = comp_com (SetMode m)\<rbrakk> \<Longrightarrow>
@@ -2080,7 +2080,7 @@ lemma comp_SetMode_correct:
         REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
                          RName_1usr := REG t' RName_1usr,
                          RName_2usr := REG t' RName_2usr,
-                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com (SetMode m)))))"
+                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length c)))"
   apply (cases m; simp)
    apply (rule_tac x = "0" in exI, simp)
    apply (simp add: state_rel_def)
