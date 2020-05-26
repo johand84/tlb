@@ -1959,8 +1959,8 @@ lemma comp_IfFalse_correct:
   sorry
 
 lemma comp_WhileFalse_correct:
-  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b y = Some False;
-    code_installed t (comp_com (WHILE b DO ca));
+  "\<lbrakk>bval b y = Some False;
+    code_installed t c;
     machine_config t;
     state_rel y t;
     c = comp_com (WHILE b DO ca)\<rbrakk> \<Longrightarrow>
@@ -1970,7 +1970,7 @@ lemma comp_WhileFalse_correct:
         REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
                          RName_1usr := REG t' RName_1usr,
                          RName_2usr := REG t' RName_2usr,
-                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com (WHILE b DO ca)))))"
+                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length c)))"
   sorry
 
 lemma comp_WhileTrue_correct:
