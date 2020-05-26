@@ -1757,7 +1757,7 @@ lemma comp_flush_flushvarange_correct:
 lemma comp_flush_flushASIDvarange_correct:
   "\<lbrakk>mode s = Kernel;
     c = [b_imm 0, ARM (word_cat x41 (word_extract 23 0 (addr_val x42))), ldr_lit 0 0 0xC, tlbimva 0];
-    code_installed t [b_imm 0, ARM (word_cat x41 (word_extract 23 0 (addr_val x42))), ldr_lit 0 0 0xC, tlbimva 0];
+    code_installed t c;
     machine_config t;
     state_rel s t;
     f = flushASIDvarange x41 x42\<rbrakk> \<Longrightarrow>
