@@ -2054,7 +2054,7 @@ lemma comp_UpdateTTBR0_correct:
 lemma comp_UpdateASID_correct:
   "\<lbrakk>mode s = Kernel;
     c = comp_com (UpdateASID a);
-    code_installed t (comp_com (UpdateASID a));
+    code_installed t c;
     machine_config t;
     state_rel s t\<rbrakk> \<Longrightarrow>
       \<exists>k t'. steps t k = t' \<and>
@@ -2065,7 +2065,7 @@ lemma comp_UpdateASID_correct:
         REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
                          RName_1usr := REG t' RName_1usr,
                          RName_2usr := REG t' RName_2usr,
-                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com (UpdateASID a)))))"
+                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length c)))"
   sorry
 
 lemma comp_SetMode_correct:
