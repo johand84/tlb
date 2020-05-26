@@ -1974,43 +1974,43 @@ lemma comp_WhileFalse_correct:
   sorry
 
 lemma comp_WhileTrue_correct:
-  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some True; (ca, s) \<Rightarrow> Some s'';
-    \<And>t. \<lbrakk>comp_com (WHILE b DO ca) = comp_com ca;
-          code_installed t (comp_com (WHILE b DO ca));
-          machine_config t;
+  "\<lbrakk>bval b s = Some True;
+    (p1, s) \<Rightarrow> Some s'';
+    \<And>ta. \<lbrakk>c1 = comp_com p1;
+          code_installed ta c1;
+          machine_config ta;
           Some s'' \<noteq> None;
-          state_rel s t\<rbrakk> \<Longrightarrow>
-            \<exists>k t'. steps t k = t' \<and>
-              machine_config t' \<and>
-              state_rel (the (Some s'')) t' \<and>
-              REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
-                               RName_1usr := REG t' RName_1usr,
-                               RName_2usr := REG t' RName_2usr,
-                               RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com (WHILE b DO ca)))));
-    (WHILE b DO ca, s'') \<Rightarrow> Some y;
-    \<And>t. \<lbrakk>comp_com (WHILE b DO ca) = comp_com (WHILE b DO ca);
-          code_installed t (comp_com (WHILE b DO ca));
-          machine_config t;
+          state_rel s ta\<rbrakk> \<Longrightarrow>
+            \<exists>ka ta'. steps ta ka = ta' \<and>
+              machine_config ta' \<and>
+              state_rel (the (Some s'')) ta' \<and>
+              REG ta' = (REG ta)(RName_0usr := REG ta' RName_0usr,
+                                 RName_1usr := REG ta' RName_1usr,
+                                 RName_2usr := REG ta' RName_2usr,
+                                 RName_PC := REG ta RName_PC + 4 * word_of_int (int (length c1)));
+    (WHILE b DO p1, s'') \<Rightarrow> Some y;
+    \<And>tb. \<lbrakk>code_installed tb c;
+          machine_config tb;
           Some y \<noteq> None;
-          state_rel s'' t\<rbrakk> \<Longrightarrow>
-            \<exists>k t'. steps t k = t' \<and>
-              machine_config t' \<and>
-              state_rel (the (Some y)) t' \<and>
-              REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
-                               RName_1usr := REG t' RName_1usr,
-                               RName_2usr := REG t' RName_2usr,
-                               RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com (WHILE b DO ca)))));
-    code_installed t (comp_com (WHILE b DO ca));
+          state_rel s'' tb\<rbrakk> \<Longrightarrow>
+            \<exists>kb tb'. steps tb kb = tb' \<and>
+              machine_config tb' \<and>
+              state_rel (the (Some y)) tb' \<and>
+              REG tb' = (REG tb)(RName_0usr := REG tb' RName_0usr,
+                                 RName_1usr := REG tb' RName_1usr,
+                                 RName_2usr := REG tb' RName_2usr,
+                                 RName_PC := REG tb RName_PC + 4 * word_of_int (int (length c)));
+    code_installed t c;
     machine_config t;
     state_rel s t;
-    c = comp_com (WHILE b DO ca)\<rbrakk> \<Longrightarrow>
+    c = comp_com (WHILE b DO p1)\<rbrakk> \<Longrightarrow>
       \<exists>k t'. steps t k = t' \<and>
         machine_config t' \<and>
         state_rel (the (Some y)) t' \<and>
         REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
                          RName_1usr := REG t' RName_1usr,
                          RName_2usr := REG t' RName_2usr,
-                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com (WHILE b DO ca)))))"
+                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length c)))"
   sorry
 
 lemma comp_Flush_correct:
