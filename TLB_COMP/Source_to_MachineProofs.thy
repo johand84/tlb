@@ -1714,7 +1714,7 @@ lemma comp_flush_flushTLB_correct:
 lemma comp_flush_flushASID_correct:
   "\<lbrakk>mode s = Kernel;
     c = [mov_imm 0 (UCAST(8 \<rightarrow> 12) x2), tlbiasid 0];
-    code_installed t [mov_imm 0 (UCAST(8 \<rightarrow> 12) x2), tlbiasid 0];
+    code_installed t c;
     machine_config t;
     state_rel s t;
     f = flushASID x2\<rbrakk> \<Longrightarrow>
