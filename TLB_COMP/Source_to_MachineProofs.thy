@@ -1931,31 +1931,31 @@ lemma comp_IfTrue_correct:
   sorry
 
 lemma comp_IfFalse_correct:
-  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some False;
-    (c2, s) \<Rightarrow> Some y;
-    \<And>t. \<lbrakk>comp_com (IF b THEN c1 ELSE c2) = comp_com c2;
-          code_installed t (comp_com (IF b THEN c1 ELSE c2));
-          machine_config t;
+  "\<lbrakk>bval b s = Some False;
+    (p2, s) \<Rightarrow> Some y;
+    \<And>tb. \<lbrakk>c2 = comp_com p2;
+          code_installed tb c2;
+          machine_config tb;
           Some y \<noteq> None;
-          state_rel s t\<rbrakk> \<Longrightarrow>
-            \<exists>k t'. steps t k = t' \<and>
-              machine_config t' \<and>
-              state_rel (the (Some y)) t' \<and>
-              REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
-                               RName_1usr := REG t' RName_1usr,
-                               RName_2usr := REG t' RName_2usr,
-                               RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com (IF b THEN c1 ELSE c2)))));
-    code_installed ta (comp_com (IF b THEN c1 ELSE c2));
-    machine_config ta;
-    state_rel s ta;
-    c = comp_com (IF b THEN c1 ELSE c2)\<rbrakk> \<Longrightarrow>
-      \<exists>k t'. steps ta k = t' \<and>
+          state_rel s tb\<rbrakk> \<Longrightarrow>
+            \<exists>k tb'. steps tb k = tb' \<and>
+              machine_config tb' \<and>
+              state_rel (the (Some y)) tb' \<and>
+              REG tb' = (REG tb)(RName_0usr := REG tb' RName_0usr,
+                                 RName_1usr := REG tb' RName_1usr,
+                                 RName_2usr := REG tb' RName_2usr,
+                                 RName_PC := REG tb RName_PC + 4 * word_of_int (int (length c2)));
+    code_installed t c;
+    machine_config t;
+    state_rel s t;
+    c = comp_com (IF b THEN p1 ELSE p2)\<rbrakk> \<Longrightarrow>
+      \<exists>k t'. steps t k = t' \<and>
         machine_config t' \<and>
         state_rel (the (Some y)) t' \<and>
-        REG t' = (REG ta)(RName_0usr := REG t' RName_0usr,
-                          RName_1usr := REG t' RName_1usr,
-                          RName_2usr := REG t' RName_2usr,
-                          RName_PC := REG ta RName_PC + 4 * word_of_int (int (length (comp_com (IF b THEN c1 ELSE c2)))))"
+        REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                         RName_1usr := REG t' RName_1usr,
+                         RName_2usr := REG t' RName_2usr,
+                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length c)))"
   sorry
 
 lemma comp_WhileFalse_correct:
