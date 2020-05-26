@@ -2037,8 +2037,8 @@ lemma comp_Flush_correct:
 
 lemma comp_UpdateTTBR0_correct:
   "\<lbrakk>mode s = Kernel;
-    \<lbrakk>rte\<rbrakk> s = Some rt;
-    code_installed t (comp_com (UpdateTTBR0 rte));
+    aval rte s = Some rt;
+    code_installed t c;
     machine_config t;
     state_rel s t;
     c = comp_com (UpdateTTBR0 rte)\<rbrakk> \<Longrightarrow>
@@ -2048,7 +2048,7 @@ lemma comp_UpdateTTBR0_correct:
         REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
                          RName_1usr := REG t' RName_1usr,
                          RName_2usr := REG t' RName_2usr,
-                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com (UpdateTTBR0 rte)))))"
+                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length c)))"
   sorry
 
 lemma comp_UpdateASID_correct:
