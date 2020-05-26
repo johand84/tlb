@@ -2015,7 +2015,7 @@ lemma comp_WhileTrue_correct:
 
 lemma comp_Flush_correct:
   "\<lbrakk>mode s = Kernel;
-    code_installed t (comp_com (Flush f));
+    code_installed t c;
     machine_config t;
     state_rel s t;
     c = comp_com (Flush f)\<rbrakk> \<Longrightarrow>
@@ -2027,7 +2027,7 @@ lemma comp_Flush_correct:
         REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
                          RName_1usr := REG t' RName_1usr,
                          RName_2usr := REG t' RName_2usr,
-                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length (comp_com (Flush f)))))"
+                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length c)))"
   apply (cases f; simp)
      apply (frule comp_flush_flushTLB_correct, force+)
     apply (frule comp_flush_flushASID_correct, force+)
