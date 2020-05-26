@@ -1795,11 +1795,12 @@ lemma comp_SKIP_correct:
   using steps.simps(1) by fastforce
 
 lemma comp_Assign_correct:
-  "\<lbrakk>\<lbrakk>lval\<rbrakk> s = Some vp;
-    \<lbrakk>rval\<rbrakk> s = Some v;
+  "\<lbrakk>aval lval s = Some vp;
+    aval rval s = Some v;
     Addr vp \<notin> incon_set s;
     addr_trans s (Addr vp) = Some pp;
-    aligned pp; c = comp_com (lval ::= rval);
+    aligned pp;
+    c = comp_com (lval ::= rval);
     code_installed t c;
     machine_config t;
     Some (s\<lparr>heap := heap s(pp \<mapsto> v), incon_set := iset_upd s pp v, p_state.global_set := gset_upd s pp v\<rparr>) \<noteq> None;
