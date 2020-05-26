@@ -1900,31 +1900,34 @@ lemma comp_Seq_correct:
   sorry
 
 lemma comp_IfTrue_correct:
-  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some True;
-    (c1, s) \<Rightarrow> Some y;
-    \<And>t. \<lbrakk>comp_com (IF b THEN c1 ELSE c2) = comp_com c1;
-         code_installed t (comp_com (IF b THEN c1 ELSE c2));
-         machine_config t;
-         Some y \<noteq> None;
-         state_rel s t\<rbrakk> \<Longrightarrow>
-          \<exists>k t'. steps t k = t' \<and>
-            machine_config t' \<and>
-            state_rel (the (Some y)) t' \<and>
-            REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
-                             RName_1usr := REG t' RName_1usr,
-                             RName_2usr := REG t' RName_2usr,
-                             RName_PC := state.REG t RName_PC + 4 * word_of_int (int (length (comp_com (IF b THEN c1 ELSE c2)))));
-    code_installed ta (comp_com (IF b THEN c1 ELSE c2));
-    machine_config ta;
-    state_rel s ta;
-    c = comp_com (IF b THEN c1 ELSE c2)\<rbrakk> \<Longrightarrow>
-      \<exists>k t'. steps ta k = t' \<and>
+  "\<lbrakk>bval b s = Some True;
+    (p1, s) \<Rightarrow> Some y;
+    \<And>ta. \<lbrakk>c1 = comp_com p1;
+           code_installed ta c1;
+           machine_config ta;
+           Some y \<noteq> None;
+           state_rel s ta\<rbrakk> \<Longrightarrow>
+            \<exists>k ta'. steps ta k = ta' \<and>
+              machine_config ta' \<and>
+              state_rel (the (Some y)) ta' \<and>
+              REG ta' = (REG ta)(RName_0usr := REG ta' RName_0usr,
+                                 RName_1usr := REG ta' RName_1usr,
+                                 RName_2usr := REG ta' RName_2usr,
+                                 RName_PC := state.REG ta RName_PC + 4 * word_of_int (int (length c1)));
+    code_installed t c;
+    machine_config t;
+    state_rel s t;
+    c = comp_com (IF b THEN p1 ELSE p2)\<rbrakk> \<Longrightarrow>
+      \<exists>k t'. steps t k = t' \<and>
         machine_config t' \<and>
         state_rel (the (Some y)) t' \<and>
-        REG t' = (REG ta)(RName_0usr := REG t' RName_0usr,
-                          RName_1usr := REG t' RName_1usr,
-                          RName_2usr := REG t' RName_2usr,
-                          RName_PC := REG ta RName_PC + 4 * word_of_int (int (length (comp_com (IF b THEN c1 ELSE c2)))))"
+        REG t' = (REG t)(RName_0usr := REG t' RName_0usr,
+                         RName_1usr := REG t' RName_1usr,
+                         RName_2usr := REG t' RName_2usr,
+                         RName_PC := REG t RName_PC + 4 * word_of_int (int (length c)))"
+  apply (simp add: Let_def)
+  apply (frule code_installed_append)
+  apply (frule_tac c = "comp_bexp b" in comp_bexp_correct, simp+)
   sorry
 
 lemma comp_IfFalse_correct:
