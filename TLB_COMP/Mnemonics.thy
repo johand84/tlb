@@ -413,5 +413,9 @@ definition
 where
   "tlbimvaa rt = mcr_reg 0 8 rt 15 3 7"
 
+definition
+  setttbr0 :: "4 word \<Rightarrow> MachineCode"
+where
+  "setttbr0 rt = mcr_reg 0 2 rt 15 0 0"
 
 end
