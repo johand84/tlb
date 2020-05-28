@@ -1979,20 +1979,20 @@ lemma comp_WhileTrue_correct:
     \<And>ta. \<lbrakk>c1 = comp_com p1;
           code_installed ta c1;
           machine_config ta;
-          Some s'' \<noteq> None;
+          Some s1 \<noteq> None;
           state_rel s ta\<rbrakk> \<Longrightarrow>
             \<exists>ka ta'. steps ta ka = ta' \<and>
               machine_config ta' \<and>
-              state_rel (the (Some s'')) ta' \<and>
+              state_rel (the (Some s1)) ta' \<and>
               REG ta' = (REG ta)(RName_0usr := REG ta' RName_0usr,
                                  RName_1usr := REG ta' RName_1usr,
                                  RName_2usr := REG ta' RName_2usr,
                                  RName_PC := REG ta RName_PC + 4 * word_of_int (int (length c1)));
-    (WHILE b DO p1, s'') \<Rightarrow> Some y;
+    (WHILE b DO p1, s1) \<Rightarrow> Some y;
     \<And>tb. \<lbrakk>code_installed tb c;
           machine_config tb;
           Some y \<noteq> None;
-          state_rel s'' tb\<rbrakk> \<Longrightarrow>
+          state_rel s1 tb\<rbrakk> \<Longrightarrow>
             \<exists>kb tb'. steps tb kb = tb' \<and>
               machine_config tb' \<and>
               state_rel (the (Some y)) tb' \<and>
