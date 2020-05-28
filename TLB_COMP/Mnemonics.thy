@@ -389,6 +389,11 @@ where
   "push r = always (str_imm1 1 0 1 r 13 4)"
 
 definition
+  setasid ::  "4 word \<Rightarrow> MachineCode"
+where
+  "setasid rt = mcr_reg 0 13 rt 15 0 0"
+
+definition
   tlbiall :: "MachineCode"
 where
   "tlbiall = mcr_reg 0 8 0 15 0 7"
