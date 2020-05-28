@@ -1033,11 +1033,15 @@ lemma or_reg_correct:
 
 lemma str_imm_correct:
   "\<lbrakk>Fetch t = (str_imm rt rn 0, ft);
-    machine_config t\<rbrakk> \<Longrightarrow>
+    general_purpose_reg rn;
+    general_purpose_reg rt;
+    machine_config t;
+    mmu_read_size (Addr (REG t (bin_to_reg rn)), 4) t = (x, mt);
+    exception mt = NoException\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
         machine_config t' \<and>
         machine_state_preserved t t' \<and>
-        mmu_read_size (Addr (REG t (bin_to_reg rt)), 4) t' = (to_bl (REG t (bin_to_reg rt)), t'')"
+        mmu_read_size (Addr (REG t (bin_to_reg rn)), 4) t' = (to_bl (REG t (bin_to_reg rt)), t'')"
   sorry
 
 lemma Run_sub_reg_correct:
