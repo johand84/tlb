@@ -1938,7 +1938,7 @@ lemma comp_IfFalse_correct:
           machine_config tb;
           Some y \<noteq> None;
           state_rel s tb\<rbrakk> \<Longrightarrow>
-            \<exists>k tb'. steps tb k = tb' \<and>
+            \<exists>kb tb'. steps tb kb = tb' \<and>
               machine_config tb' \<and>
               state_rel (the (Some y)) tb' \<and>
               REG tb' = (REG tb)(RName_0usr := REG tb' RName_0usr,
