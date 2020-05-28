@@ -1907,7 +1907,7 @@ lemma comp_IfTrue_correct:
            machine_config ta;
            Some y \<noteq> None;
            state_rel s ta\<rbrakk> \<Longrightarrow>
-            \<exists>k ta'. steps ta k = ta' \<and>
+            \<exists>ka ta'. steps ta ka = ta' \<and>
               machine_config ta' \<and>
               state_rel (the (Some y)) ta' \<and>
               REG ta' = (REG ta)(RName_0usr := REG ta' RName_0usr,
