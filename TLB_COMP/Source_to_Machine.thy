@@ -99,7 +99,7 @@ fun
   comp_com :: "com \<Rightarrow> MachineCode list"
 where
   "comp_com SKIP = []" |
-  "comp_com (Assign a1 a2) = comp_aexp a1 @ mov_reg 2 0 # comp_aexp a2 @ [str_imm 0 2 0]" |
+  "comp_com (Assign addr val) = comp_aexp addr @ mov_reg 2 0 # comp_aexp val @ [str_imm 0 2 0]" |
   "comp_com (Seq c1 c2) = (comp_com c1) @ (comp_com c2)" |
   "comp_com (If b c1 c2) = (
     let i1 = comp_com c1;
@@ -112,7 +112,6 @@ where
       i2
     )
   )" |
-(* *)
   "comp_com (While b c) = (
     let i1 = comp_bexp b;
         i2 = comp_com c
@@ -125,8 +124,8 @@ where
     )
   )" |
   "comp_com (Flush t) = comp_flush t" |
-  "comp_com (UpdateTTBR0 a) = comp_aexp a @ [mcr_reg 0 2 0 15 0 0]" |
-  "comp_com (UpdateASID v) = [mov_imm 0 (ucast v), mcr_reg 0 13 0 15 0 0]" |
+  "comp_com (UpdateTTBR0 a) = comp_aexp a @ [setttbr0 0]" |
+  "comp_com (UpdateASID v) = [mov_imm 0 (ucast v), setasid 0]" |
   "comp_com (SetMode m) = comp_set_mode m"
 
 end
