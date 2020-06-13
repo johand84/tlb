@@ -1242,7 +1242,7 @@ lemma comp_aexp_UnOp_Neg_correct:
   done
 
 lemma comp_aexp_UnOp_correct:
-  "\<lbrakk>\<lbrakk>e\<rbrakk> s = Some y;
+  "\<lbrakk>aval e s = Some y;
     c = comp_aexp e;
     code_installed t c;
     state_rel s t;
