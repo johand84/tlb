@@ -239,7 +239,7 @@ lemma code_installed_prepend:
     code_installed (steps t k) cb"
   sorry
 
-lemma code_installed_implies_Fetch:
+lemma code_installed_Fetch_correct:
   "code_installed t (x#xs) \<Longrightarrow> Fetch t = (x, snd (Fetch t))"
   apply (clarsimp simp: code_installed_def Let_def)
   apply (erule_tac x = "0" in allE, clarsimp)
@@ -1188,7 +1188,7 @@ lemma comp_aexp_mov_correct:
         REG t' = (REG t)(bin_to_reg reg := val,
                          RName_PC := REG t RName_PC + 4 * (word_of_int (int (length (comp_aexp_mov reg val)))))"
   apply (simp add: comp_aexp_mov_def split: if_split_asm prod.splits)
-   apply (frule code_installed_implies_Fetch)
+   apply (frule code_installed_Fetch_correct)
    apply (frule comp_aexp_mov_small_correct, simp+)
    apply (rule_tac x = "1" in exI, simp)
   apply (frule comp_aexp_mov_large_correct, force+)
@@ -1229,7 +1229,7 @@ lemma comp_aexp_UnOp_Neg_correct:
   apply (frule comp_aexp_mov_correct)
    apply (simp add: general_purpose_reg_def, simp, simp, safe)
   apply (frule_tac k = "k" in code_installed_prepend, simp, simp split: prod.splits)
-  apply (frule code_installed_implies_Fetch)
+  apply (frule code_installed_Fetch_correct)
   apply (frule_tac rd = "0" and rm = "0" in neg_correct)
      apply (simp add: general_purpose_reg_def)
     apply (simp add: general_purpose_reg_def, simp)
@@ -1276,7 +1276,7 @@ lemma comp_aexp_BinOp_Plus_correct:
   apply (frule_tac reg = "1" in comp_aexp_mov_correct)
    apply (simp add: general_purpose_reg_def, simp, simp, safe)
   apply (drule_tac k = "ka" in code_installed_prepend, simp, simp split: prod.splits)
-  apply (frule code_installed_implies_Fetch)
+  apply (frule code_installed_Fetch_correct)
   apply (frule_tac t = "steps (steps t k) ka" in add_reg_correct)
       apply (simp add: general_purpose_reg_def)
      apply (simp add: general_purpose_reg_def)
@@ -1317,7 +1317,7 @@ lemma comp_aexp_BinOp_Minus_correct:
   apply (frule_tac reg = "1" in comp_aexp_mov_correct)
    apply (simp add: general_purpose_reg_def, simp, simp, safe)
   apply (drule_tac k = "ka" in code_installed_prepend, simp, simp split: prod.splits)
-  apply (frule code_installed_implies_Fetch)
+  apply (frule code_installed_Fetch_correct)
   apply (frule_tac t = "steps (steps t k) ka" in sub_reg_correct)
       apply (simp add: general_purpose_reg_def)
      apply (simp add: general_purpose_reg_def)
@@ -1370,7 +1370,7 @@ lemma comp_aexp_HeapLookup_correct:
   apply (frule comp_aexp_mov_correct)
      apply (simp add: general_purpose_reg_def, simp, simp, safe)
   apply (frule_tac k = "k" in code_installed_prepend, simp, simp split: prod.splits)
-  apply (frule code_installed_implies_Fetch)
+  apply (frule code_installed_Fetch_correct)
    apply (frule_tac t = "steps t k" and val = "val" in ldr_imm_correct)
        apply (simp add: general_purpose_reg_def)
       apply (simp add: general_purpose_reg_def, simp, simp split: if_split_asm, safe)
@@ -1410,7 +1410,7 @@ lemma comp_bexp_mov_correct:
         REG t' = (REG t)(bin_to_reg reg := (if val then 1 else 0),
                          RName_PC := REG t RName_PC + 4 * (word_of_int (int (length (comp_bexp_mov reg val)))))"
   apply (simp add: comp_bexp_mov_def split: prod.splits)
-  apply (frule code_installed_implies_Fetch)
+  apply (frule code_installed_Fetch_correct)
   apply (frule mov_imm_correct, simp, simp)
    apply (simp add: word_bits_def word_extract_def, safe)
        apply (simp add: state_rel_preserved)+
@@ -1497,7 +1497,7 @@ lemma comp_bexp_BBinOp_And_correct:
    apply (simp add: steps_add steps_inc)
   apply (frule_tac k = "1" in code_installed_prepend)
    apply (simp add: steps_add steps_inc, simp del: steps.simps split: prod.splits)
-  apply (frule code_installed_implies_Fetch)
+  apply (frule code_installed_Fetch_correct)
   apply (frule and_reg_correct)
       apply (simp add: general_purpose_reg_def)
      apply (simp add: general_purpose_reg_def)
@@ -1559,7 +1559,7 @@ lemma comp_bexp_BBinOp_Or_correct:
    apply (simp add: steps_add steps_inc)
   apply (frule_tac k = "1" in code_installed_prepend)
    apply (simp add: steps_add steps_inc, simp del: steps.simps split: prod.splits)
-  apply (frule code_installed_implies_Fetch)
+  apply (frule code_installed_Fetch_correct)
   apply (frule or_reg_correct)
       apply (simp add: general_purpose_reg_def)
      apply (simp add: general_purpose_reg_def)
@@ -1619,7 +1619,7 @@ lemma comp_bexp_BUnOp_Not_correct:
   apply (frule comp_bexp_mov_correct)
      apply (simp add: general_purpose_reg_def, simp, simp, simp del: steps.simps)
   apply (drule_tac k = "1" in code_installed_prepend, simp)
-  apply (frule code_installed_implies_Fetch)
+  apply (frule code_installed_Fetch_correct)
   apply (frule_tac val = "a" in cmp_imm_correct)
      apply (simp add: bin_to_reg_def)
     apply (simp add: general_purpose_reg_def)
@@ -1629,7 +1629,7 @@ lemma comp_bexp_BUnOp_Not_correct:
    apply (subgoal_tac "machine_state_preserved (steps t (Suc 0)) (steps (steps t (Suc 0)) (Suc 0))")
     apply (frule_tac t = "steps t (Suc 0)" and
                      t' = "steps (steps t (Suc 0)) (Suc 0)" in state_rel_preserved, simp)
-    apply (frule code_installed_implies_Fetch)
+    apply (frule code_installed_Fetch_correct)
     apply (frule moveq_imm_correct)
        apply (simp add: general_purpose_reg_def, simp)
      apply (simp add: word_bits_def word_extract_def)
@@ -1638,7 +1638,7 @@ lemma comp_bexp_BUnOp_Not_correct:
      apply (subgoal_tac "machine_state_preserved (steps (steps t (Suc 0)) (Suc 0)) (steps (steps (steps t (Suc 0)) (Suc 0)) (Suc 0))")
       apply (frule_tac t = "steps (steps t (Suc 0)) (Suc 0)" and
                        t' = "steps (steps (steps t (Suc 0)) (Suc 0)) (Suc 0)" in state_rel_preserved, simp)
-      apply (frule code_installed_implies_Fetch)
+      apply (frule code_installed_Fetch_correct)
       apply (frule movne_imm_correct)
          apply (simp add: general_purpose_reg_def, simp)
        apply (simp add: word_bits_def word_extract_def, simp del: steps.simps, safe)
@@ -1817,7 +1817,7 @@ lemma comp_Assign_correct:
   apply (thin_tac "code_installed t (comp_aexp lval)")
   apply (thin_tac "code_installed t (comp_aexp lval @ mov_reg 2 0 # comp_aexp rval @ [str_imm 0 2 0])")
   apply (frule code_installed_append1, simp split: prod.splits)
-  apply (frule code_installed_implies_Fetch)
+  apply (frule code_installed_Fetch_correct)
   apply (frule mov_reg_correct)
      apply (simp add: general_purpose_reg_def)
     apply (simp add: general_purpose_reg_def)
