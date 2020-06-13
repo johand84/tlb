@@ -1660,7 +1660,7 @@ lemma comp_bexp_BUnOp_Not_correct:
   done
 
 lemma comp_bexp_BUnOp_correct:
-  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some val;
+  "\<lbrakk>bval b s = Some val;
     code_installed t c;
     machine_config t;
     state_rel s t;
