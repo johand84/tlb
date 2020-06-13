@@ -1458,7 +1458,7 @@ lemma comp_bexp_BComp_Less_correct:
   sorry
 
 lemma comp_bexp_BComp_correct:
-  "\<lbrakk>\<lbrakk>b\<rbrakk>\<^sub>b s = Some val;
+  "\<lbrakk>bval b s = Some val;
     code_installed t c;
     machine_config t;
     state_rel s t;
