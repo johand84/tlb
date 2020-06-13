@@ -214,15 +214,11 @@ where
 definition
   code_installed :: "'a set_tlb_state_scheme \<Rightarrow> MachineCode list \<Rightarrow>  bool"
 where
-  "code_installed t mc \<equiv>
-        unat (REG t RName_PC) + 4 * length mc < 2^32 \<and> (
-         \<forall>i. let pci = REG t RName_PC;
-                 pcf = REG (steps t i) RName_PC in
-             pci \<le> pcf \<and>
-             unat (pcf - pci) div 4 < length mc \<longrightarrow>
-               (let (m, ft) = Fetch (steps t i) in
-                exception ft = NoException \<and>
-                m =  mc ! (unat (pcf - pci) div 4)))"
+  "code_installed t mc \<equiv> unat (REG t RName_PC) + 4 * length mc < 2^32 \<and>
+                          (\<forall>i. let pci = REG t RName_PC;
+                            pcf = REG (steps t i) RName_PC in pci \<le> pcf \<and>
+                            unat (pcf - pci) div 4 < length mc \<longrightarrow> (let (m, ft) = Fetch (steps t i) in exception ft = NoException \<and>
+                            m =  mc ! (unat (pcf - pci) div 4)))"
 
 (* Proofs *)
 
