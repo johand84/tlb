@@ -1199,7 +1199,7 @@ lemma comp_aexp_mov_correct:
   done
 
 lemma comp_aexp_Const_correct:
-  "\<lbrakk>\<lbrakk>e\<rbrakk> s = Some val;
+  "\<lbrakk>aval e s = Some val;
     code_installed t (comp_aexp e);
     machine_config t;
     state_rel s t;
