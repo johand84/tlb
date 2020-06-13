@@ -21,8 +21,8 @@ lemma Decode_cmp_imm_correct:
   sorry
 
 lemma Decode_ldr_imm_correct:
-  "Decode (ldr_imm rt rn imm12) t = (i,t') \<Longrightarrow>
-    i = Load (LoadWord (False, False, False, rt, rn, immediate_form1 (ucast imm12)))"
+  "machine_config s \<Longrightarrow>
+    Decode (ldr_imm rt rn imm12) s = (Load (LoadWord (False, False, False, rt, rn, immediate_form1 (ucast imm12))),s)"
   sorry
 
 lemma Decode_ldr_lit_correct:
