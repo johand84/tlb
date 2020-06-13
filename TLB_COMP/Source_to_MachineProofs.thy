@@ -1358,12 +1358,12 @@ lemma comp_aexp_BinOp_correct:
   done
 
 lemma comp_aexp_HeapLookup_correct:
-  "\<lbrakk>\<lbrakk>e\<rbrakk> s = Some val;
+  "\<lbrakk>aval e s = Some val;
     code_installed t c;
     machine_config t;
     state_rel s t;
     c = comp_aexp e;
-    e = HeapLookup x4\<rbrakk> \<Longrightarrow>
+    e = HeapLookup addr\<rbrakk> \<Longrightarrow>
     \<exists>k t'. steps t k = t' \<and>
       state_rel s t' \<and>
       machine_config t' \<and>
