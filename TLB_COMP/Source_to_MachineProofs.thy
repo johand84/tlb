@@ -1258,7 +1258,7 @@ lemma comp_aexp_UnOp_correct:
   done
 
 lemma comp_aexp_BinOp_Plus_correct:
-  "\<lbrakk>\<lbrakk>e\<rbrakk> s = Some z;
+  "\<lbrakk>aval e s = Some z;
     code_installed t c;
     state_rel s t;
     c = comp_aexp e;
