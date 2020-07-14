@@ -1963,7 +1963,7 @@ lemma comp_WhileFalse_correct:
     code_installed t c;
     machine_config t;
     state_rel y t;
-    c = comp_com (WHILE b DO ca)\<rbrakk> \<Longrightarrow>
+    c = comp_com (While b ca)\<rbrakk> \<Longrightarrow>
       \<exists>k t'. steps t k = t' \<and>
         machine_config t' \<and>
         state_rel (the (Some y)) t' \<and>
