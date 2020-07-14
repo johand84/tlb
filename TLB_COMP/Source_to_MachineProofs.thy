@@ -718,7 +718,8 @@ lemma ldr_imm_correct:
     general_purpose_reg rn;
     general_purpose_reg rt;
     machine_config t;
-    mmu_read_size (Addr (REG t (bin_to_reg rn)), 4) t = (to_bl val, mt)\<rbrakk> \<Longrightarrow>
+    mmu_read_size (Addr (REG t (bin_to_reg rn)), 4) t = (to_bl val, mt);
+    exception mt = NoException\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
         machine_config t' \<and>
         machine_state_preserved t t' \<and>
