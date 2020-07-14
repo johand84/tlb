@@ -1868,7 +1868,7 @@ lemma comp_Seq_correct:
     code_installed t c;
     machine_config t;
     state_rel s1 t;
-    c = comp_com (p1;; p2)\<rbrakk> \<Longrightarrow>
+    c = comp_com (Seq p1 p2)\<rbrakk> \<Longrightarrow>
       \<exists>k t'. steps t k = t' \<and>
         machine_config t' \<and>
         state_rel (the (Some y)) t' \<and>
