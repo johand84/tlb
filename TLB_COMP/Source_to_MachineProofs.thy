@@ -1040,7 +1040,7 @@ lemma str_imm_correct:
     general_purpose_reg rn;
     general_purpose_reg rt;
     machine_config t;
-    mmu_read_size (Addr (REG t (bin_to_reg rn)), 4) t = (x, mt);
+    mmu_write_size (to_bl (REG t (bin_to_reg rt)), Addr (REG t (bin_to_reg rn)), 4) t = (x, mt);
     exception mt = NoException\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
         machine_config t' \<and>
