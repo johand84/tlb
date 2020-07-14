@@ -1800,7 +1800,7 @@ lemma comp_Assign_correct:
     Addr vp \<notin> incon_set s;
     addr_trans s (Addr vp) = Some pp;
     aligned pp;
-    c = comp_com (lval ::= rval);
+    c = comp_com (Assign lval rval);
     code_installed t c;
     machine_config t;
     Some (s\<lparr>heap := heap s(pp \<mapsto> v), incon_set := iset_upd s pp v, p_state.global_set := gset_upd s pp v\<rparr>) \<noteq> None;
