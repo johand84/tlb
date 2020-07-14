@@ -1917,7 +1917,7 @@ lemma comp_IfTrue_correct:
     code_installed t c;
     machine_config t;
     state_rel s t;
-    c = comp_com (IF b THEN p1 ELSE p2)\<rbrakk> \<Longrightarrow>
+    c = comp_com (If b p1 p2)\<rbrakk> \<Longrightarrow>
       \<exists>k t'. steps t k = t' \<and>
         machine_config t' \<and>
         state_rel (the (Some y)) t' \<and>
