@@ -1988,7 +1988,7 @@ lemma comp_WhileTrue_correct:
                                  RName_1usr := REG ta' RName_1usr,
                                  RName_2usr := REG ta' RName_2usr,
                                  RName_PC := REG ta RName_PC + 4 * word_of_int (int (length c1)));
-    (WHILE b DO p1, s1) \<Rightarrow> Some y;
+    (While b p1, s1) \<Rightarrow> Some y;
     \<And>tb. \<lbrakk>code_installed tb c;
           machine_config tb;
           Some y \<noteq> None;
@@ -2003,7 +2003,7 @@ lemma comp_WhileTrue_correct:
     code_installed t c;
     machine_config t;
     state_rel s t;
-    c = comp_com (WHILE b DO p1)\<rbrakk> \<Longrightarrow>
+    c = comp_com (While b p1)\<rbrakk> \<Longrightarrow>
       \<exists>k t'. steps t k = t' \<and>
         machine_config t' \<and>
         state_rel (the (Some y)) t' \<and>
