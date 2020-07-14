@@ -902,6 +902,7 @@ lemma movne_imm_correct:
 
 lemma Run_msr_reg_correct:
   "\<lbrakk>PSR.M (CPSR s) = 0x13;
+    REG t RName_0usr = 0x10;
     Run (System (MoveToSpecialFromRegister (False, 0, 1))) s = ((), t);
     machine_config s\<rbrakk> \<Longrightarrow>
       machine_config t \<and>
