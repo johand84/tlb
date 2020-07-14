@@ -1382,11 +1382,7 @@ lemma comp_aexp_HeapLookup_correct:
    apply (frule_tac t = "steps t k" and val = "val" in ldr_imm_correct)
        apply (simp add: general_purpose_reg_def)
       apply (simp add: general_purpose_reg_def, simp, simp split: if_split_asm, safe)
-    apply (simp add: bin_to_reg_def)
-  defer
-   apply (rule_tac x = "k+1" in exI, safe)
-    apply (simp add: state_rel_preserved steps_add steps_inc)
-   apply (simp add: add.commute bin_to_reg_def comp_aexp_mov_def steps_add steps_inc)
+     apply (simp add: bin_to_reg_def)
   sorry
 
 lemma comp_aexp_correct:
