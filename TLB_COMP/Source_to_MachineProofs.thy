@@ -917,6 +917,8 @@ lemma Run_msr_reg_correct:
 
 lemma msr_reg_correct:
   "\<lbrakk>Fetch t = (msr_reg 0 0x1 0, ft);
+    PSR.M (CPSR s) = 0x13;
+    REG t RName_0usr = 0x10;
     machine_config t\<rbrakk> \<Longrightarrow>
       \<exists>t'. steps t 1 = t' \<and>
         machine_config t' \<and>
